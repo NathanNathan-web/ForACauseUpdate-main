@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block navbar %}
+  {% include 'includes/_suppliernavbar.html' %}
+{% endblock %}
+{% block title %}Grocery Store - Create Order{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <table class="table table-hover">
+        <thead class="table-success">
+            <tr border:1px solid black;>
+                <th scope="col" class="topleft">Order ID</th>
+                <th scope="col">Order Product Name</th>
+                <th scope="col">Order Stock</th>
+                <th scope="col">Status</th>
+                <th scope="col">Supplier ID</th>
+                <th scope="col" class="topright">Product ID</th>
+            </tr>
+        </thead>
+        <tbody class="table-secondary">
+            {% for order in orders_list %}
+            {% if order.status != 1 %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.product.name }}</td>
+                <td>{{ order.orderstock }}</td>
+                {% if order.status == 0 %}
+                <td>Cancelled</td>
+                {% elif order.status == 1 %}
+                <td>Pending</td>
+                {% elif order.status == 2 %}
+                <td>Accepted</td>
+                {% endif %}
+
+                <td>{{ order.supplier_id }}</td>
+                <td>{{ order.product_id }}</td>
+
+
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-success">
+            <tr border:1px solid black;>
+                <th scope="col" class="bottomleft"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col" class='bottomright'></th>
+            </tr>
+        </tfoot>
+    </table>
+
+
+    <table class="table table-hover">
+        <thead class="table-success">
+            <tr border:1px solid black;>
+                <th scope="col" class="topleft">Order ID</th>
+                <th scope="col">Order Product Name</th>
+                <th scope="col">Order Stock</th>
+                <th scope="col">Status</th>
+                <th scope="col">Supplier ID</th>
+                <th scope="col">Product ID</th>
+                <th scope="col" colspan='2' class="topright">Action</th>
+            </tr>
+        </thead>
+        <tbody class="table-secondary">
+            {% for order in orders_list %}
+            {% if order.status == 1%}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>{{ order.product.name }}</td>
+                <td>{{ order.orderstock }}</td>
+                {% if order.status == 0 %}
+                <td>Cancelled</td>
+                {% elif order.status == 1 %}
+                <td>Pending</td>
+                {% elif order.status == 2 %}
+                <td>Accepted</td>
+                {% endif %}
+
+                <td>{{ order.supplier_id }}</td>
+                <td>{{ order.product_id }}</td>
+
+
+                <td><a href="/acceptOrder/{{order.id}}" class="btn btn-success"><i class="bi bi-check-lg"></i></a>
+                </td>
+                <td>
+                    <a href="/rejectOrder/{{order.id}}" class="btn btn-danger"><i class="bi bi-x-lg"></i></a>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-success">
+            <tr border:1px solid black;>
+                <th scope="col" class="bottomleft"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col" colspan="3" class='bottomright'></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+{% endblock %}

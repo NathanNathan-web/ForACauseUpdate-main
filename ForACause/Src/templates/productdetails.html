@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Product Details{% endblock %}
+
+{% block content %}
+
+<div class="row" style="--bs-gutter-x:0;">
+    <div class="column">
+
+        <div class="row">
+
+            <div class="col-lg-8" style="margin:0 auto;">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="column" style="display:flex;">
+                            <div class="column left" style="height:30vh;width:30vw;"><img
+                                    src="{{ url_for('static', filename='images/' + product.image_file )}}" alt="Logo">
+                            </div>
+                            <div class="column right">
+                                <h2>Product Name: {{ product.name }}</h2>
+                                <p>Description: {{ product.description }}</p>
+                                <p>Category: {{ product.category }}</p>
+                                <p>Origin: {{ product.country }}</p>
+                                <p>Price: ${{ product.price }}</p>
+                                <p>Stock: {{product.stock}}</p>
+                                <form method="post">
+                                    <div class="form-group" style="margin-top:30px;">
+                                        {{ form.quantity.label(class="form-control-label") }}
+                                        <!-- Feedback For Errors for Register-->
+                                        {% if form.quantity.errors %}
+                                        {{ form.quantity(class="form-control form-control-lg is-invalid") }}
+                                        <div class="invalid-feedback">
+                                            {% for errors in form.quantity.errors %}
+                                            <span>{{ errors }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        {{ form.quantity(class="form-control form-control-lg") }}
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="addtocart" style="margin-top:50px;">
+                                        <a href="{{url_for('cart')}}"><button class="btn btn-outline-info">Add to
+                                                cart</button></a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

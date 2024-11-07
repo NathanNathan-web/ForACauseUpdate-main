@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Create Product{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST">
+        {{form.hidden_tag()}}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Create Product</legend>
+            <div class="form-group" margin:5px;>
+                {{ form.name.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.name.errors %}
+                    {{ form.name(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.name.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.name(class="form-control form-control-lg") }}
+                {% endif %}
+
+            </div>
+            <div class="form-group">
+                {{ form.description.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.description.errors %}
+                    {{ form.description(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.description.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.description(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.category.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.category.errors %}
+                    {{ form.category(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.category.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.category(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.country.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.country.errors %}
+                    {{ form.country(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.country.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.country(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.price.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.price.errors %}
+                    {{ form.price(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.price.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.price(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>      
+            <div class="form-group">                
+                {{ form.image_file.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.image_file.errors %}
+                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.image_file.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.image_file(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+        </fieldset>
+        <div class="form-group" style="margin:30px 0 30px 0">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+
+{% endblock %}

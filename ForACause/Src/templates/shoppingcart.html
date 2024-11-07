@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Shopping Cart{% endblock %}
+
+
+
+{% block content %}
+<div class="column">
+     {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="column left" style="width:50%;">Cart<div>
+            <table class="table table-hover">
+                <thead class="table-success">
+                    <tr border:1px solid black;>
+                        <th scope="col" class="topleft">Image</th>
+                        <th scope="col">Product Name</th>
+                        <th scope="col">Price</th>
+                        <th scope='col'>Quantity</th>
+                        <th scope="col" class="topright">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="table-secondary">
+                    {% for cart in carts_list %}
+                    <tr style="height:175px; overflow-y: scroll;">
+                        
+                        <td><img src="{{ url_for('static', filename='images/' + cart.product.image_file )}}" alt="Logo" style="height:200px; width:200px;"></td>
+                        <td>{{ cart.product.name }}</td>
+                        <td>{{ cart.product.price }}</td>
+                        <td>{{ cart.quantity }}</td>
+                        <td><a href="/remove_from_cart/{{ cart.product_id }}" class="btn btn-danger"><i class="bi bi-x-lg"></i></a></td>
+
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-success">
+                    <tr border:1px solid black;>
+                        <th scope="col" class="bottomleft"></th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col" colspan="3" class='bottomright'></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div class="column right" style="width:50%;">Details</div>
+    <p>TotalPrice: {{ total }}
+    <form method="POST">
+     <div class="form-group">
+                <label for="vouchercode">Voucher Code</label>
+                <select name="vouchercode" id="vouchercode" class="form-control form-control-lg">
+               {% for redeemvoucher in vouchers_list %}
+                <option>{{redeemvoucher.id}}</option>
+               {% endfor %}
+                </select>
+
+
+    </div>
+        </form>
+    <a href="/usevoucher" class="btn btn-outline-info"> Use Voucher</a>
+    <a href="/checkOut" class="btn btn-outline-info"> Check Out</a>
+
+</div>
+{% endblock %}

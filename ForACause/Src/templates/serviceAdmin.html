@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Admin Service{% endblock %}
+
+{% block content %}
+<div class="container">
+    <table class="table table-hover">
+        <thead class="table-success">
+            <tr>
+                <th scope="col" class="topleft">Feedback ID</th>
+                <th scope="col">Feedback rating</th>
+                <th scope="col">Feedback Description </th>
+                <th scope="col">Feedback Issue</th>
+                <th scope="col" class="topright">Feedback Date</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for feedback in feedback_list %}
+            <tr>
+                <td>{{ feedback.id }}</td>
+                <td>{{ feedback.rating }}</td>
+                <td>{{ feedback.description }}</td>
+                <td>{{ feedback.issue }}</td>
+                <td>{{ feedback.feedback_date }}</td>
+
+
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-success">
+            <tr>
+                <th class="bottomleft"></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th colspan='3' class="bottomright"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

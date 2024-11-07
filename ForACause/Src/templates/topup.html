@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Admin Update User{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST">
+        {{form.hidden_tag()}}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Update User</legend>
+            <div class="form-group" margin:5px;>
+                {{ form.card.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.card.errors %}
+                    {{ form.card(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.card.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.card(class="form-control form-control-lg") }}
+                {% endif %}
+
+            </div>
+            <div class="form-group">
+                {{ form.expiry.label(class="form-email-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.expiry.errors %}
+                    {{ form.expiry(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.expiry.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.expiry(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.csv.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.csv.errors %}
+                    {{ form.csv(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.csv.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.csv(class="form-control form-control-lg", style="display:inline-flex;") }}
+                {% endif %}
+            </div>
+              <div class="form-group">
+                {{ form.amount.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.amount.errors %}
+                {{ form.amount(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                            {% for errors in form.amount.errors %}
+                                <span>{{ errors }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.amount(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+
+
+        </fieldset>
+        <div class="form-group" style="margin:30px 0 30px 0">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+
+{% endblock %}

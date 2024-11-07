@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Home{% endblock %}
+{% block content %}
+
+<div class="container" style="margin:auto;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST">
+        {{form.hidden_tag()}}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Login</legend>
+            <div class="form-group">
+                {{ form.email.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.email.errors %}
+                    {{ form.email(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.email.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.email(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.password.label(class="form-control-label") }}
+                <!-- Feedback For Errors for Register-->
+                {% if form.password.errors %}
+                    {{ form.password(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.password.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                {{ form.password(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-check">
+                {{ form.remember(class="form-check-input") }}
+                {{ form.remember.label(class="form-check-label")}}
+            </div>
+        </fieldset>
+        <div class="form-group" style="margin:30px 0 30px 0">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+        <small class="text-muted ml-2">
+            <a href="{{ url_for('forgetpw')}}">Forget Password</a>
+        </small>
+    </form>
+</div>
+
+{% endblock %}

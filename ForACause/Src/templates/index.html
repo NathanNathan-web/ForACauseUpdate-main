@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Home{% endblock %}
+{% block content %}
+
+<!-- Home Page Opening Banner -->
+<section class="main py-2">
+    <div class="container py-2">
+        <!-- Success or Fail Register Message -->
+        <div class="col-lg-6">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="row col-sm py-5">
+            <div class="col-lg-6 py-5">
+
+                <p>Grocery products</p>
+                <h1 class="col-sm"><span style="color:green" )>MamakShop</span>
+                </h1>
+                <div class="line"></div>
+                <p>Get your fresh produce fix with our wide selection of locally sourced fruits and vegetables. Shop now
+                    for the freshest options in town!</p>
+                <a href="/product"><button class="mbtn1">Shop Now</button></a>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="voucher py-5">
+    <div class="container py-5">
+        <div class="row col-sm py-5">
+            <div class="col-lg-7 py-5 offset-lg-5 col-md-6 col-sm-12 col-12">
+                <p class="">Unlock the door to great discounts and offers</p>
+                <h1 class="col-sm">Limited Time Offer<br> <span style="color:green">Redeem Your Voucher
+                        Now!</span></h1>
+                <div class="line"></div>
+                <p>Unlock the door to great discounts and offers</p>
+                <a href="/voucher"><button class="mbtn1">Vouchers</button></a>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="welcome text-center pb-5">
+    <div class="container py-5">
+        <div class="row py-5 text-white">
+            <div class="col-lg-7 m-auto">
+                <h1>Welcome To MamakShop</h1>
+                <div class="line2 my-4"></div>
+                <p>Discover the best local and fresh products at MamakShop Grocery, where every aisle is a culinary
+                    journey.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <span><i class="bi bi-shop-window"></i></span>
+                        <h2>Always Fresh</h2>
+                        <p>Always Fresh, Always Delicious - Your ultimate destination for the freshest groceries</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <span><i class="bi bi-shop-window"></i></span>
+                        <h2>Healthy Groceries</h2>
+                        <p>Shop our selection of nutritious and wholesome food options for a healthy lifestyle.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <span><i class="bi bi-shop-window"></i></span>
+                        <h2>100% Organic</h2>
+                        <p>"Experience the benefits of pure, natural and pesticide-free produce with our 100% Organic
+                            selection.</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if current_user.is_authenticated == True and  current_user.isAdmin != True %}
+<section class="feedback text-center pb-5">
+    <div class="container py-5">
+        <div class="row py-5 text-white">
+            <div class="col-lg-7 m-auto">
+                <h1>Feedback Form</h1>
+                <div class="line2 my-4"></div>
+                <p>Feel free to contact us about your experience.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2>Feedback</h2>
+                        <form action="{{ url_for('home')}}" method="POST">
+                            <!-- Button to Open the Modal -->
+                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                                data-bs-target="#myModal_feedback">Feedback</button>
+                            <!-- The Modal -->
+                            <div class="modal" id="myModal_feedback">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <!-- Modal Header -->
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Feedback Form</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <!-- Modal body -->
+                                        <div class="modal-body">
+                                            <form method="POST">
+                                                {{form.hidden_tag()}}
+                                                <fieldset class="form-group">
+                                                    <legend class="border-bottom mb-4">Feedback Form</legend>
+                                                    <div class="form-group" margin:5px;>
+                                                        {{ form.rating.label(class="form-control-label") }}
+                                                        <!-- Feedback For Errors for Register-->
+                                                        {% if form.rating.errors %}
+                                                        {{ form.rating(class="form-control form-control-lg is-invalid") }}
+                                                        <div class="invalid-feedback">
+                                                            {% for errors in form.rating.errors %}
+                                                            <span>{{ errors }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% else %}
+                                                        {{ form.rating(class="form-control form-control-lg", style="te;") }}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="form-group">
+                                                        {{ form.description.label(class="form-control-label") }}
+                                                        <!-- Feedback For Errors for Register-->
+                                                        {% if form.description.errors %}
+                                                        {{ form.description(class="form-control form-control-lg
+                                                        is-invalid") }}
+                                                        <div class="invalid-feedback">
+                                                            {% for errors in form.description.errors %}
+                                                            <span>{{ errors }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% else %}
+                                                        {{ form.description(class="form-control form-control-lg") }}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="form-group">
+                                                        {{ form.issue.label(class="form-control-label") }}
+                                                        <!-- Feedback For Errors for Register-->
+                                                        {% if form.issue.errors %}
+                                                        {{ form.issue(class="form-control form-control-lg
+                                                        is-invalid") }}
+                                                        <div class="invalid-feedback">
+                                                            {% for errors in form.issue.errors %}
+                                                            <span>{{ errors }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% else %}
+                                                        {{ form.issue(class="form-control form-control-lg") }}
+                                                        {% endif %}
+                                                    </div>
+                                                </fieldset>
+                                                <div class="form-group" style="margin:30px 0 30px 0">
+                                                    {{ form.submit(class="btn btn-outline-info") }}
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

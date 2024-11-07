@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Product{% endblock %}
+
+{% block content %}
+
+<div class="row" style="--bs-gutter-x:0;">
+  <div class="column left">
+    <div class="filter"></div>
+  </div>
+  <div class="column right">
+    <div class="row">
+      {% for product in products_list %}
+      {% if product.isValid == True %}
+      {% if product.stock > 5 %}
+      <div class="col-lg-3">
+        <div class="card">
+          <div class="card-body">
+            <img src="{{ url_for('static', filename='images/' + product.image_file )}}" alt="Logo">
+            <h2>{{ product.name }}</h2>
+            <p>Category: {{product.category}}</p>
+            <p>Price: ${{ product.price }}</p>
+          </div>
+          <div class="card-footer"><div class="addtocart"><a href="/productDetails/{{product.id}}"><button class="btn btn-outline-info">Show Product</button></a></div></div>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

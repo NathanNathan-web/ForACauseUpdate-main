@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Voucher{% endblock %}
+
+{% block content %}
+<div class="column right" style="width:100%;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+  <div class="row">
+    {% for voucher in vouchers_list %}
+    {% if voucher.isValid == True %}
+
+    <div class="col-lg-4" style="margin-top:20px;">
+      <div class="card">
+        <div class="card-body">
+          <img src="{{ url_for('static', filename='images/' + voucher.image_file )}}" alt="Logo"
+            style="height:70%; width: 100%;">
+          <h2>{{ voucher.name }}</h2>
+          <p>Voucher Description: {{ voucher.description }}</p>
+          <p>Voucher Price: ${{ voucher.value }}
+          <p>Credits to redeem: {{ voucher.credit}}</p>
+        </div>
+        <div class="card-footer"><a href="/redeemVoucher/{{voucher.id}}"><button class="btn btn-outline-info">Redeem Voucher</button></a></div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

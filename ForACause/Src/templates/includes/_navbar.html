@@ -1,0 +1,96 @@
+<nav class="navbar navbar-expand-lg pb-3">
+  <div class="container">
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      {% if adminStat == True and current_user.isAdmin == True %}
+      <a class="navbar-brand" href="{{ url_for('home')}}">MAMAK</a>
+        <ul class=" navbar-nav m-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('accountadmin') }}">Accounts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('productadmin') }}">Products</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('inventoryadmin') }}">
+              Inventory
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('retrievevoucher') }}">
+              Vouchers
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('serviceadmin') }}">Services</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/adminCustomer">Customer View</a>
+          </li>
+        </ul>
+      {% elif adminStat == False or current_user.isAdmin == True %}
+      <a class="navbar-brand" href="{{ url_for('home')}}">MAMAK</a>
+      <ul class=" navbar-nav m-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('product') }}">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('voucher') }}">
+            Vouchers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('service') }}">Services</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/returnAdmin">Admin Page</a>
+        </li>
+      </ul>
+      {% else %}
+      <a class="navbar-brand" href="{{ url_for('home')}}">MAMAK</a>
+      <ul class=" navbar-nav m-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('product') }}">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('voucher') }}">
+            Vouchers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('service') }}">Services</a>
+        </li>
+      </ul>
+
+      {% endif %}
+      {% if current_user.isAdmin == True %}
+      <a href="{{ url_for('logout') }}"><button class="logout">Log out</button></a>
+      {% elif current_user.is_authenticated %}
+      <a href="{{ url_for('cart') }}"><span><i class="bi bi-cart"></i></span></a>
+      <a href="{{ url_for('account') }}"><span><i class="bi bi-person-circle"></i></span></a>
+      <a href="{{ url_for('logout') }}"><button class="logout">Log out</button></a>
+      {% else %}
+      <a href="{{ url_for('login') }}"><button class="acc">Login</button></a>
+      <a href="{{ url_for('register') }}"><button class="acc">Register</button></a>
+      {% endif %}
+
+    </div>
+  </div>
+</nav>
+
+<!--
+<form class="d-flex">
+  <input class="px-2 search" type="search" placeholder="Search" aria-label="Search">
+  <button class="btn1 me-2 px-3 " type="submit">Search</button>
+</form>
+-->

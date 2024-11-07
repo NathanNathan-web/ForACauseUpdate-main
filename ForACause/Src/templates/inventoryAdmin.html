@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Grocery Store - Admin Inventory{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <table class="table table-hover">
+        <thead class="table-success">
+            <tr>
+                <th scope="col" class="topleft">Logo</th>
+                <th scope="col">Supplier ID</th>
+                <th scope="col">Supplier Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Password</th>
+                <th scope="col">Phone</th>
+                <th scope="col">Company</th>
+                <th scope="col">Address</th>
+                <th scope="col">Country</th>
+                <th scope="col">Status</th>  
+                <th scope="col" colspan="3" class="topright">Action</th>
+            </tr>
+        </thead>
+        <tbody class="table-secondary">
+            {% for supplier in supplier_list %}
+            <tr>
+                <td><img src="{{ url_for('static', filename='images/' + supplier.image_file )}}" alt="Logo"
+                        style="height:5vh; width: 3vw;"></td>
+                <td>{{ supplier.id }}</td>
+                <td>{{ supplier.name }}</td>
+                <td>{{ supplier.email }}</td>
+                <td>{{ supplier.password }}</td>
+                <td>{{ supplier.phone }}</td>
+                <td>{{ supplier.company }}</td>
+                <td>{{ supplier.address }}</td>
+                <td>{{ supplier.country }}</td>
+                {% if supplier.isValid == True %}
+                <form action="{{url_for('inventoryvalidity', id=supplier.id)}}" method="POST">
+                    <td><button class='valid'>Valid</button></td>
+                </form>
+                {% else %}
+                <form action="{{url_for('inventoryvalidity', id=supplier.id)}}" method="POST">
+                    <td><button class='nonvalid'>Non-valid</button></td>
+                </form>
+                {% endif %}
+
+                {% if supplier.isValid == True %}
+                <td><a href="/updateSupplier/{{supplier.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a></td>
+                <td>
+                    <form action="{{url_for('deletesupplier', id=supplier.id)}}" method="POST">
+                        <!-- Button to Open the Modal -->
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#myModal_{{supplier.id}}"><i class="bi bi-trash"></i></button>
+                        <!-- The Modal -->
+                        <div class="modal" id="myModal_{{supplier.id}}">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Delete Confirmation</h4>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <!-- Modal body -->
+                                    <div class="modal-body"> Are you sure you want to delete
+                                        {{supplier.name}}?
+                                    </div>
+                                    <!-- Modal footer -->
+                                    <div class="modal-footer">
+                                        <input type="submit" value="Delete" class="btn btn-danger">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <td><a href="/createOrder/{{supplier.id}}" class="btn btn-secondary">New Order</i></a></td>
+                </td>
+                {% else %}
+                <td><a role="link" aria-disabled="true" class="btn btn-warning"
+                        style="background: rgb(255, 232, 29); color:rgb(102, 102, 102); cursor:default;"><i class="bi bi-pencil-square"></i></a></td>
+                <td>
+                    <form action="{{url_for('deletesupplier', id=supplier.id)}}" method="POST">
+                        <!-- Button to Open the Modal -->
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#myModal_{{supplier.id}}" disabled><i class="bi bi-trash"></i></button>
+                        <!-- The Modal -->
+                        <div class="modal" id="myModal_{{supplier.id}}">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Delete Confirmation</h4>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <!-- Modal body -->
+                                    <div class="modal-body"> Are you sure you want to delete
+                                        {{supplier.name}}?
+                                    </div>
+                                    <!-- Modal footer -->
+                                    <div class="modal-footer">
+                                        <input type="submit" value="Delete" class="btn btn-danger">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <td></td>
+                  
+                </td>
+                {% endif %}
+                {% endfor %}
+        </tbody>
+        <tfoot class="table-success">
+            <tr border:1px solid black;>
+                <th scope="col" class="bottomleft"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col" colspan="3" class='bottomright'></th>
+            </tr>
+        </tfoot>
+    </table>
+    <a href="/createSupplier"><button class="btn btn-outline-info"> Add Supplier</button></a>
+    <a href="/retrieveOrder"><button class="btn btn-outline-info"> View All Orders</button></a>
+</div>
+
+{% endblock %}

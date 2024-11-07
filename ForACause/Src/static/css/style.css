@@ -1,0 +1,394 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
+
+table {
+    margin-top:50px;
+    border-collapse: separate;
+    border-spacing: 0 2px;;
+    width: 100%;
+}
+th, td{
+    text-align: center;
+    word-wrap: break-word;
+}
+th {
+    height:5vh;
+}
+.topleft {
+    border-top-left-radius: 15px;
+}
+.topright {
+    border-top-right-radius: 15px;
+}
+.bottomleft {
+    border-bottom-left-radius: 15px;
+}
+.bottomright {
+    border-bottom-right-radius: 15px;
+}
+thead {
+    background-color: rgb(185, 255, 189);
+}
+tbody {
+    background-color: rgb(242, 242, 242);
+}
+
+.card .card-body img {
+    height:25vh;
+    width:100%;
+    padding:3px;
+    border: 1px solid grey;
+}
+.card .card-body p{
+    font-size:1.2rem;
+}
+
+.addtocart button{
+    display:flex;
+    margin:0 auto;
+}
+
+/* ===================NAVBAR=================== */
+p {
+    font-size: 1.3rem;
+    font-family: 'Alegreya Sans SC', sans-serif;
+}
+
+h1 {
+    font-family: 'Kanit', sans-serif;
+}
+
+h2 {
+    font-family: 'Amaranth', sans-serif;
+}
+.navbar, footer{
+    background-color: rgb(22, 223, 15);
+}
+
+.nav-item a {
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 15px;
+    font-family: 'Alegreya Sans SC', sans-serif;
+
+}
+
+.nav-item a:hover {
+    color: black;
+}
+
+.navbar-nav .nav-link.active {
+    color: black;
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+}
+
+
+.search {
+    height: 45px;
+    outline: none;
+    border: 2px solid rgb(22, 223, 15);
+    background-color: transparent;
+    border-radius: 20px 0px 0px 20px;
+    border-right: none;
+}
+
+.search:focus {
+    outline: none;
+    box-shadow: none;
+    border: 2px solid rgb(22, 223, 15);
+}
+
+.btn1 {
+    height: 45px;
+    outline: none;
+    border: none;
+    background-color: rgb(22, 223, 15);
+    color: white;
+    border-radius: 0px 20px 20px 0px;
+    transition: all 0.4s;
+}
+
+.btn1:hover {
+    background-color: rgb(22, 223, 15);
+}
+
+.bi-cart {
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    padding-top: 5px;
+    transition: all 0.4s;
+    margin: 10px;
+}
+
+.bi-cart:hover {
+    color: white;
+}
+
+.bi-person-circle {
+    font-size: 30px;
+    color: black;
+    cursor: pointer;
+    padding-top: 5px;
+    transition: all 0.4s;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.bi-person-circle:hover {
+    color: white;
+}
+
+
+button.navbar-toggler {
+    border: 0px;
+}
+
+.acc {
+    height: 50px;
+    width: 4vw;
+    outline: none;
+    background-color: transparent;
+    color: white;
+    font-weight:bold;
+    border: none;
+    transition: all;
+    font-size: 0.9vw;
+}
+
+.acc:hover {
+    color: black;
+}
+
+.logout {
+    height: 50px;
+    width: 10vw;
+    outline: none;
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    border-radius: 50px;
+    transition: all;
+}
+
+
+/* ====================== Content ========================= */
+
+.main {
+    background: url(../images/m1.jpg)no-repeat;
+    background-size: cover;
+    height: 100vh;
+    width: 100%;
+
+}
+
+.main h1 {
+    font-size: 4vw;
+}
+
+
+.mbtn1 {
+    height: 50px;
+    width: 10vw;
+    outline: none;
+    background-color: transparent;
+    color: rgb(22, 223, 15);
+    border: 1px solid rgb(22, 223, 15);
+    border-radius: 50px;
+    transition: all;
+}
+
+.mbtn1:hover {
+    background-color: rgb(22, 223, 15);
+    border: none;
+    color: white;
+}
+
+.line {
+    height: 6px;
+    width: 30%;
+    background: rgb(22, 223, 15);
+    display: inline-block;
+}
+
+
+/* ====================== Voucher Home Banner ========================= */
+
+.voucher {
+    background: url(../images/voucherHome.png)no-repeat;
+    background-size: cover;
+    height: 100vh;
+    width: 100%;
+}
+
+.voucher h1 {
+    font-size: 4vw;
+}
+
+/* ====================== Welcome ========================= */
+
+.welcome {
+    background: rgb(22, 223, 15);
+}
+
+.line2 {
+    height: 6px;
+    width: 30%;
+    background-color: white;
+    display: inline-block;
+}
+
+.welcome h1 {
+    font-size: 4vw;
+}
+
+.welcome .card {
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.welcome i {
+    font-size: 45px;
+    color: rgb(22, 223, 15)
+}
+
+
+
+/* =================== FORM=================== */
+
+#loginForm {
+    background-color: rgba(186, 255, 197, 0.685);
+    width: 40%;
+    margin-top: 50px;
+    border: 10px solid rgb(22, 223, 15);
+    padding: 50px 150px 150px 150px;
+    border-radius: 20px;
+}
+
+
+
+@media only screen and (max-width: 990px) {
+
+    .main,
+    .voucher {
+        background: #f4f9f3;
+        height: 600px;
+    }
+
+    .main h1,
+    .voucher h1 {
+        font-size: 4vw;
+    }
+
+    .mbtn1 {
+        font-size: 2vw;
+    }
+
+    .acc {
+        border: 1px solid rgb(22, 223, 15);
+        border-radius: 50px;
+        font-size: 2vw;
+        width:16vw;
+    }
+
+}
+td {
+    vertical-align: middle;
+}
+.nonvalid {
+    
+    display:flex;
+    border:1px solid red;
+    color:red;
+    font-size:0.6vw;
+    border-radius: 10px;
+    width:80px;
+    background-color: rgb(255, 162, 162);
+    padding:10px;
+    justify-content: center;
+    align-items: center;
+    margin:0 auto; 
+
+}
+.nonvalid:hover {
+    display:flex;
+    border:1px solid rgb(0, 0, 0);
+    color:rgb(112, 2, 2);
+    font-size:0.5vw;
+    border-radius: 10px;
+    width:80px;
+    background-color: rgb(253, 105, 105);
+    padding:10px;
+    justify-content: center;
+}
+
+.valid {
+    display:flex;
+    border:1px solid green;
+    color:green;
+    font-size:0.5vw;
+    border-radius: 10px;
+    width:80px;
+    background-color: rgb(162, 255, 167);
+    padding:10px;
+    justify-content: center;  
+    margin:0 auto; 
+}
+
+
+.valid:hover {
+    display:flex;
+    border:1px solid rgb(255, 255, 255);
+    color:rgb(6, 112, 2);
+    font-size:0.5vw;
+    width:80px;
+    border-radius: 10px;
+    background-color: rgb(105, 253, 105);
+    padding:10px;
+    justify-content: center;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+
+/* Product Customer view */
+
+.column {
+    float: left;
+    width:100%;
+    max-width:100%;
+    padding:30px;
+  }
+
+.row {
+    width:100%;
+    max-width:100%;
+}
+  
+.left {
+    width: 20%;
+  }
+  
+.right {
+    width: 80%;
+  }
