@@ -20,8 +20,13 @@
 
         <tbody>
             <tr>
-                <td><img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="User Profile Image"
-                        style="height:5vh; width: 3vw; border-radius: 50%;"></td>
+                <td>
+                    <!-- Profile Image Thumbnail -->
+                    <img src="{{ url_for('static', filename='images/' + user.image_file )}}" 
+                         alt="User Profile Image"
+                         style="height:5vh; width: 3vw; border-radius: 50%; cursor: pointer;"
+                         data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                </td>
                 <td>{{ user.id }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
@@ -29,9 +34,9 @@
                 <td>{{ user.address }}</td>
                 <td>${{ user.donation_total }}</td>
                 <td>
-                    <a href="/updateUserProfile/{{ user.id }}" class="btn btn-warning" title="Edit Profile">
-                        <i class="bi bi-pencil-square"></i> Edit
-                    </a>
+                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                        <i class="bi bi-image"></i> View Image
+                    </button>
                 </td>
             </tr>
         </tbody>
@@ -48,6 +53,24 @@
         </tfoot>
     </table>
 </div>
+
+<!-- Bootstrap Modal for Profile Image -->
+<div class="modal fade" id="profileImageModal" tabindex="-1" aria-labelledby="profileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileImageModalLabel">Profile Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ url_for('static', filename='images/' + user.image_file )}}" 
+                     alt="User Profile Image" class="img-fluid" style="border-radius: 10px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <div class="container mt-4">
     <!-- Voucher and Donation Activity Table -->
