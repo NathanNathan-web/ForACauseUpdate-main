@@ -2,19 +2,50 @@
 {% block title %}ForACause - Account{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <!-- Profile Header -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body text-center">
-            <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
-                 alt="User Profile Image" class="rounded-circle mb-3" 
-                 style="height: 100px; width: 100px; object-fit: cover;">
-            <h2 class="card-title">{{ user.username }}</h2>
-            <p class="card-text text-muted">{{ user.email }}</p>
-            <p><strong>Total Donations:</strong> ${{ user.donation_total }}</p>
-            <button class="btn btn-primary"><i class="bi bi-pencil"></i> Edit Profile</button>
-        </div>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body text-center">
+        <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
+             alt="User Profile Image" class="rounded-circle mb-3" 
+             style="height: 100px; width: 100px; object-fit: cover;">
+        <h2 class="card-title">{{ user.username }}</h2>
+        <p class="card-text text-muted">{{ user.email }}</p>
+        <p><strong>Total Donations:</strong> ${{ user.donation_total }}</p>
+
+        <!-- Form to upload profile image -->
+        <form action="{{ url_for('update_profile_image') }}" method="POST" enctype="multipart/form-data">
+            <div id="file-upload-container" style="display: none;">
+                <input type="file" name="profile_image" accept="image/*" class="form-control mb-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Submit</button>
+            </div>
+        </form>
+
+        <button class="btn btn-primary" id="update-profile-btn"><i class="bi bi-pencil"></i> Update Profile Image</button>
+
+        <!-- Language Selection -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body text-center">
+                <h5 class="mb-3">{{ _('Select Language') }}</h5>
+                <form action="{{ url_for('set_language') }}" method="POST">
+                    <div class="form-group">
+                        <select name="language" class="form-select">
+                            {% for lang_code, lang_name in languages.items() %}
+                                <option value="{{ lang_code }}" {% if session.get('lang') == lang_code %}selected{% endif %}>{{ lang_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">{{ _('Save Language') }}</button>
+                </form>
+
     </div>
+</div>
+
+<script>
+    document.getElementById('update-profile-btn').addEventListener('click', function() {
+        const uploadContainer = document.getElementById('file-upload-container');
+        uploadContainer.style.display = 'block';
+        this.style.display = 'none';
+    });
+</script>
 
     <!-- User Info Table -->
     <div class="card mb-4 shadow-sm">
