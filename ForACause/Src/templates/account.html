@@ -2,171 +2,152 @@
 {% block title %}ForACause - Account{% endblock %}
 
 {% block content %}
-<div class="card mb-4 shadow-sm">
-    <div class="card-body text-center">
-        <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
-             alt="User Profile Image" class="rounded-circle mb-3" 
-             style="height: 100px; width: 100px; object-fit: cover;">
-        <h2 class="card-title">{{ user.username }}</h2>
-        <p class="card-text text-muted">{{ user.email }}</p>
-        <p><strong>Total Donations:</strong> ${{ user.donation_total }}</p>
+<div class="container">
+    <!-- User Info Table -->
+    <table class="table table-hover" style="table-layout: fixed;">
+        <thead class="table-primary">
+            <tr>
+                <th scope="col" class="topleft">Profile Image</th>
+                <th scope="col">User ID</th>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+                <th scope="col">Phone</th>
+                <th scope="col">Address</th>
+                <th scope="col">Donation Total</th>
+                <th scope="col" class="topright">Actions</th>
+            </tr>
+        </thead>
 
-        <!-- Form to upload profile image -->
-        <form action="{{ url_for('update_profile_image') }}" method="POST" enctype="multipart/form-data">
-            <div id="file-upload-container" style="display: none;">
-                <input type="file" name="profile_image" accept="image/*" class="form-control mb-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Submit</button>
+        <tbody>
+            <tr>
+                <td>
+                    <!-- Profile Image Thumbnail -->
+                    <img src="{{ url_for('static', filename='images/' + user.image_file )}}" 
+                         alt="User Profile Image"
+                         style="height:5vh; width: 3vw; border-radius: 50%; cursor: pointer;"
+                         data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                </td>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.address }}</td>
+                <td>${{ user.donation_total }}</td>
+                <td>
+                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                        <i class="bi bi-image"></i> View Image
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot class="table-primary">
+            <tr>
+                <th class="bottomleft"></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th colspan="2" class="bottomright"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Bootstrap Modal for Profile Image -->
+<div class="modal fade" id="profileImageModal" tabindex="-1" aria-labelledby="profileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileImageModalLabel">Profile Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </form>
-
-        <button class="btn btn-primary" id="update-profile-btn"><i class="bi bi-pencil"></i> Update Profile Image</button>
-
-        <!-- Language Selection -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body text-center">
-                <h5 class="mb-3">{{ _('Select Language') }}</h5>
-                <form action="{{ url_for('set_language') }}" method="POST">
-                    <div class="form-group">
-                        <select name="language" class="form-select">
-                            {% for lang_code, lang_name in languages.items() %}
-                                <option value="{{ lang_code }}" {% if session.get('lang') == lang_code %}selected{% endif %}>{{ lang_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-2">{{ _('Save Language') }}</button>
-                </form>
-
+            <div class="modal-body text-center">
+                <img src="{{ url_for('static', filename='images/' + user.image_file )}}" 
+                     alt="User Profile Image" class="img-fluid" style="border-radius: 10px;">
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-    document.getElementById('update-profile-btn').addEventListener('click', function() {
-        const uploadContainer = document.getElementById('file-upload-container');
-        uploadContainer.style.display = 'block';
-        this.style.display = 'none';
-    });
-</script>
 
-    <!-- User Info Table -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header text-white bg-primary">
-            <h5>User Information</h5>
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Profile Image</th>
-                        <th>User ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Address</th>
-                        <th>Donation Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
-                                 alt="User Profile Image" style="height:40px; width: 40px; border-radius: 50%;"></td>
-                        <td>{{ user.id }}</td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.phone }}</td>
-                        <td>{{ user.address }}</td>
-                        <td>${{ user.donation_total }}</td>
-                        <td>
-                            <button type="button" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i> View Image</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- Accordion for Voucher and Activity History -->
-    <div class="accordion" id="profileAccordion">
-        <!-- Voucher Information -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingVouchers">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVouchers" aria-expanded="false" aria-controls="collapseVouchers">
-                    Voucher Information
-                </button>
-            </h2>
-            <div id="collapseVouchers" class="accordion-collapse collapse" aria-labelledby="headingVouchers" data-bs-parent="#profileAccordion">
-                <div class="accordion-body p-0">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Voucher Image</th>
-                                <th>Voucher ID</th>
-                                <th>Value</th>
-                                <th>Expiry Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for voucher in user_vouchers %}
-                            <tr>
-                                <td><img src="{{ url_for('static', filename='images/' + voucher.image_file ) }}" 
-                                         alt="Voucher Image" style="height: 40px; width: 60px; border-radius: 5px;"></td>
-                                <td>{{ voucher.id }}</td>
-                                <td>${{ voucher.value }}</td>
-                                <td>{{ voucher.expiry_date }}</td>
-                                <td>
-                                    {% if voucher.status == "active" %}
-                                    <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">Expired</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="container mt-4">
+    <!-- Voucher and Donation Activity Table -->
+    <table class="table table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th scope="col" class="topleft">Voucher Image</th>
+                <th scope="col">Voucher ID</th>
+                <th scope="col">Value</th>
+                <th scope="col">Expiry Date</th>
+                <th scope="col" class="topright">Status</th>
+            </tr>
+        </thead>
 
-        <!-- Donation and Volunteering History -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingHistory">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseHistory">
-                    Donation and Volunteering History
-                </button>
-            </h2>
-            <div id="collapseHistory" class="accordion-collapse collapse" aria-labelledby="headingHistory" data-bs-parent="#profileAccordion">
-                <div class="accordion-body p-0">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Activity Type</th>
-                                <th>Details</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for activity in donation_volunteering_history %}
-                            <tr>
-                                <td>{{ activity.date }}</td>
-                                <td>{{ activity.type }}</td>
-                                <td>{{ activity.details }}</td>
-                                <td>
-                                    {% if activity.status == "completed" %}
-                                    <span class="badge bg-success">Completed</span>
-                                    {% else %}
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+        <tbody>
+            {% for voucher in user_vouchers %}
+            <tr>
+                <td><img src="{{ url_for('static', filename='images/' + voucher.image_file )}}" alt="Voucher Image"
+                        style="height:5vh; width: 3vw; border-radius: 5px;"></td>
+                <td>{{ voucher.id }}</td>
+                <td>${{ voucher.value }}</td>
+                <td>{{ voucher.expiry_date }}</td>
+                <td>
+                    {% if voucher.status == "active" %}
+                    <span class="badge bg-warning text-dark">Active</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Expired</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-primary">
+            <tr>
+                <th class="bottomleft"></th>
+                <th></th>
+                <th colspan="3" class="bottomright"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="container mt-4">
+    <!-- Donation and Volunteering History -->
+    <table class="table table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th scope="col" class="topleft">Date</th>
+                <th scope="col">Activity Type</th>
+                <th scope="col">Details</th>
+                <th scope="col" class="topright">Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for activity in donation_volunteering_history %}
+            <tr>
+                <td>{{ activity.date }}</td>
+                <td>{{ activity.type }}</td>
+                <td>{{ activity.details }}</td>
+                <td>
+                    {% if activity.status == "completed" %}
+                    <span class="badge bg-success">Completed</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-primary">
+            <tr>
+                <th class="bottomleft"></th>
+                <th></th>
+                <th colspan="2" class="bottomright"></th>
+            </tr>
+        </tfoot>
+    </table>
 </div>
 {% endblock %}

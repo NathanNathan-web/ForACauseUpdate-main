@@ -4,10 +4,6 @@ from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserF
 from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
 from Src import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
-from werkzeug.utils import secure_filename
-import os
-from flask_babel import _
-
 
 
 def Vegetable():
@@ -176,14 +172,14 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
-        redeemvoucher_list = []
-        image_file = url_for('static', filename='images/' + current_user.image_file)
+        redeemvoucher_list =[]
+        image_file = url_for('static', filename='images/' +
+                             current_user.image_file)
         user = User.query.filter_by(id=current_user.id).first()
-        redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+        redeemvouchers = RedeemedVouchers.query.filter_by(user_id = current_user.id).all()
         for redeemvoucher in redeemvouchers:
             redeemvoucher_list.append(redeemvoucher)
-        # Pass app or app.config['LANGUAGES'] to the template
-        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'])
+        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list)
     else:
         return render_template('login.html')
 
@@ -265,50 +261,7 @@ def productdetails(id):
     else:
         return redirect(url_for('login'))
         
-@app.route('/update_profile_image', methods=['POST'])
-@login_required
-def update_profile_image():
-    if 'profile_image' not in request.files:
-        flash('No file part', 'danger')
-        return redirect(url_for('account'))
 
-    file = request.files['profile_image']
-    if file.filename == '':
-        flash('No file selected', 'danger')
-        return redirect(url_for('account'))
-
-    if file:
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-
-        # Update the user's image_file field in the database
-        user = User.query.get(current_user.id)
-        user.image_file = filename
-        db.session.commit()
-
-        flash('Profile image updated successfully!', 'success')
-        return redirect(url_for('account'))
-
-@app.route('/change_language', methods=['POST'])
-def change_language():
-    """
-    Updates the session with the selected language and redirects to the account page.
-    """
-    lang = request.form.get('lang')
-    if lang in app.config['LANGUAGES']:
-        session['lang'] = lang  # Save the selected language in the session
-    return redirect(url_for('account'))  # Redirect to the account page
-
-@app.route('/set_language', methods=['POST'])
-def set_language():
-    selected_language = request.form.get('language')
-    if selected_language in app.config['LANGUAGES']:
-        session['lang'] = selected_language
-        flash(_('Language updated successfully!'), 'success')
-    else:
-        flash(_('Invalid language selection.'), 'danger')
-    return redirect(request.referrer or url_for('home'))
 
 
 # =================================  Cart ==================================
