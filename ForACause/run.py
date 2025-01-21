@@ -1,7 +1,7 @@
 from Src import app, db, bcrypt  # Change Src to src
 from Src.models import User  # Change Src to src and specify the correct module
 
-import pycountry
+import pycountry 
 
 if __name__ == '__main__':
     admin = User(

@@ -75,7 +75,7 @@ h2 {
     font-family: 'Amaranth', sans-serif;
 }
 .navbar, footer{
-    background-color: rgb(22, 223, 15);
+    background-color: #000080;
 }
 
 .nav-item a {
@@ -98,11 +98,19 @@ h2 {
     border-bottom-width: 2px;
 }
 
+.navbar-brand {
+    color:white
+}
+
+.footer-bg {
+    background-color: #000080; /* Set the background to white */
+    color: white; /* Adjust text color for visibility */
+}
 
 .search {
     height: 45px;
     outline: none;
-    border: 2px solid rgb(22, 223, 15);
+    border: 2px solid #000080;
     background-color: transparent;
     border-radius: 20px 0px 0px 20px;
     border-right: none;
@@ -111,21 +119,21 @@ h2 {
 .search:focus {
     outline: none;
     box-shadow: none;
-    border: 2px solid rgb(22, 223, 15);
+    border: 2px solid #000080;
 }
 
 .btn1 {
     height: 45px;
     outline: none;
     border: none;
-    background-color: rgb(22, 223, 15);
+    background-color: #000080;
     color: white;
     border-radius: 0px 20px 20px 0px;
     transition: all 0.4s;
 }
 
 .btn1:hover {
-    background-color: rgb(22, 223, 15);
+    background-color: #000080;
 }
 
 .bi-cart {
@@ -208,14 +216,14 @@ button.navbar-toggler {
     width: 10vw;
     outline: none;
     background-color: transparent;
-    color: rgb(22, 223, 15);
-    border: 1px solid rgb(22, 223, 15);
+    color: #000080;
+    border: 1px solid #000080;
     border-radius: 50px;
     transition: all;
 }
 
 .mbtn1:hover {
-    background-color: rgb(22, 223, 15);
+    background-color: #000080;
     border: none;
     color: white;
 }
@@ -223,7 +231,7 @@ button.navbar-toggler {
 .line {
     height: 6px;
     width: 30%;
-    background: rgb(22, 223, 15);
+    background: #000080;
     display: inline-block;
 }
 
@@ -244,7 +252,7 @@ button.navbar-toggler {
 /* ====================== Welcome ========================= */
 
 .welcome {
-    background: rgb(22, 223, 15);
+    background: #000080;
 }
 
 .line2 {
@@ -266,7 +274,7 @@ button.navbar-toggler {
 
 .welcome i {
     font-size: 45px;
-    color: rgb(22, 223, 15)
+    color: #000080
 }
 
 
@@ -277,7 +285,7 @@ button.navbar-toggler {
     background-color: rgba(186, 255, 197, 0.685);
     width: 40%;
     margin-top: 50px;
-    border: 10px solid rgb(22, 223, 15);
+    border: 10px solid #000080;
     padding: 50px 150px 150px 150px;
     border-radius: 20px;
 }
@@ -302,7 +310,7 @@ button.navbar-toggler {
     }
 
     .acc {
-        border: 1px solid rgb(22, 223, 15);
+        border: 1px solid #000080;
         border-radius: 50px;
         font-size: 2vw;
         width:16vw;
