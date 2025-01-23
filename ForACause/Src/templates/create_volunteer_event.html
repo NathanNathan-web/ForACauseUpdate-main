@@ -73,12 +73,17 @@
                         <h4 class="mb-0">
                             <i class="bi bi-list-check text-primary me-2"></i>Events Overview
                         </h4>
-                        <!-- <span class="badge bg-primary">Event Details</span> -->
                     </div>
                 </div>
                 <div class="card-body p-0">
+                    <div class="mb-3 px-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0" id="eventsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th class="ps-4 align-middle">Name & Category</th>
@@ -131,8 +136,14 @@
                     </h3>
                 </div>
                 <div class="card-body p-0">
+                    <div class="mb-3 px-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
+                        <table class="table table-hover table-striped mb-0" id="userSignupsTable">
                             <thead class="table-light">
                                 <tr>
                                     <th>User</th>
@@ -169,4 +180,48 @@
         </div>
     </div>
 </div>
+
+<script>
+function filterEvents() {
+    const input = document.getElementById('eventSearch');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('eventsTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const tdName = tr[i].getElementsByTagName('td')[0];
+        const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
+        if (tdName || tdCategory) {
+            const txtValueName = tdName.textContent || tdName.innerText;
+            const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
+            if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueCategory.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
+function filterUsers() {
+    const input = document.getElementById('userSearch');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('userSignupsTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const tdUser  = tr[i].getElementsByTagName('td')[0];
+        const tdEmail = tr[i].getElementsByTagName('td')[1];
+        if (tdUser  || tdEmail) {
+            const txtValueUser  = tdUser .textContent || tdUser .innerText;
+            const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
+            if (txtValueUser .toLowerCase().indexOf(filter) > -1 || txtValueEmail.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+</script>
 {% endblock %}
