@@ -1,12 +1,14 @@
 from datetime import date
 from flask import render_template, url_for, flash, redirect, request, session
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
+from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,db
 from Src import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 import os
 from flask_babel import _
+from datetime import datetime
+
 
 
 
@@ -877,3 +879,159 @@ def productvalidity(id):
         product.isValid = True
         db.session.commit()
     return render_template('productAdmin.html', adminStat=True, product_list=product_list, idsite=True)
+
+# ============ Volunteer ===============
+@app.route('/volunteer')
+@login_required
+def volunteer():
+    if current_user.isAdmin:
+        flash('Admins cannot access this page!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch all events
+    events = VolunteerEvent.query.all()
+
+    # Fetch signed-up event IDs for the current user
+    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+
+    return render_template('volunteer.html', events=events, signed_up_event_ids=signed_up_event_ids)
+
+
+@app.route('/volunteer/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def confirm_volunteer_event(event_id):
+    event = VolunteerEvent.query.get_or_404(event_id)
+
+    if request.method == 'POST':
+        # Check if user is already signed up
+        existing_signup = UserVolunteer.query.filter_by(
+            user_id=current_user.id, event_id=event_id
+        ).first()
+        if existing_signup:
+            flash('You are already signed up for this event!', 'warning')
+        else:
+            # Add new signup
+            new_signup = UserVolunteer(
+                user_id=current_user.id,
+                event_id=event_id,
+                sign_up_date=datetime.utcnow()
+            )
+            db.session.add(new_signup)
+            db.session.commit()
+            flash('You have successfully signed up!', 'success')
+
+        return redirect(url_for('volunteer'))
+
+    return render_template('confirm_volunteer.html', event=event)
+
+@app.route('/create_volunteer_event', methods=['GET', 'POST'])
+@login_required
+def create_volunteer_event():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+        category = request.form['category']
+        image_file = None
+
+        if 'image_file' in request.files and request.files['image_file'].filename != '':
+            file = request.files['image_file']
+            image_file = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
+
+        new_event = VolunteerEvent(
+            name=name,
+            description=description,
+            date=date,
+            category=category,
+            image_file=image_file
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        flash('Event created successfully!', 'success')
+        return redirect(url_for('create_volunteer_event'))
+
+    events = VolunteerEvent.query.all()
+    signups = UserVolunteer.query.all()
+
+    return render_template(
+        'create_volunteer_event.html',
+        events=events,
+        signups=signups
+    )
+
+
+@app.route('/manage_volunteer_event')
+@login_required
+def manage_volunteer_event():
+    if not current_user.isAdmin:
+        abort(403)  # Restrict access to admins only
+    
+    events = VolunteerEvent.query.all()
+    signups = UserVolunteer.query.all()
+    return render_template(
+        'create_volunteer_event.html',
+        events=events,
+        signups=signups
+    )
+
+@app.route('/edit_volunteer_event/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def edit_volunteer_event(event_id):
+    event = VolunteerEvent.query.get_or_404(event_id)
+    if request.method == 'POST':
+        event.name = request.form['name']
+        event.description = request.form['description']
+        event.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()  # Convert to date object
+        event.category = request.form['category']
+        db.session.commit()
+        flash('Event updated successfully!', 'success')
+        return redirect(url_for('create_volunteer_event'))
+    return render_template('edit_volunteer_event.html', event=event)
+
+@app.route('/delete_volunteer_event/<int:event_id>', methods=['POST'])
+@login_required
+def delete_volunteer_event(event_id):
+    if not current_user.isAdmin:
+        abort(403)
+
+    event = VolunteerEvent.query.get_or_404(event_id)
+
+    # Delete related user signups
+    UserVolunteer.query.filter_by(event_id=event_id).delete()
+    
+    db.session.delete(event)
+    db.session.commit()
+    flash('Volunteer event deleted successfully!', 'success')
+    return redirect(url_for('create_volunteer_event'))
+
+@app.route('/confirm_volunteer/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def confirm_volunteer(event_id):
+    if current_user.isAdmin:
+        flash('Admins cannot volunteer for events!', 'danger')
+        return redirect(url_for('home'))
+
+    event = VolunteerEvent.query.get_or_404(event_id)
+
+    if request.method == 'POST':
+        # Check if the user is already signed up
+        existing_signup = UserVolunteer.query.filter_by(user_id=current_user.id, event_id=event.id).first()
+
+        if existing_signup:
+            flash('You are already signed up for this event!', 'warning')
+        else:
+            # Add user signup
+            signup = UserVolunteer(user_id=current_user.id, event_id=event.id)
+            db.session.add(signup)
+            db.session.commit()
+            flash(f'You have successfully signed up for {event.name}!', 'success')
+
+        return redirect(url_for('volunteer'))
+
+    return render_template('confirm_volunteer.html', event=event)
+

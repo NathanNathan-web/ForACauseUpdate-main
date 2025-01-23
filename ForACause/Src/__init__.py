@@ -5,6 +5,8 @@ import secrets
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_babel import Babel
+from flask_migrate import Migrate
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -46,6 +48,9 @@ babel.init_app(app, locale_selector=get_locale)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+
+migrate = Migrate(app, db)
+
 app.app_context().push()
 
 from Src import routes

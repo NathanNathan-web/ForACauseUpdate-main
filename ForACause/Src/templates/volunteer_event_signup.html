@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Volunteer for "{{ event.name }}"</h1>
+    <p>{{ event.description }}</p>
+    <p><strong>Date:</strong> {{ event.date }}</p>
+    <p><strong>Category:</strong> {{ event.category }}</p>
+    <form method="POST">
+        <button type="submit" class="btn btn-success">Sign Up</button>
+    </form>
+{% endblock %}
