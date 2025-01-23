@@ -888,11 +888,27 @@ def volunteer():
         flash('Admins cannot access this page!', 'danger')
         return redirect(url_for('home'))
 
+    # Fetch signed-up event IDs for the current user
+    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+
+    # Get filter parameters from the request
+    search_name = request.args.get('search_name', '')
+    filter_date = request.args.get('filter_date', '')
+    show_signed_up = request.args.get('show_signed_up', 'false') == 'true'
+
     # Fetch all events
     events = VolunteerEvent.query.all()
 
-    # Fetch signed-up event IDs for the current user
-    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+    # Apply filters
+    if search_name:
+        events = [event for event in events if search_name.lower() in event.name.lower()]
+    
+    if filter_date:
+        filter_date = datetime.strptime(filter_date, '%Y-%m-%d').date()
+        events = [event for event in events if event.date == filter_date]
+
+    if show_signed_up:
+        events = [event for event in events if event.id in signed_up_event_ids]
 
     return render_template('volunteer.html', events=events, signed_up_event_ids=signed_up_event_ids)
 
