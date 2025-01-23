@@ -1,13 +1,18 @@
 from datetime import date
 from flask import render_template, url_for, flash, redirect, request, session
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
+from Src.models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
 from Src import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 import os
 from flask_babel import _
-
+from Src.forms import DonateForm
+import http.client  # Import for chatbot API
+import json  # Required for JSON serialization and deserialization
+from flask import render_template, url_for, flash, redirect, request, session, jsonify
+import logging
+import requests
 
 
 def Vegetable():
@@ -877,3 +882,48 @@ def productvalidity(id):
         product.isValid = True
         db.session.commit()
     return render_template('productAdmin.html', adminStat=True, product_list=product_list, idsite=True)
+
+@app.route('/donate', methods=['GET', 'POST'])
+@login_required  # Require user to be logged in
+def donate():
+    form = DonateForm()
+    if form.validate_on_submit():
+        donation_amount = form.amount.data
+        donation = Donation(user_id=current_user.id, amount=donation_amount)
+        db.session.add(donation)
+        db.session.commit()
+        flash(f'Thank you for your donation of ${donation_amount:.2f}!', 'success')
+        return redirect(url_for('home'))
+    return render_template('donate.html', form=form)
+
+@app.route('/chat', methods=['POST'])
+@login_required
+def chat():
+    try:
+        # Get user message from the request
+        user_message = request.json.get('message', '').strip()
+        if not user_message:
+            return jsonify({"reply": "Message cannot be empty."}), 400
+
+        # API configuration
+        url = "https://free-chatgpt-api.p.rapidapi.com/chat-completion-one"
+        querystring = {"prompt": user_message}
+        headers = {
+            "x-rapidapi-key": os.getenv("RAPIDAPI_KEY", "a26de8c9c7msh2f30c7ea2545caep18aa6bjsn7536d84ca8f2"),  # Replace with your valid API key
+            "x-rapidapi-host": "free-chatgpt-api.p.rapidapi.com"
+        }
+
+        # Make the request
+        response = requests.get(url, headers=headers, params=querystring)
+
+        # Check response status
+        if response.status_code == 200:
+            data = response.json()
+            reply = data.get("response", "No reply available.")
+            return jsonify({"reply": reply})
+        else:
+            return jsonify({"reply": f"API error: {response.status_code} - {response.reason}"}), response.status_code
+
+    except Exception as e:
+        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 500
+

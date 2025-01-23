@@ -71,7 +71,7 @@
           <a class="nav-link" href="{{ url_for('service') }}">Services</a>
         </li>
       </ul>
-
+      <a href="{{ url_for('donate') }}" class="btn btn-outline-primary mx-2">Donate</a>
       {% endif %}
       {% if current_user.isAdmin == True %}
       <a href="{{ url_for('logout') }}"><button class="logout">Log out</button></a>

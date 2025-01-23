@@ -1,11 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Home{% endblock %}
+{% block title %}ForACause HomePage{% endblock %}
 {% block content %}
 
-<!-- Home Page Opening Banner -->
 <section class="main py-2">
     <div class="container py-2">
-        <!-- Success or Fail Register Message -->
         <div class="col-lg-6">
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -19,10 +17,8 @@
         </div>
         <div class="row col-sm py-5">
             <div class="col-lg-6 py-5">
-
                 <p>Support a Cause</p>
-                <h1 class="col-sm"><span style="color:#000080;">ForACause</span>
-                </h1>
+                <h1 class="col-sm"><span style="color:#000080;">ForACause</span></h1>
                 <div class="line"></div>
                 <p>Get involved by volunteering or supporting our beneficiaries by purchasing products they’ve made.
                     Your support helps create meaningful change in their lives!</p>
@@ -31,6 +27,7 @@
         </div>
     </div>
 </section>
+
 <section class="voucher py-5">
     <div class="container py-5">
         <div class="row col-sm py-5">
@@ -45,44 +42,21 @@
         </div>
     </div>
 </section>
-<section class="welcome text-center pb-5">
+
+<section class="chatbot py-5">
     <div class="container py-5">
-        <div class="row py-5 text-white">
-            <div class="col-lg-7 m-auto">
-                <h1>Welcome to ForACause</h1>
-                <div class="line2 my-4"></div>
-                <p>Join us in making a difference by volunteering or supporting our beneficiaries by purchasing handmade
-                    products. </p>
-                    <p>Every contribution counts!</p>
-            </div>
-        </div>
         <div class="row">
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <span><i class="bi bi-shop-window"></i></span>
-                        <h2>Support Our Cause</h2>
-                        <p>Join us in making a difference! Donate today and help us provide essential resources to those in need.</p>
+            <div class="col-lg-8 m-auto text-center"> 
+                <h1>Chat with Us!</h1>
+                <p>Have questions? Chat with our AI chatbot and get instant answers.</p>
+                <div id="chatbox" class="border p-4 rounded">
+                    <div id="chat-messages" class="overflow-auto" 
+                         style="height: 400px; background-color: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 10px;"> 
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <span><i class="bi bi-shop-window"></i></span>
-                        <h2>Support Beneficiaries</h2>
-                        <p>Explore a variety of products crafted by our talented beneficiaries, each purchase helps
-                            support their skills and well-being.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <span><i class="bi bi-shop-window"></i></span>
-                        <h2>Volunteer with Us</h2>
-                        <p>Become a part of our volunteer network. Your time and efforts can bring lasting change to our
-                            community!
+                    <div class="d-flex mt-3">
+                        <input id="chat-input" type="text" class="form-control me-2" 
+                               placeholder="Type your message..." style="height: 50px; font-size: 1.1rem;"> 
+                        <button id="send-btn" class="btn btn-primary" style="padding: 10px 20px; font-size: 1.1rem;">Send</button> 
                     </div>
                 </div>
             </div>
@@ -90,101 +64,56 @@
     </div>
 </section>
 
-{% if current_user.is_authenticated == True and current_user.isAdmin != True %}
-<section class="feedback text-center pb-5">
-    <div class="container py-5">
-        <div class="row py-5 text-white">
-            <div class="col-lg-7 m-auto">
-                <h1>Feedback Form</h1>
-                <div class="line2 my-4"></div>
-                <p>Feel free to contact us about your experience.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h2>Feedback</h2>
-                        <form action="{{ url_for('home')}}" method="POST">
-                            <!-- Button to Open the Modal -->
-                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
-                                data-bs-target="#myModal_feedback">Feedback</button>
-                            <!-- The Modal -->
-                            <div class="modal" id="myModal_feedback">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <!-- Modal Header -->
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Feedback Form</h4>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <!-- Modal body -->
-                                        <div class="modal-body">
-                                            <form method="POST">
-                                                {{form.hidden_tag()}}
-                                                <fieldset class="form-group">
-                                                    <legend class="border-bottom mb-4">Feedback Form</legend>
-                                                    <div class="form-group" margin:5px;>
-                                                        {{ form.rating.label(class="form-control-label") }}
-                                                        <!-- Feedback For Errors for Register-->
-                                                        {% if form.rating.errors %}
-                                                        {{ form.rating(class="form-control form-control-lg is-invalid")
-                                                        }}
-                                                        <div class="invalid-feedback">
-                                                            {% for errors in form.rating.errors %}
-                                                            <span>{{ errors }}</span>
-                                                            {% endfor %}
-                                                        </div>
-                                                        {% else %}
-                                                        {{ form.rating(class="form-control form-control-lg",
-                                                        style="te;") }}
-                                                        {% endif %}
-                                                    </div>
-                                                    <div class="form-group">
-                                                        {{ form.description.label(class="form-control-label") }}
-                                                        <!-- Feedback For Errors for Register-->
-                                                        {% if form.description.errors %}
-                                                        {{ form.description(class="form-control form-control-lg
-                                                        is-invalid") }}
-                                                        <div class="invalid-feedback">
-                                                            {% for errors in form.description.errors %}
-                                                            <span>{{ errors }}</span>
-                                                            {% endfor %}
-                                                        </div>
-                                                        {% else %}
-                                                        {{ form.description(class="form-control form-control-lg") }}
-                                                        {% endif %}
-                                                    </div>
-                                                    <div class="form-group">
-                                                        {{ form.issue.label(class="form-control-label") }}
-                                                        <!-- Feedback For Errors for Register-->
-                                                        {% if form.issue.errors %}
-                                                        {{ form.issue(class="form-control form-control-lg
-                                                        is-invalid") }}
-                                                        <div class="invalid-feedback">
-                                                            {% for errors in form.issue.errors %}
-                                                            <span>{{ errors }}</span>
-                                                            {% endfor %}
-                                                        </div>
-                                                        {% else %}
-                                                        {{ form.issue(class="form-control form-control-lg") }}
-                                                        {% endif %}
-                                                    </div>
-                                                </fieldset>
-                                                <div class="form-group" style="margin:30px 0 30px 0">
-                                                    {{ form.submit(class="btn btn-outline-info") }}
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-{% endif %}
+<style>
+    #chatbox {
+        max-width: 800px; 
+        margin: auto;
+    }
+
+    #chat-messages {
+        margin-bottom: 15px;
+        font-size: 1rem; 
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<script>
+document.getElementById('send-btn').addEventListener('click', function () {
+    const userMessage = document.getElementById('chat-input').value;
+
+    if (!userMessage.trim()) {
+        alert('Please enter a message.');
+        return;
+    }
+
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Display user message
+    const userBubble = `<div class="text-end mb-2"><span class="badge bg-secondary">${userMessage}</span></div>`;
+    chatMessages.innerHTML += userBubble;
+
+    fetch('/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const botBubble = `<div class="text-start mb-2"><span class="badge bg-primary">${data.reply}</span></div>`;
+            chatMessages.innerHTML += botBubble;
+            document.getElementById('chat-input').value = ''; // Clear input
+        })
+        .catch((err) => {
+            console.error('Error:', err);
+            const errorBubble = `<div class="text-start mb-2"><span class="badge bg-danger">An error occurred. Please try again later.</span></div>`;
+            chatMessages.innerHTML += errorBubble;
+        });
+});
+</script>
 {% endblock %}

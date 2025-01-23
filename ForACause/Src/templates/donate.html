@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Make a Donation{% endblock %}
+
+{% block content %}
+<div class="donation-background py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="donation-card">
+                    <div class="donation-header text-center">
+                        <h1 class="display-6 fw-bold mb-3">Make a Difference</h1>
+                        <p class="text-muted lead">Your generosity can change lives</p>
+                    </div>
+
+                    <form method="POST" class="donation-form">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="alerts-container">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+
+                        <!-- Donation Amount -->
+                        <div class="form-floating mb-4">
+                            {{ form.amount(class="form-control " + ("is-invalid" if form.amount.errors else ""), id="donationAmount", placeholder="Donation Amount") }}
+                            {{ form.amount.label(for="donationAmount", class="form-label") }}
+                            {% if form.amount.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Organization Selection -->
+                        <div class="form-floating mb-4">
+                            {{ form.organization(class="form-control " + ("is-invalid" if form.organization.errors else ""), id="donationOrg", placeholder="Organization") }}
+                            {{ form.organization.label(for="donationOrg", class="form-label") }}
+                            <small class="form-text text-muted mt-2 d-block">Leave blank for general donations</small>
+                            {% if form.organization.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.organization.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill donation-submit">
+                                <i class="bi bi-heart-fill me-2"></i>{{ form.submit.label }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="donation-footer text-center mt-4">
+                        <p class="text-muted small">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Secure and encrypted donation
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .donation-background {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .donation-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        padding: 40px;
+        transition: all 0.3s ease;
+    }
+
+    .donation-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .donation-header {
+        margin-bottom: 30px;
+    }
+
+    .donation-form .form-floating {
+        position: relative;
+    }
+
+    .donation-form .form-control {
+        border-radius: 10px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border: none;
+    }
+
+    .donation-form .form-control:focus {
+        background-color: white;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .donation-submit {
+        padding: 12px 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .donation-submit:hover {
+        transform: scale(1.05);
+    }
+
+    .alerts-container {
+        margin-bottom: 20px;
+    }
+
+    .donation-footer {
+        border-top: 1px solid #e9ecef;
+        padding-top: 20px;
+    }
+</style>
+{% endblock %}

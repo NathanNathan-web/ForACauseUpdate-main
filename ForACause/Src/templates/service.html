@@ -1,3 +1,44 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Service{% endblock %}
+{% block title %}Grocery Store - Service Feedback{% endblock %}
 
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">We Value Your Feedback</h2>
+    <form method="POST" action="home">
+        <div class="mb-3">
+            <label for="rating" class="form-label">Feedback Rating</label>
+            <select class="form-select" id="rating" name="rating" required>
+                <option value="">Select a rating</option>
+                <option value="1">1 - Very Poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Average</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Feedback Description</label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Write your feedback here..." required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="issue" class="form-label">Feedback Issue</label>
+            <select class="form-select" id="issue" name="issue">
+                <option value="">Select an issue (optional)</option>
+                <option value="Product Quality">Product Quality</option>
+                <option value="Delivery Service">Delivery Service</option>
+                <option value="Customer Support">Customer Support</option>
+                <option value="Others">Others</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="feedback_date" class="form-label">Feedback Date</label>
+            <input type="date" class="form-control" id="feedback_date" name="feedback_date" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit Feedback</button>
+    </form>
+</div>
+{% endblock %}
