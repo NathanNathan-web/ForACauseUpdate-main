@@ -168,13 +168,18 @@ class RedeemVoucherForm(FlaskForm):
     submit = SubmitField('Check Out')
     
 class DonateForm(FlaskForm):
-    amount = FloatField('Donation Amount', validators=[
-        DataRequired(message="Please enter a valid donation amount."),
-        NumberRange(min=1, message="Donation amount must be at least $1.")
-    ])
-    organization = SelectField('Organization', choices=[
-        ('org1', 'MINDS'),
-        ('org2', 'CARES SG'),
-        ('org3', 'YCS'),
-    ], validators=[DataRequired(message="Please select an organization.")])
+    amount = FloatField(
+        'Donation Amount',
+        validators=[
+            DataRequired(message="Please enter a valid donation amount."),
+            NumberRange(min=1, message="Donation amount must be at least $1.")
+        ]
+    )
+    organization = SelectField(
+        'Organization',
+        choices=[],  # Placeholder, will be populated dynamically
+        validators=[
+            DataRequired(message="Please select an organization.")
+        ]
+    )
     submit = SubmitField('Donate')

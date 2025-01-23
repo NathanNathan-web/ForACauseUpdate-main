@@ -1,17 +1,17 @@
 organizations = {
-    'org1': {
+    'Minds': {
         'name': 'MINDS',
         'description': 'Provides mental health services and support.',
-        'logo': 'minds_logo.png' 
+        'logo': 'MINDS.jpg' 
     },
-    'org2': {
+    'Cares': {
         'name': 'CARES SG',
         'description': 'Supports children and youth in need.',
-        'logo': 'cares_sg_logo.png'
+        'logo': 'CaresSg.png'
     },
-    'org3': {
+    'YCS': {
         'name': 'YCS',
         'description': 'Empowers young people through education and social development.',
-        'logo': 'ycs_logo.png'
+        'logo': 'Youth Corps Singapore.jpg'
     }
 }

@@ -13,7 +13,13 @@ import json  # Required for JSON serialization and deserialization
 from flask import render_template, url_for, flash, redirect, request, session, jsonify
 import logging
 import requests
+import qrcode
+from io import BytesIO
+from flask import send_file
+import stripe
 
+
+stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
 
 def Vegetable():
     return "Vegetable"
@@ -411,11 +417,39 @@ def redeemvoucher(id):
     else:
         return redirect(url_for('login'))
 # =================================  Service ==================================
-
-@app.route('/service')
+@app.route('/service', methods=['GET', 'POST'])
+@login_required
 def service():
+    if request.method == 'POST':
+        # Retrieve form data
+        rating = request.form.get('rating')
+        description = request.form.get('description')
+        issue = request.form.get('issue')
+        feedback_date = request.form.get('feedback_date')
+
+        # Validation
+        if not rating or not description or not feedback_date:
+            flash('Please fill in all required fields!', 'danger')
+            return redirect(url_for('service'))
+
+        # Save feedback data to the database
+        feedback = Feedback(
+            rating=int(rating),  # Convert rating to integer
+            description=description,
+            issue=issue,
+            feedback_date=date.fromisoformat(feedback_date)  # Convert string to date object
+        )
+        db.session.add(feedback)
+        db.session.commit()
+
+        flash('Thank you for your feedback!', 'success')
+
+        # Redirect to the homepage after submission
+        return redirect(url_for('home'))
+
     return render_template('service.html')
 
+    
 
 # ===================================== Admin =====================================
 
@@ -808,11 +842,13 @@ def deletevoucher(id):
 @app.route('/serviceAdmin')
 @login_required
 def serviceadmin():
-    feedback_list = []
-    feedbacks = Feedback.query.all()
-    for feedback in feedbacks:
-        feedback_list.append(feedback)
-    return render_template('serviceAdmin.html', feedback_list=feedback_list, adminStat=True)
+    if current_user.isAdmin:  # Ensure only admins can access this route
+        feedback_list = Feedback.query.all()  # Retrieve all feedbacks from the database
+        return render_template('serviceAdmin.html', feedback_list=feedback_list, adminStat=True)
+    else:
+        flash('You do not have permission to view this page.', 'danger')
+        return redirect(url_for('home'))
+
 
 
 @app.route('/deleteFeedback/<int:id>', methods=['POST'])
@@ -884,17 +920,194 @@ def productvalidity(id):
     return render_template('productAdmin.html', adminStat=True, product_list=product_list, idsite=True)
 
 @app.route('/donate', methods=['GET', 'POST'])
-@login_required  # Require user to be logged in
+@login_required
 def donate():
+    from Src.organization import organizations  # Import the organizations dictionary
+
+    # Populate organization choices dynamically
+    org_choices = [(key, value['name']) for key, value in organizations.items()]
     form = DonateForm()
-    if form.validate_on_submit():
+    form.organization.choices = org_choices
+
+    if form.validate_on_submit():  # Ensure form is validated
         donation_amount = form.amount.data
-        donation = Donation(user_id=current_user.id, amount=donation_amount)
-        db.session.add(donation)
-        db.session.commit()
-        flash(f'Thank you for your donation of ${donation_amount:.2f}!', 'success')
-        return redirect(url_for('home'))
-    return render_template('donate.html', form=form)
+        selected_org = form.organization.data
+
+        # Redirect to the payment page
+        return redirect(url_for(
+            'donation_payment',
+            amount=donation_amount,
+            organization=selected_org
+        ))
+
+    # If the form is not submitted or validation fails, re-render the form
+    return render_template('donate.html', form=form, organizations=organizations)
+
+@app.route('/generate_qr', methods=['GET'])
+@login_required
+def generate_qr():
+    from io import BytesIO
+    import qrcode
+
+    # Your PayNow mobile number and other details
+    uen_or_mobile = "88185649"  # Your PayNow mobile number
+    merchant_name = "ForACause"  # Merchant name
+    merchant_city = "Singapore"  # Merchant city
+    amount = request.args.get('amount', type=float)  # Donation amount
+    reference = "Donation"  # Fixed payment reference
+
+    # Validate input
+    if not uen_or_mobile or not amount:
+        return "Invalid QR code parameters", 400
+
+    # Construct SGQR payload
+    payload = (
+        "000201"  # Payload format indicator
+        "010211"  # Static QR code
+        "26440014SG.PAYNOW"  # PayNow identifier
+        f"01012021{len(uen_or_mobile):02}{uen_or_mobile}"  # Mobile number proxy
+        "5303702"  # Currency (SGD = 702)
+        f"54{len(f'{amount:.2f}'):02}{amount:.2f}"  # Amount
+        "5802SG"  # Country
+        f"59{len(merchant_name):02}{merchant_name}"  # Merchant name
+        f"60{len(merchant_city):02}{merchant_city}"  # Merchant city
+        f"62{len(reference)+4:02}01{len(reference):02}{reference}"  # Reference
+        "6304"  # CRC checksum placeholder
+    )
+
+    # Calculate CRC checksum
+    crc = calculate_crc(payload)
+    payload += crc
+
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(payload)
+    qr.make(fit=True)
+
+    # Save QR code to a buffer
+    buffer = BytesIO()
+    qr.make_image(fill_color="black", back_color="white").save(buffer)
+    buffer.seek(0)
+
+    # Return the QR code as a PNG
+    return send_file(buffer, mimetype='image/png')
+
+
+@app.route('/donation/payment', methods=['GET', 'POST'])
+@login_required
+def donation_payment():
+    from Src.organization import organizations
+
+    # Retrieve donation details from query parameters
+    donation_amount = request.args.get('amount', type=float)
+    selected_org = request.args.get('organization')
+
+    # Validate the organization
+    if selected_org not in organizations:
+        flash('Invalid organization selected. Please try again.', 'danger')
+        return redirect(url_for('donate'))
+
+    # Organization details
+    organization_name = organizations[selected_org]['name']
+    uen_or_mobile = "88185649"  # Registered PayNow mobile number
+    reference = "Donation"  # Payment reference
+
+    if request.method == 'POST':
+        # Handle Stripe or PayNow confirmation
+        payment_method = request.form.get('payment_method')
+
+        if payment_method == 'stripe':
+            # Redirect to Stripe Checkout
+            return redirect(url_for(
+                'create_checkout_session',
+                amount=donation_amount,
+                organization=selected_org,
+            ))
+
+        elif payment_method == 'paynow':
+            flash("Please scan the QR code with your PayNow app to complete the payment.", "info")
+            return redirect(url_for('donation_payment', amount=donation_amount, organization=selected_org))
+
+        flash('Invalid payment method selected. Please try again.', 'danger')
+
+    return render_template(
+        'payment.html',
+        organization_name=organization_name,
+        donation_amount=donation_amount,
+        uen_or_mobile=uen_or_mobile,
+        reference=reference
+    )
+
+
+def calculate_crc(payload: str) -> str:
+    """Calculate CRC16-CCITT checksum for SGQR."""
+    crc = 0xFFFF
+    polynomial = 0x1021
+
+    for byte in payload.encode("utf-8"):
+        crc ^= (byte << 8)
+        for _ in range(8):
+            if crc & 0x8000:
+                crc = (crc << 1) ^ polynomial
+            else:
+                crc <<= 1
+        crc &= 0xFFFF  # Ensure 16-bit
+
+    return f"{crc:04X}"  # Return checksum in uppercase hex
+
+
+@app.route('/create-checkout-session', methods=['GET'])
+@login_required
+def create_checkout_session():
+    try:
+        # Retrieve donation details
+        amount = int(request.args.get('amount', type=float) * 100)  # Convert to cents
+        organization_name = request.args.get('organization', 'ForACause')
+
+        # Create Stripe Checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'sgd',
+                        'product_data': {
+                            'name': f'Donation to {organization_name}',
+                        },
+                        'unit_amount': amount,
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=url_for('payment_success', _external=True),
+            cancel_url=url_for('payment_cancel', _external=True),
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "danger")
+        return redirect(url_for('donate'))
+
+
+@app.route('/payment/success')
+@login_required
+def payment_success():
+    flash("Your payment was successful! Thank you for your donation.", "success")
+    return redirect(url_for('home'))
+
+
+@app.route('/payment/cancel')
+@login_required
+def payment_cancel():
+    flash("Your payment was canceled. Please try again.", "warning")
+    return redirect(url_for('donate'))
+
+
 
 @app.route('/chat', methods=['POST'])
 @login_required

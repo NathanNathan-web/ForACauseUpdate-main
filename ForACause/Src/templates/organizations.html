@@ -10,7 +10,13 @@
     </div>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for org in organizations %}
+        {% for organization in organizations %}
+<div class="card">
+    <h5>{{ organization.name }}</h5>
+    <p>{{ organization.description }}</p>
+</div>
+{% endfor %}
+
         <div class="col">
             <div class="card h-100 organization-card">
                 <img src="{{ url_for('static', filename='images/' + org.logo) }}" 

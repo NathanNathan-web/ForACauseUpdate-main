@@ -42,78 +42,137 @@
         </div>
     </div>
 </section>
-
-<section class="chatbot py-5">
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-lg-8 m-auto text-center"> 
-                <h1>Chat with Us!</h1>
-                <p>Have questions? Chat with our AI chatbot and get instant answers.</p>
-                <div id="chatbox" class="border p-4 rounded">
-                    <div id="chat-messages" class="overflow-auto" 
-                         style="height: 400px; background-color: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 10px;"> 
-                    </div>
-                    <div class="d-flex mt-3">
-                        <input id="chat-input" type="text" class="form-control me-2" 
-                               placeholder="Type your message..." style="height: 50px; font-size: 1.1rem;"> 
-                        <button id="send-btn" class="btn btn-primary" style="padding: 10px 20px; font-size: 1.1rem;">Send</button> 
-                    </div>
-                </div>
-            </div>
+<section class="chatbot-section">
+    <style>
+      .chatbot-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        transition: all 0.4s ease;
+      }
+      .ai-logo {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+      .ai-logo:hover {
+        transform: scale(1.1) rotate(10deg);
+      }
+      .ai-logo img {
+        width: 40px;
+        height: 40px;
+      }
+      .chatbot-popup {
+        position: absolute;
+        bottom: 90px;
+        right: 0;
+        width: 350px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        transition: all 0.4s ease;
+        overflow: hidden;
+      }
+      .chatbot-popup.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      .popup-header {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .popup-header h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        background-color: #f8f9fa;
+      }
+      .chat-input-area {
+        display: flex;
+        padding: 15px;
+        background-color: white;
+        border-top: 1px solid #dee2e6;
+      }
+      .chat-input {
+        flex-grow: 1;
+        border: 1px solid #ced4da;
+        border-radius: 20px;
+        padding: 10px 15px;
+        margin-right: 10px;
+      }
+      .send-btn {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 15px;
+      }
+    </style>
+  
+    <div class="chatbot-container">
+      <div class="chatbot-popup" id="chatbot-popup">
+        <div class="popup-header">
+          <h2>Chat with Us</h2>
+          <button class="close-btn" id="close-chat">&times;</button>
         </div>
+        <div class="chat-messages" id="chat-messages">
+          <!-- Chat messages will be added here -->
+        </div>
+        <div class="chat-input-area">
+          <input 
+            type="text" 
+            class="chat-input" 
+            id="chat-input" 
+            placeholder="Type your message..."
+          >
+          <button class="send-btn" id="send-btn">Send</button>
+        </div>
+      </div>
+      <div class="ai-logo" id="ai-logo">
+        <img src="{{ url_for('static', filename='images/Chatbot.jpg') }}" alt="AI Logo">
     </div>
-</section>
-
-<style>
-    #chatbox {
-        max-width: 800px; 
-        margin: auto;
-    }
-
-    #chat-messages {
-        margin-bottom: 15px;
-        font-size: 1rem; 
-    }
-
-    .badge {
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-    }
-</style>
-
-<script>
-document.getElementById('send-btn').addEventListener('click', function () {
-    const userMessage = document.getElementById('chat-input').value;
-
-    if (!userMessage.trim()) {
-        alert('Please enter a message.');
-        return;
-    }
-
-    const chatMessages = document.getElementById('chat-messages');
-
-    // Display user message
-    const userBubble = `<div class="text-end mb-2"><span class="badge bg-secondary">${userMessage}</span></div>`;
-    chatMessages.innerHTML += userBubble;
-
-    fetch('/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            const botBubble = `<div class="text-start mb-2"><span class="badge bg-primary">${data.reply}</span></div>`;
-            chatMessages.innerHTML += botBubble;
-            document.getElementById('chat-input').value = ''; // Clear input
-        })
-        .catch((err) => {
-            console.error('Error:', err);
-            const errorBubble = `<div class="text-start mb-2"><span class="badge bg-danger">An error occurred. Please try again later.</span></div>`;
-            chatMessages.innerHTML += errorBubble;
+  
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const aiLogo = document.getElementById('ai-logo');
+        const chatbotPopup = document.getElementById('chatbot-popup');
+        const closeChatBtn = document.getElementById('close-chat');
+  
+        aiLogo.addEventListener('click', () => {
+          chatbotPopup.classList.toggle('active');
         });
-});
-</script>
+  
+        closeChatBtn.addEventListener('click', () => {
+          chatbotPopup.classList.remove('active');
+        });
+      });
+    </script>
+  </section>
 {% endblock %}
