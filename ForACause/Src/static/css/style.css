@@ -61,6 +61,11 @@ tbody {
     margin:0 auto;
 }
 
+.table-light-blue {
+    background-color: #add8e6; /* Light blue color */
+    color: #000; /* Optional: adjust text color for better contrast */
+}
+
 /* ===================NAVBAR=================== */
 p {
     font-size: 1.3rem;
@@ -102,9 +107,33 @@ h2 {
     color:white
 }
 
+.navbar-nav .nav-link {
+    color: white; 
+    background-color: transparent; 
+    transition: color 0.3s ease; 
+}
+
+.navbar-nav .nav-link:hover {
+    color: grey; 
+}
+
+.navbar-nav .dropdown-menu .dropdown-item {
+    color: black;
+    background-color: transparent;
+}
+
+.navbar-nav .dropdown-menu .dropdown-item:hover {
+    color: black; 
+    background-color: rgba(0, 0, 0, 0.05); 
+}
+
+.navbar-nav .nav-link.active {
+    color: grey; 
+}
+
 .footer-bg {
-    background-color: #000080; /* Set the background to white */
-    color: white; /* Adjust text color for visibility */
+    background-color: #000080; 
+    color: white;
 }
 
 .search {
@@ -138,7 +167,7 @@ h2 {
 
 .bi-cart {
     font-size: 30px;
-    color: black;
+    color: rgb(255, 255, 255);
     cursor: pointer;
     padding-top: 5px;
     transition: all 0.4s;
@@ -146,12 +175,12 @@ h2 {
 }
 
 .bi-cart:hover {
-    color: white;
+    color: rgb(209, 209, 209);
 }
 
 .bi-person-circle {
     font-size: 30px;
-    color: black;
+    color: rgb(255, 255, 255);
     cursor: pointer;
     padding-top: 5px;
     transition: all 0.4s;
@@ -160,7 +189,7 @@ h2 {
 }
 
 .bi-person-circle:hover {
-    color: white;
+    color: rgb(209, 209, 209);
 }
 
 
@@ -371,6 +400,70 @@ td {
     background-color: rgb(105, 253, 105);
     padding:10px;
     justify-content: center;
+}
+
+/* Pending button (similar to .nonvalid) */
+.pending {
+    display: flex;
+    border: 1px solid black;
+    color: black;
+    font-size: 0.6vw;
+    border-radius: 10px;
+    width: 80px;
+    background-color: rgb(255, 204, 153);
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.pending:hover {
+    border: 1px solid rgb(0, 0, 0);
+    color: rgb(112, 69, 0); /* Darker orange on hover */
+    font-size: 0.5vw;
+    background-color: rgb(255, 165, 0); /* Brighter orange on hover */
+}
+
+/* Completed button (similar to .valid) */
+.completed {
+    display: flex;
+    border: 1px solid green;
+    color: green;
+    font-size: 0.5vw;
+    border-radius: 10px;
+    width: 80px;
+    background-color: rgb(162, 255, 167);
+    padding: 10px;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.completed:hover {
+    border: 1px solid rgb(255, 255, 255);
+    color: rgb(6, 112, 2);
+    font-size: 0.5vw;
+    background-color: rgb(105, 253, 105);
+}
+
+/* Out for Collection button (similar to .valid) */
+.out-for-collection {
+    display: flex;
+    border: 1px solid rgb(0, 0, 255);
+    color: rgb(0, 0, 255);
+    font-size: 0.5vw;
+    border-radius: 10px;
+    width: 80px;
+    background-color: rgb(162, 210, 255);
+    padding: 10px;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.out-for-collection:hover {
+    border: 1px solid rgb(255, 255, 255);
+    color: rgb(0, 0, 255);
+    font-size: 0.5vw;
+    background-color: rgb(105, 180, 255);
 }
 
 a {

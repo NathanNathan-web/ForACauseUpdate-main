@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Home{% endblock %}
+{% block title %}ForACause - Home{% endblock %}
 {% block content %}
 
 <div class="container" style="margin:auto;">
@@ -51,6 +51,7 @@
         </fieldset>
         <div class="form-group" style="margin:30px 0 30px 0">
             {{ form.submit(class="btn btn-outline-info") }}
+            <a href="/supplierLogin" class="btn btn-outline-info"> Login as Supplier</a>
         </div>
         <small class="text-muted ml-2">
             <a href="{{ url_for('forgetpw')}}">Forget Password</a>
@@ -60,7 +61,6 @@
         <small class="text-muted">
             Need An Account? <a href="{{ url_for('register')}}" class="btn btn-outline-info">Sign Up</a>
         </small>
-        <a href="/supplierLogin" class="btn btn-outline-info">Supplier</a>
     </div>
 </div>
 

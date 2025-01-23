@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Donate an Item{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <p></p>
+            <h1 class="mb-4">Donate an Item</h1>
+
+            <!-- Item Name -->
+            <div class="form-group">
+                {{ form.name.label(class="form-control-label") }}
+                {% if form.name.errors %}
+                    {{ form.name(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.name.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.name(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                {{ form.description.label(class="form-control-label") }}
+                {% if form.description.errors %}
+                    {{ form.description(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.description.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.description(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                {{ form.category.label(class="form-control-label") }}
+                {% if form.category.errors %}
+                    {{ form.category(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.category.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.category(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group">
+                {{ form.quantity.label(class="form-control-label") }}
+                {% if form.quantity.errors %}
+                    {{ form.quantity(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.quantity.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.quantity(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Condition -->
+            <div class="form-group">
+                {{ form.condition.label(class="form-control-label") }}
+                <div>
+                    {% for subfield in form.condition %}
+                        <div class="form-check form-check-inline">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if form.condition.errors %}
+                    <div class="text-danger">
+                        {% for errors in form.condition.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Image File -->
+            <div class="form-group">
+                {{ form.image_file.label(class="form-control-label") }}
+                {% if form.image_file.errors %}
+                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.image_file.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.image_file(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Preferred Drop Off Method -->
+            <div class="form-group">
+                {{ form.preferred_drop_off_method.label(class="form-control-label") }}
+                {% if form.preferred_drop_off_method.errors %}
+                    {{ form.preferred_drop_off_method(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.preferred_drop_off_method.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.preferred_drop_off_method(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Pickup Address -->
+            <div class="form-group">
+                {{ form.address.label(class="form-control-label") }}
+                {% if form.address.errors %}
+                    {{ form.address(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.address.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.address(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+            <!-- Preferred Date -->
+            <div class="form-group">
+                {{ form.preferred_date.label(class="form-control-label") }}
+                {% if form.preferred_date.errors %}
+                    {{ form.preferred_date(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.preferred_date.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.preferred_date(class="form-control form-control-lg", type="date") }}
+                {% endif %}
+            </div>
+
+            <!-- Preferred Time -->
+            <div class="form-group">
+                {{ form.preferred_time.label(class="form-control-label") }}
+                {% if form.preferred_time.errors %}
+                    {{ form.preferred_time(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.preferred_time.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.preferred_time(class="form-control form-control-lg", type="time") }}
+                {% endif %}
+            </div>
+
+            <!-- Organisation -->
+            <div class="form-group">
+                {{ form.organisation.label(class="form-control-label") }}
+                {% if form.organisation.errors %}
+                    {{ form.organisation(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.organisation.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.organisation(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+        </fieldset>
+
+        <!-- Submit Button -->
+        <div class="form-group" style="margin:30px 0 30px 0">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Admin Inventory{% endblock %}
+{% block title %}ForACause - Admin Inventory{% endblock %}
 
 {% block content %}
 <div class="container">
     <form method="POST">
         {{form.hidden_tag()}}
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Inventory Supplier</legend>
+            <p></p>
+            <h1 class="mb-4">Inventory Supplier</h1>
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             {% for category, message in messages %}

@@ -6,9 +6,8 @@
     <!-- Profile Header -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body text-center">
-            <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
-                 alt="User Profile Image" class="rounded-circle mb-3" 
-                 style="height: 100px; width: 100px; object-fit: cover;">
+            <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" alt="User Profile Image"
+                class="rounded-circle mb-3" style="height: 100px; width: 100px; object-fit: cover;">
             <h2 class="card-title">{{ user.username }}</h2>
             <p class="card-text text-muted">{{ user.email }}</p>
             <p><strong>Total Donations:</strong> ${{ user.donation_total }}</p>
@@ -37,8 +36,8 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><img src="{{ url_for('static', filename='images/' + user.image_file ) }}" 
-                                 alt="User Profile Image" style="height:40px; width: 40px; border-radius: 50%;"></td>
+                        <td><img src="{{ url_for('static', filename='images/' + user.image_file ) }}"
+                                alt="User Profile Image" style="height:40px; width: 40px; border-radius: 50%;"></td>
                         <td>{{ user.id }}</td>
                         <td>{{ user.username }}</td>
                         <td>{{ user.email }}</td>
@@ -46,7 +45,8 @@
                         <td>{{ user.address }}</td>
                         <td>${{ user.donation_total }}</td>
                         <td>
-                            <button type="button" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i> View Image</button>
+                            <button type="button" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i> View
+                                Image</button>
                         </td>
                     </tr>
                 </tbody>
@@ -59,11 +59,13 @@
         <!-- Voucher Information -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingVouchers">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVouchers" aria-expanded="false" aria-controls="collapseVouchers">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseVouchers" aria-expanded="false" aria-controls="collapseVouchers">
                     Voucher Information
                 </button>
             </h2>
-            <div id="collapseVouchers" class="accordion-collapse collapse" aria-labelledby="headingVouchers" data-bs-parent="#profileAccordion">
+            <div id="collapseVouchers" class="accordion-collapse collapse" aria-labelledby="headingVouchers"
+                data-bs-parent="#profileAccordion">
                 <div class="accordion-body p-0">
                     <table class="table table-hover">
                         <thead class="table-light">
@@ -78,8 +80,8 @@
                         <tbody>
                             {% for voucher in user_vouchers %}
                             <tr>
-                                <td><img src="{{ url_for('static', filename='images/' + voucher.image_file ) }}" 
-                                         alt="Voucher Image" style="height: 40px; width: 60px; border-radius: 5px;"></td>
+                                <td><img src="{{ url_for('static', filename='images/' + voucher.image_file ) }}"
+                                        alt="Voucher Image" style="height: 40px; width: 60px; border-radius: 5px;"></td>
                                 <td>{{ voucher.id }}</td>
                                 <td>${{ voucher.value }}</td>
                                 <td>{{ voucher.expiry_date }}</td>
@@ -98,14 +100,83 @@
             </div>
         </div>
 
-        <!-- Donation and Volunteering History -->
+        <!-- Donation History -->
         <div class="accordion-item">
-            <h2 class="accordion-header" id="headingHistory">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory" aria-expanded="false" aria-controls="collapseHistory">
-                    Donation and Volunteering History
+            <h2 class="accordion-header" id="headingDonationHistory">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseDonationHistory" aria-expanded="false"
+                    aria-controls="collapseDonationHistory">
+                    Donation History
                 </button>
             </h2>
-            <div id="collapseHistory" class="accordion-collapse collapse" aria-labelledby="headingHistory" data-bs-parent="#profileAccordion">
+            <div id="collapseDonationHistory" class="accordion-collapse collapse"
+                aria-labelledby="headingDonationHistory" data-bs-parent="#profileAccordion">
+                <div class="accordion-body p-0">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Condition</th>
+                                <th>Image</th>
+                                <th>Preferred Drop-Off</th>
+                                <th>Address</th>
+                                <th>Preferred Date</th>
+                                <th>Preferred Time</th>
+                                <th>Organisation</th>
+                                <th>Status</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for donateitem in donateitems %}
+                            <tr>
+                                <td>{{ donateitem.id }}</td>
+                                <td>{{ donateitem.name }}</td>
+                                <td>{{ donateitem.description }}</td>
+                                <td>{{ donateitem.category }}</td>
+                                <td>{{ donateitem.quantity }}</td>
+                                <td>{{ donateitem.condition }}</td>
+                                <td>
+                                    {% if donateitem.image_file %}
+                                    <img src="{{ url_for('static', filename='images/' + donateitem.image_file) }}"
+                                        alt="Donation Image"
+                                        style="height: 40px; width: 60px; object-fit: cover; border-radius: 5px;">
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ donateitem.preferred_drop_off_method }}</td>
+                                <td>{{ donateitem.address if donateitem.address else 'NA' }}</td>
+                                <td>{{ donateitem.preferred_date if donateitem.preferred_date else 'NA' }}</td>
+                                <td>{{ donateitem.preferred_time if donateitem.preferred_time else 'NA' }}</td>
+                                <td>{{ donateitem.organisation }}</td>
+                                <td>{{ donateitem.status }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_donation_item', item_id=donateitem.id) }}" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></a>
+                                </td>                                
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>                
+
+        <!-- Volunteering History -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingVolunteeringHistory">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseVolunteeringHistory" aria-expanded="false"
+                    aria-controls="collapseVolunteeringHistory">
+                    Volunteering History
+                </button>
+            </h2>
+            <div id="collapseVolunteeringHistory" class="accordion-collapse collapse"
+                aria-labelledby="headingVolunteeringHistory" data-bs-parent="#profileAccordion">
                 <div class="accordion-body p-0">
                     <table class="table table-hover">
                         <thead class="table-light">
@@ -117,7 +188,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for activity in donation_volunteering_history %}
+                            {% for activity in volunteering_history %}
                             <tr>
                                 <td>{{ activity.date }}</td>
                                 <td>{{ activity.type }}</td>

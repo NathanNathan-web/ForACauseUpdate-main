@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from Src.models import User, Product
+from wtforms import StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField, TimeField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
+from .models import User, Product
 from wtforms.fields import DateField
 import pycountry
 
@@ -167,4 +167,17 @@ class TopUpForm(FlaskForm):
 class RedeemVoucherForm(FlaskForm):
     submit = SubmitField('Check Out')
 
+class DonationItemForm(FlaskForm):
+    name = StringField('Item Name', validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    category = SelectField('Category', choices=[('clothes', 'Clothing'),('electronics', 'Electronics'),('books', 'Books'),('toys', 'Toys'),('food', 'Food (Non-Perishable)'),('others', 'Other')], validators=[DataRequired()])
+    quantity = IntegerField('Quantity', validators=[DataRequired()])
+    condition = RadioField('Condition', choices=[('new', 'New'),('used', 'Used')], validators=[DataRequired()])
+    image_file = FileField('Item Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only.'),FileRequired()])
+    preferred_drop_off_method = SelectField('Preferred Drop Off Method', choices=[('drop_off', 'Drop off at location'), ('pickup', 'Request for pickup')],validators=[DataRequired()])
+    address = StringField('Pickup Address (if applicable)',validators=[Optional(), Length(max=200)])
+    preferred_date = DateField('Preferred Date for Pickup', validators=[Optional()])
+    preferred_time = TimeField('Preferred Time for Pickup', validators=[Optional()])
+    organisation = SelectField('Choice of Organisation',choices=[('TSA', 'The Salvation Army'),('MINDS', 'MINDS'),('FFTH', 'Food from the Heart'),('RCS', 'Red Cross Singapore')],validators=[DataRequired()])
+    submit = SubmitField('Submit Donation')
 

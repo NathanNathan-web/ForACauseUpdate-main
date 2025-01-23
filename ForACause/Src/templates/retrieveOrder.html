@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Admin Inventory{% endblock %}
+{% block title %}ForACause - Admin Inventory{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -13,7 +13,7 @@
     {% endif %}
     {% endwith %}
     <table class="table table-hover">
-        <thead class="table-success">
+        <thead class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="topleft">Order ID</th>
                 <th scope="col">Order Product Name</th>
@@ -76,7 +76,7 @@
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot class="table-success">
+        <tfoot class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="bottomleft"></th>
                 <th scope="col"></th>
@@ -88,6 +88,8 @@
         </tfoot>
     </table>
     <a href="/inventoryAdmin"><button class="btn btn-outline-info"> Back to inventory</button></a>
+    <p></p>
+</br>
 </div>
 
 {% endblock %}

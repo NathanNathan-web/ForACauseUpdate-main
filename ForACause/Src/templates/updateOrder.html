@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}ForACause - Update Order{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <p></p>
+            <h1 class="mb-4">Update Order</h1>
+
+            <div class="form-group">
+                <label for="productname">Product Name</label>
+                <select name="productname" id="productname" class="form-control form-control-lg"> 
+                    {% for product in product_list %}
+                        <option {% if product.id == order.product_id %} selected {% endif %}>{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                {{ form.orderstock.label(class="form-control-label") }}
+                {% if form.orderstock.errors %}
+                    {{ form.orderstock(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for errors in form.orderstock.errors %}
+                            <span>{{ errors }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.orderstock(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+        </fieldset>
+
+        <div class="form-group" style="margin:30px 0 30px 0">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

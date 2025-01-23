@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Create Order{% endblock %}
+{% block title %}ForACause - Create Order{% endblock %}
 
 {% block content %}
 <div class="container">
     <form method="POST">
         {{form.hidden_tag()}}
         <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Create Order</legend>
+            <p></p>
+            <h1 class="mb-4">Create Order</h1>
             <div class="form-group" margin:5px;>
                 <label for="productname">Product Name</label>
                 <select name="productname" id="productname" class="form-control form-control-lg"> 

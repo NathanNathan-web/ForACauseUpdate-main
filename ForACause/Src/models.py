@@ -1,4 +1,4 @@
-from Src import db, login_manager
+from . import db, login_manager
 from datetime import datetime
 from flask_login import UserMixin
 from sqlalchemy.orm import backref, relationship
@@ -152,6 +152,22 @@ class Voucher(db.Model):
         self.expiry_date = expiry_date
         self.image_file = image_file
         self.isValid = isValid
+
+class DonateItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    category = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    condition = db.Column(db.String(10), nullable=False)
+    image_file = db.Column(db.String(200), nullable=True) 
+    preferred_drop_off_method = db.Column(db.String(50), nullable=False)
+    address = db.Column(db.String(200), nullable=True)
+    preferred_date = db.Column(db.Date, nullable=True)
+    preferred_time = db.Column(db.Time, nullable=True)
+    organisation = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="Pending")
 
 class RedeemedVouchers(db.Model):
     id = db.Column(db.Integer, primary_key=True)

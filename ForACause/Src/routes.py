@@ -1,10 +1,11 @@
 from datetime import date
 from flask import render_template, url_for, flash, redirect, request, session
-from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
-from Src import app, db, bcrypt
+from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm
+from .models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem
+from . import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
-
+from werkzeug.utils import secure_filename
+import os
 
 def Vegetable():
     return "Vegetable"
@@ -172,16 +173,155 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
-        redeemvoucher_list =[]
-        image_file = url_for('static', filename='images/' +
-                             current_user.image_file)
+        redeemvoucher_list = []
+        donateitem_list = []
+        
+        image_file = url_for('static', filename='images/' + current_user.image_file)
+        
         user = User.query.filter_by(id=current_user.id).first()
-        redeemvouchers = RedeemedVouchers.query.filter_by(user_id = current_user.id).all()
+        redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+        donateitems = DonateItem.query.filter_by(user_id=current_user.id).all()
+        
         for redeemvoucher in redeemvouchers:
             redeemvoucher_list.append(redeemvoucher)
-        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list)
+        
+        for donateitem in donateitems:
+            if donateitem.image_file:
+                donateitem.image_path = url_for('static', filename='uploads/' + donateitem.image_file)
+            else:
+                donateitem.image_path = None
+            donateitem_list.append(donateitem)
+        
+        return render_template(
+            'account.html',
+            image_file=image_file,
+            user=user,
+            redeemvoucher_list=redeemvoucher_list,
+            donateitems=donateitem_list
+        )
     else:
         return render_template('login.html')
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/donateItem', methods=['GET', 'POST'])
+@login_required
+def donateItem():
+    form = DonationItemForm()
+
+    if form.validate_on_submit():  # Check if the form is valid and submitted
+        image_file_path = None  # Default to None for no image
+
+        # Handle image file if uploaded
+        if form.image_file.data:
+            image = form.image_file.data
+            if allowed_file(image.filename):  # Check if the file is allowed
+                filename = secure_filename(image.filename)  # Secure the filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+                try:
+                    image.save(file_path)  # Save the file to the server
+                    image_file_path = filename  # Store the file name for DB
+                except Exception as e:
+                    flash(f"Error saving image: {str(e)}", 'danger')
+
+        # Create a new DonateItem object with the form data
+        new_donation = DonateItem(
+            user_id=current_user.id, 
+            name=form.name.data,
+            description=form.description.data,
+            category=form.category.data,
+            quantity=form.quantity.data,
+            condition=form.condition.data,
+            image_file=image_file_path,  # Store the image file path
+            preferred_drop_off_method=form.preferred_drop_off_method.data,
+            address=form.address.data,
+            preferred_date=form.preferred_date.data,
+            preferred_time=form.preferred_time.data,
+            organisation=form.organisation.data
+        )
+
+        # Add the new donation to the database session and commit
+        db.session.add(new_donation)
+        db.session.commit()
+
+        # Flash success message and redirect to home page
+        flash('Thank you for your donation!', 'success')
+        return redirect(url_for('home'))
+
+    # If form isn't submitted or valid, just render the form
+    return render_template('donateItem.html', form=form)
+
+@app.route('/edit_donation_item/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_donation_item(item_id):
+    donate_item = DonateItem.query.get_or_404(item_id)
+    
+    # Create a form instance and populate it with existing data
+    form = DonationItemForm(obj=donate_item)
+
+    # Handle form submission
+    if form.validate_on_submit():
+        donate_item.name = form.name.data
+        donate_item.description = form.description.data
+        donate_item.category = form.category.data
+        donate_item.quantity = form.quantity.data
+        donate_item.condition = form.condition.data
+        donate_item.image_file = form.image_file.data
+        donate_item.preferred_drop_off_method = form.preferred_drop_off_method.data
+        donate_item.address = form.address.data
+        donate_item.preferred_date = form.preferred_date.data
+        donate_item.preferred_time = form.preferred_time.data
+        donate_item.organisation = form.organisation.data
+
+        # Handle image file if uploaded
+        if form.image_file.data:
+            image = form.image_file.data
+            if allowed_file(image.filename):  # Check if the file is allowed
+                filename = secure_filename(image.filename)  # Secure the filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+                try:
+                    image.save(file_path)  # Save the file to the server
+                    donate_item.image_file = filename  # Update the image file path in the DB
+                except Exception as e:
+                    flash(f"Error saving image: {str(e)}", 'danger')
+
+        db.session.commit()
+
+        flash('Donation item updated successfully!', 'success')
+        if current_user.isAdmin:
+            return redirect(url_for('donateitemadmin')) 
+        else:
+            return redirect(url_for('account'))
+
+    return render_template('editDonationItem.html', form=form)
+
+@app.route('/donateItemAdmin')
+@login_required
+def donateitemadmin():
+    donation_items = DonateItem.query.all()
+    return render_template('donateItemAdmin.html', adminStat = True, donation_items=donation_items)
+
+@app.route('/update_status/<int:id>/<string:new_status>', methods=['GET'])
+@login_required
+def update_status(id, new_status):
+    # Fetch the item by ID
+    item = DonateItem.query.get_or_404(id)
+    
+    # Update the status
+    item.status = new_status
+    db.session.commit()
+
+    return redirect(url_for('donateitemadmin'))
+
+@app.route('/deleteDonationItem/<int:id>', methods=['POST'])
+def deletedonationitem(id):
+    item = DonateItem.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for('donateitemadmin'))
 
 @app.route('/topup', methods=['GET', 'POST'])
 @login_required
@@ -511,39 +651,40 @@ def createsupplier():
 
 @app.route('/updateSupplier/<int:id>/', methods=['GET', 'POST'])
 def updatesupplier(id):
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        form = SupplierForm()
-        if request.method == 'POST' and form.validate():
-            supplier = Supplier.query.filter_by(id=id).first()
-            if form.phone.data[0] == '8' or form.phone.data[0] == '9' or form.phone.data[0] == '6' and form.name.data.isalpha() == True:
-                supplier.name = form.name.data
-                supplier.email = form.email.data
-                supplier.phone = form.phone.data
-                supplier.company = form.company.data
-                supplier.address = form.address.data
-                supplier.country = form.country.data
-                supplier.image_file = form.image_file.data
-                supplier.isValid = form.isValid.data
-                db.session.commit()
-                flash('Update supplier success!', 'success')
-                return redirect(url_for('inventoryadmin', idsite=True))
-            else:
-                flash(
-                    'Update supplier failed, Phone number must start with 8 , 9 or 6 or Name cannot contain number', 'danger')
-                return render_template('updateSupplier.html', form=form, supplierimage=supplier.image_file, idsite=True)
-        else:
-            supplier = Supplier.query.filter_by(id=id).first()
-            form.name.data = supplier.name
-            form.email.data = supplier.email
-            form.phone.data = supplier.phone
-            form.company.data = supplier.company
-            form.address.data = supplier.address
-            form.country.data = supplier.country
-            form.image_file.data = supplier.image_file
-            return render_template('updateSupplier.html', form=form, supplierimage=supplier.image_file, idsite=True)
-    else:
-        return render_template('login.html')
+    supplier = Supplier.query.get_or_404(id)  # Query supplier once
+    
+    # Create a form instance and populate it with existing data
+    form = SupplierForm(obj=supplier)
 
+    # Handle form submission
+    if form.validate_on_submit():
+        supplier.name = form.name.data
+        supplier.email = form.email.data
+        supplier.phone = form.phone.data
+        supplier.company = form.company.data
+        supplier.address = form.address.data
+        supplier.country = form.country.data
+        supplier.isValid = form.isValid.data  # Update validity status
+
+        # Handle image file if uploaded
+        if form.image_file.data:
+            image = form.image_file.data
+            if allowed_file(image.filename):  # Check if the file is allowed
+                filename = secure_filename(image.filename)  # Secure the filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+                try:
+                    image.save(file_path)  # Save the file to the server
+                    supplier.image_file = filename  # Update the image file path in the DB
+                except Exception as e:
+                    flash(f"Error saving image: {str(e)}", 'danger')
+
+        db.session.commit()  # Commit the changes
+
+        flash('Supplier updated successfully!', 'success')
+        return redirect(url_for('inventoryadmin', idsite=True))  # Redirect after successful update
+
+    return render_template('updateSupplier.html', adminStat=True, form=form, supplierimage=supplier.image_file, idsite=True)
 
 @app.route('/deleteSupplier/<int:id>', methods=['POST'])
 @login_required
@@ -577,7 +718,7 @@ def createorder(id):
                     db.session.commit()
                     
             return redirect(url_for('retrieveorder'))
-        return render_template('createOrder.html', form=form, supplier=supplier, idsite=True, product_list = product_list)
+        return render_template('createOrder.html', adminStat=True, form=form, supplier=supplier, idsite=True, product_list = product_list)
     else:
         return redirect(url_for('login'))
 
@@ -588,7 +729,34 @@ def retrieveorder():
         orders = Order.query.all()
         for order in orders:
             order_list.append(order)
-        return render_template('retrieveOrder.html', order_list=order_list)
+        return render_template('retrieveOrder.html', adminStat=True, order_list=order_list)
+    else:
+        return redirect(url_for('login'))
+    
+@app.route('/updateOrder/<int:order_id>/', methods=['GET', 'POST'])
+@login_required
+def updateOrder(order_id):
+    if current_user.is_authenticated and current_user.isAdmin == True:
+        order = Order.query.get_or_404(order_id)
+        form = OrderForm()
+
+        # Pre-populate product dropdown with current product list
+        product_list = Product.query.all()
+        
+        if request.method == 'POST' and form.validate():
+            productname = request.form.get('productname')
+            # Find the corresponding product
+            product = Product.query.filter_by(name=productname).first()
+            if product:
+                # Update order details
+                order.orderstock = form.orderstock.data
+                order.product_id = product.id
+                db.session.commit()
+                flash('Order updated successfully!', 'success')
+                return redirect(url_for('retrieveorder'))  # Adjust as necessary for your flow
+
+        # Render template with the current order and form
+        return render_template('updateOrder.html', form=form, product_list=product_list, order=order)
     else:
         return redirect(url_for('login'))
     

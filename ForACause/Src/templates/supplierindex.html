@@ -2,7 +2,7 @@
 {% block navbar %}
   {% include 'includes/_suppliernavbar.html' %}
 {% endblock %}
-{% block title %}Grocery Store - Create Order{% endblock %}
+{% block title %}ForACause - Create Order{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -16,7 +16,7 @@
     {% endif %}
     {% endwith %}
     <table class="table table-hover">
-        <thead class="table-success">
+        <thead class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="topleft">Order ID</th>
                 <th scope="col">Order Product Name</th>
@@ -49,7 +49,7 @@
             {% endif %}
             {% endfor %}
         </tbody>
-        <tfoot class="table-success">
+        <tfoot class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="bottomleft"></th>
                 <th scope="col"></th>
@@ -63,7 +63,7 @@
 
 
     <table class="table table-hover">
-        <thead class="table-success">
+        <thead class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="topleft">Order ID</th>
                 <th scope="col">Order Product Name</th>
@@ -102,7 +102,7 @@
             {% endif %}
             {% endfor %}
         </tbody>
-        <tfoot class="table-success">
+        <tfoot class="table-light-blue">
             <tr border:1px solid black;>
                 <th scope="col" class="bottomleft"></th>
                 <th scope="col"></th>
