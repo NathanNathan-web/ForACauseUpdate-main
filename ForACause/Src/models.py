@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
     # Establish relationships
     carts = db.relationship('Cart', backref='user', lazy=True)
     redeemedvouchers = db.relationship('RedeemedVouchers', backref='user', lazy=True)
-    volunteer_events = db.relationship('VolunteerEvent', secondary='user_volunteer', backref='volunteers', lazy=True)
+    volunteer_events = db.relationship('VolunteerEvent', secondary='user_volunteer', backref='volunteers', lazy=True, overlaps="user_volunteers,volunteers")
 
     
     def add_to_cart(self, product, quantity):
@@ -188,8 +188,10 @@ class VolunteerEvent(db.Model):
     category = db.Column(db.String(50), nullable=False)
     image_file = db.Column(db.String(100), nullable=True)
 
-    # Relationship to UserVolunteer
-    user_volunteers = db.relationship('UserVolunteer', backref='event', lazy=True)
+    # Add overlaps parameter to resolve conflicts
+    user_volunteers = db.relationship('UserVolunteer', backref='event', lazy=True, overlaps="volunteer_event,volunteers")
+
+
 
 
 class UserVolunteer(db.Model):
@@ -197,8 +199,11 @@ class UserVolunteer(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
     sign_up_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    attended = db.Column(db.Boolean, nullable=False, default=False)
 
-    # Define relationships
-    user = db.relationship('User', backref='user_volunteers', lazy=True)
+    # Add overlaps parameter to resolve conflicts
+    user = db.relationship('User', backref='user_volunteers', lazy=True, overlaps="volunteer_events,volunteers")
+
+
 
 db.create_all()

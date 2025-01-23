@@ -1051,3 +1051,22 @@ def confirm_volunteer(event_id):
 
     return render_template('confirm_volunteer.html', event=event)
 
+@app.route('/mark_attended/<int:event_id>/<int:user_id>', methods=['POST'])
+@login_required
+def mark_attended(event_id, user_id):
+    if not current_user.isAdmin:
+        flash('Unauthorized action!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch the signup record
+    signup = UserVolunteer.query.filter_by(event_id=event_id, user_id=user_id).first()
+    if not signup:
+        flash('Signup record not found!', 'danger')
+        return redirect(url_for('create_volunteer_event'))
+
+    # Mark as attended
+    signup.attended = True
+    db.session.commit()
+    flash(f'User {signup.user.username} marked as attended for {signup.event.name}.', 'success')
+    return redirect(url_for('create_volunteer_event'))
+
