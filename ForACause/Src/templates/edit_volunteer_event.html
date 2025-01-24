@@ -2,25 +2,160 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Edit Volunteer Event</h1>
-    <<form method="POST">
-        <div class="mb-3">
-            <label for="name" class="form-label">Event Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ event.name }}" required>
+    <h2 class="fw-bold text-primary mb-3">Edit Volunteer Event</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="name" class="form-label">
+                    <i class="bi bi-tag me-2"></i>Event Name
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ event.name }}" required>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">
+                    <i class="bi bi-collection me-2"></i>Category
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                    <input type="text" class="form-control" id="category" name="category" value="{{ event.category }}"
+                        required>
+                </div>
+            </div>
         </div>
+
         <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" name="description" rows="3" required>{{ event.description }}</textarea>
+            <label for="description" class="form-label">
+                <i class="bi bi-chat-text me-2"></i>Description
+            </label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-textarea-resize"></i></span>
+                <textarea class="form-control" id="description" name="description" rows="3"
+                    required>{{ event.description }}</textarea>
+            </div>
         </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="date" class="form-label">
+                    <i class="bi bi-calendar-date me-2"></i>Event Date
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ event.date }}" required>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="image_file" class="form-label">
+                    <i class="bi bi-image me-2"></i>Event Image
+                </label>
+                <input type="file" class="form-control" id="image_file" name="image_file">
+            </div>
+        </div>
+
+        <!-- Google Maps Integration -->
         <div class="mb-3">
-            <label for="date" class="form-label">Event Date</label>
-            <input type="date" class="form-control" id="date" name="date" value="{{ event.date }}" required>
+            <label for="location" class="form-label">
+                <i class="bi bi-geo-alt me-2"></i>Event Location
+            </label>
+
+            <!-- Search bar for address input -->
+            <input id="searchInput" class="form-control mb-3" type="text" placeholder="Search for an address"
+                value="{{ event.address }}">
+
+            <!-- Map container -->
+            <div id="map" style="height: 400px; width: 100%;"></div>
+
+            <!-- Hidden inputs to store latitude and longitude -->
+            <input type="hidden" id="latitude" name="latitude" value="{{ event.latitude }}">
+            <input type="hidden" id="longitude" name="longitude" value="{{ event.longitude }}">
         </div>
-        <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <input type="text" class="form-control" id="category" name="category" value="{{ event.category }}" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+
+        <button type="submit" class="btn btn-primary w-100">Save Changes
+        </button>
     </form>
 </div>
+<script>
+    let map;
+    let marker;
+    let geocoder;
+
+    function initMap() {
+        // Initialize map with center at a default location (e.g., Singapore)
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 1.3521, lng: 103.8198 }, // Default to Singapore coordinates
+            zoom: 13
+        });
+
+        // Add a marker
+        marker = new google.maps.Marker({
+            map: map,
+            draggable: true,
+            position: map.getCenter(),
+        });
+
+        // Initialize geocoder
+        geocoder = new google.maps.Geocoder();
+
+        // Set up the search box to search for locations
+        const input = document.getElementById("searchInput");
+        const searchBox = new google.maps.places.SearchBox(input);
+
+        // Bias the SearchBox results towards current map's viewport
+        map.addListener("bounds_changed", () => {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        // When a place is selected from the search box, update the map and marker position
+        searchBox.addListener("places_changed", () => {
+            const places = searchBox.getPlaces();
+
+            if (places.length === 0) {
+                return;
+            }
+
+            // Clear any existing markers
+            marker.setMap(null);
+
+            // Get the new location
+            const place = places[0];
+            if (place.geometry) {
+                // Center the map on the new location and place a marker
+                map.setCenter(place.geometry.location);
+                marker.setPosition(place.geometry.location);
+                marker.setMap(map);
+
+                // Update latitude and longitude hidden fields
+                document.getElementById("latitude").value = place.geometry.location.lat();
+                document.getElementById("longitude").value = place.geometry.location.lng();
+
+                // Optionally, update the search box with the selected place (this could be redundant as it's already displayed)
+                input.value = place.formatted_address;
+            }
+        });
+
+        // Listen for marker drag event and update coordinates
+        google.maps.event.addListener(marker, "dragend", function () {
+            const position = marker.getPosition();
+            document.getElementById("latitude").value = position.lat();
+            document.getElementById("longitude").value = position.lng();
+
+            // Reverse geocode to get the address of the new marker location
+            geocoder.geocode({ location: position }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    const address = results[0].formatted_address;
+                    document.getElementById("searchInput").value = address;
+                } else {
+                    console.log("Geocode was not successful for the following reason: " + status);
+                }
+            });
+        });
+    }
+</script>
+
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo&libraries=places&callback=initMap"
+    async defer></script>
 {% endblock %}

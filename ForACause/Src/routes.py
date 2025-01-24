@@ -1456,14 +1456,32 @@ def manage_volunteer_event():
 @login_required
 def edit_volunteer_event(event_id):
     event = VolunteerEvent.query.get_or_404(event_id)
+    
     if request.method == 'POST':
         event.name = request.form['name']
         event.description = request.form['description']
         event.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()  # Convert to date object
         event.category = request.form['category']
+        
+        # Update event image if a new one is uploaded
+        if 'image_file' in request.files:
+            image_file = request.files['image_file']
+            if image_file:
+                # Save the new image, or handle it according to your setup (e.g., store it in a static folder)
+                filename = secure_filename(image_file.filename)
+                image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                event.image = filename
+        
+        # Update event location (latitude and longitude)
+        event.latitude = request.form['latitude']
+        event.longitude = request.form['longitude']
+
+        event.address = get_address_from_coordinates(event.latitude, event.longitude)
+        
         db.session.commit()
         flash('Event updated successfully!', 'success')
-        return redirect(url_for('create_volunteer_event'))
+        return redirect(url_for('create_volunteer_event', event_id=event.id))  # Redirect to event detail page after update
+
     return render_template('edit_volunteer_event.html', event=event)
 
 @app.route('/delete_volunteer_event/<int:event_id>', methods=['POST'])
