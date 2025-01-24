@@ -1,140 +1,160 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Admin Update Supplier{% endblock %}
+
+{% block title %}Update Supplier{% endblock %}
 
 {% block content %}
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    
-    <form method="POST" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        
-        <fieldset class="form-group">
-            <p></p>
-            <h1 class="mb-4">Update Supplier</h1>
-
-            <!-- Name Field -->
-            <div class="form-group">
-                {{ form.name.label(class="form-control-label") }}
-                {% if form.name.errors %}
-                    {{ form.name(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.name.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h2 class="fw-bold text-primary mb-3">Update Supplier</h2>
+                        <p class="text-muted">Edit the supplier details below</p>
                     </div>
-                {% else %}
-                    {{ form.name(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
 
-            <!-- Email Field -->
-            <div class="form-group">
-                {{ form.email.label(class="form-control-label") }}
-                {% if form.email.errors %}
-                    {{ form.email(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.email.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.email(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
 
-            <!-- Phone Field -->
-            <div class="form-group">
-                {{ form.phone.label(class="form-control-label") }}
-                {% if form.phone.errors %}
-                    {{ form.phone(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.phone.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.phone(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+                        <!-- Name -->
+                        <div class="mb-4">
+                            <label for="{{ form.name.id }}" class="form-label fw-bold">Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                {% if form.name.errors %}
+                                {{ form.name(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.name.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.name(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
 
-            <!-- Company Field -->
-            <div class="form-group">
-                {{ form.company.label(class="form-control-label") }}
-                {% if form.company.errors %}
-                    {{ form.company(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.company.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.company(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="{{ form.email.id }}" class="form-label fw-bold">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                {% if form.email.errors %}
+                                {{ form.email(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.email(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
 
-            <!-- Address Field -->
-            <div class="form-group">
-                {{ form.address.label(class="form-control-label") }}
-                {% if form.address.errors %}
-                    {{ form.address(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.address.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.address(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+                        <!-- Phone -->
+                        <div class="mb-4">
+                            <label for="{{ form.phone.id }}" class="form-label fw-bold">Phone</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                {% if form.phone.errors %}
+                                {{ form.phone(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.phone(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
 
-            <!-- Country Field -->
-            <div class="form-group">
-                {{ form.country.label(class="form-control-label") }}
-                {% if form.country.errors %}
-                    {{ form.country(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.country.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.country(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+                        <!-- Company -->
+                        <div class="mb-4">
+                            <label for="{{ form.company.id }}" class="form-label fw-bold">Company</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                {% if form.company.errors %}
+                                {{ form.company(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.company.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.company(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
 
-            <!-- Image File Field -->
-            <div class="form-group">
-                {{ form.image_file.label(class="form-control-label") }}
-                {% if supplierimage %}
-                    <img src="{{ url_for('static', filename='images/' + supplierimage) }}" alt="Logo"
-                         style="height:5vh; width: 3vw;">
-                {% endif %}
-                {% if form.image_file.errors %}
-                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.image_file.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.image_file(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            
-        </fieldset>
+                        <!-- Address -->
+                        <div class="mb-4">
+                            <label for="{{ form.address.id }}" class="form-label fw-bold">Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-house-door"></i></span>
+                                {% if form.address.errors %}
+                                {{ form.address(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.address.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.address(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
 
-        <!-- Submit Button -->
-        <div class="form-group" style="margin:30px 0 30px 0">
-            {{ form.submit(class="btn btn-outline-info") }}
+                        <!-- Country -->
+                        <div class="mb-4">
+                            <label for="{{ form.country.id }}" class="form-label fw-bold">Country</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                {% if form.country.errors %}
+                                {{ form.country(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.country.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.country(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Image File -->
+                        <div class="mb-4">
+                            <label for="{{ form.image_file.id }}" class="form-label fw-bold">Logo</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                {% if supplierimage %}
+                                <img src="{{ url_for('static', filename='images/' + supplierimage) }}" alt="Logo"
+                                    class="img-thumbnail"
+                                    style="max-height: 50px; max-width: 50px; object-fit: contain;">
+                                {% endif %}
+                                {% if form.image_file.errors %}
+                                {{ form.image_file(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.image_file.errors %}
+                                    <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.image_file(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="text-center">
+                            {{ form.submit(class="btn btn-outline-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

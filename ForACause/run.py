@@ -1,6 +1,8 @@
 from Src import app, db, bcrypt  # Change Src to src
 from Src.models import User  # Change Src to src and specify the correct module
+from flask_migrate import Migrate  # For database migrations
 
+migrate = Migrate(app, db)
 import pycountry 
 
 if __name__ == '__main__':

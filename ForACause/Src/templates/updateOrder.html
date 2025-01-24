@@ -1,41 +1,64 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Update Order{% endblock %}
+
+{% block title %}Update Order{% endblock %}
 
 {% block content %}
-<div class="container">
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <fieldset class="form-group">
-            <p></p>
-            <h1 class="mb-4">Update Order</h1>
-
-            <div class="form-group">
-                <label for="productname">Product Name</label>
-                <select name="productname" id="productname" class="form-control form-control-lg"> 
-                    {% for product in product_list %}
-                        <option {% if product.id == order.product_id %} selected {% endif %}>{{ product.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                {{ form.orderstock.label(class="form-control-label") }}
-                {% if form.orderstock.errors %}
-                    {{ form.orderstock(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.orderstock.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h2 class="fw-bold text-primary mb-3">Update Order</h2>
+                        <p class="text-muted">Modify the order details below</p>
                     </div>
-                {% else %}
-                    {{ form.orderstock(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-        </fieldset>
 
-        <div class="form-group" style="margin:30px 0 30px 0">
-            {{ form.submit(class="btn btn-outline-info") }}
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Product Name -->
+                        <div class="mb-4">
+                            <label for="productname" class="form-label fw-bold">Product Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                                <select name="productname" id="productname" class="form-control form-control-lg">
+                                    {% for product in product_list %}
+                                    <option {% if product.id == order.product_id %} selected {% endif %}>
+                                        {{ product.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Order Stock -->
+                        <div class="mb-4">
+                            <label for="{{ form.orderstock.id }}" class="form-label fw-bold">Order Stock</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-sort-numeric-up"></i></span>
+                                {% if form.orderstock.errors %}
+                                {{ form.orderstock(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for errors in form.orderstock.errors %}
+                                    <span>{{ errors }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                {{ form.orderstock(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group" style="margin:30px 0 30px 0">
+                            {{ form.submit(class="btn btn-outline-info btn-lg w-100") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

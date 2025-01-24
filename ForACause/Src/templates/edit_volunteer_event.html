@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Edit Volunteer Event</h1>
+    <<form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">Event Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ event.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3" required>{{ event.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Event Date</label>
+            <input type="date" class="form-control" id="date" name="date" value="{{ event.date }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" class="form-control" id="category" name="category" value="{{ event.category }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

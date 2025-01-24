@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow-lg mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-calendar-event me-3"></i>Volunteer Dashboard
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="mb-4">
+                        <i class="bi bi-plus-circle text-success me-2"></i>Create Volunteer Event
+                    </h4>
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="bi bi-tag me-2"></i>Event Name
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">
+                                    <i class="bi bi-collection me-2"></i>Category
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                    <input type="text" class="form-control" id="category" name="category" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                <i class="bi bi-chat-text me-2"></i>Description
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-textarea-resize"></i></span>
+                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date" class="form-label">
+                                    <i class="bi bi-calendar-date me-2"></i>Event Date
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                    <input type="date" class="form-control" id="date" name="date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="image_file" class="form-label">
+                                    <i class="bi bi-image me-2"></i>Event Image
+                                </label>
+                                <input type="file" class="form-control" id="image_file" name="image_file">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Create Event
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-list-check text-primary me-2"></i>Events Overview
+                        </h4>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="mb-3 px-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="eventsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4 align-middle">Name & Category</th>
+                                    <th class="align-middle">Date</th>
+                                    <th class="align-middle">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in events %}
+                                <tr>
+                                    <td class="ps-4 align-middle">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">{{ event.name }}</h6>
+                                            <p class="text-muted mb-1 small">{{ event.description | truncate(50) }}</p>
+                                            <span class="badge bg-primary">{{ event.category }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge bg-secondary text-white">
+                                            <i class="bi bi-calendar me-1"></i>{{ event.date }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" 
+                                               class="btn btn-outline-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form method="POST" 
+                                                  action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" 
+                                                  style="display: inline;" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-lg mt-4">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="bi bi-people me-3"></i>User Signups
+                    </h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="mb-3 px-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0" id="userSignupsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Contact</th>
+                                    <th>Event</th>
+                                    <th>Sign-Up Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for signup in signups %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person-circle me-2"></i>
+                                            <div>
+                                                <h6 class="mb-0">{{ signup.user.username }}</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ signup.user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ signup.event.name }}</span>
+                                    </td>
+                                    <td>{{ signup.sign_up_date }}</td>
+                                    <td>
+                                        {% if not signup.attended %}
+                                        <form method="POST" action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                                Mark as Attended
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="badge bg-success">Attended</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterEvents() {
+    const input = document.getElementById('eventSearch');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('eventsTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const tdName = tr[i].getElementsByTagName('td')[0];
+        const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
+        if (tdName || tdCategory) {
+            const txtValueName = tdName.textContent || tdName.innerText;
+            const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
+            if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueCategory.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+
+function filterUsers() {
+    const input = document.getElementById('userSearch');
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById('userSignupsTable');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+        const tdUser  = tr[i].getElementsByTagName('td')[0];
+        const tdEmail = tr[i].getElementsByTagName('td')[1];
+        if (tdUser  || tdEmail) {
+            const txtValueUser  = tdUser .textContent || tdUser .innerText;
+            const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
+            if (txtValueUser .toLowerCase().indexOf(filter) > -1 || txtValueEmail.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

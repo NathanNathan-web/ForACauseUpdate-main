@@ -20,17 +20,21 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False,
-                           default='default.jpg')
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
     phone = db.Column(db.String(8), nullable=False)
     address = db.Column(db.String(80), nullable=False)
     secretQn = db.Column(db.String(80), nullable=False)
     isAdmin = db.Column(db.Boolean, nullable=False, default=False)
     balance = db.Column(db.Integer(), nullable=False, default=0)
-    credit = db.Column(db.Integer(), nullable=False, default=0) 
+    credit = db.Column(db.Integer(), nullable=False, default=0)
+
+    # Establish relationships
     carts = db.relationship('Cart', backref='user', lazy=True)
     redeemedvouchers = db.relationship('RedeemedVouchers', backref='user', lazy=True)
+    volunteer_events = db.relationship('VolunteerEvent', secondary='user_volunteer', backref='volunteers', lazy=True, overlaps="user_volunteers,volunteers")
+
+    
     def add_to_cart(self, product, quantity):
         existing_cart = Cart.query.filter_by(user_id=self.id, product_id=product.id).first()
         if existing_cart:
@@ -191,6 +195,27 @@ class Feedback(db.Model):
         self.description = description
         self.issue = issue
         self.feedback_date = feedback_date
+ 
+class VolunteerEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    image_file = db.Column(db.String(100), nullable=True)
+
+    # Add overlaps parameter to resolve conflicts
+    user_volunteers = db.relationship('UserVolunteer', backref='event', lazy=True, overlaps="volunteer_event,volunteers")
+
+class UserVolunteer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
+    sign_up_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    attended = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Add overlaps parameter to resolve conflicts
+    user = db.relationship('User', backref='user_volunteers', lazy=True, overlaps="volunteer_events,volunteers")
 
 class Donation(db.Model):
     __tablename__ = 'donations'  # Explicit table name for clarity
@@ -212,7 +237,6 @@ class Donation(db.Model):
     def __repr__(self):
         return (f"Donation(id={self.id}, user_id={self.user_id}, amount={self.amount}, "
                 f"organization={self.organization}, date={self.date})")
-
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)

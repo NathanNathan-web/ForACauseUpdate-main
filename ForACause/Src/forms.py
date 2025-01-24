@@ -177,10 +177,10 @@ class DonationItemForm(FlaskForm):
     preferred_drop_off_method = SelectField('Preferred Drop Off Method', choices=[('drop_off', 'Drop off at location'), ('pickup', 'Request for pickup')],validators=[DataRequired()])
     address = StringField('Pickup Address (if applicable)',validators=[Optional(), Length(max=200)])
     preferred_date = DateField('Preferred Date for Pickup', validators=[Optional()])
-    preferred_time = TimeField('Preferred Time for Pickup', validators=[Optional()])
+    preferred_time = TimeField('Preferred Time for Pickup')
     organisation = SelectField('Choice of Organisation',choices=[('TSA', 'The Salvation Army'),('MINDS', 'MINDS'),('FFTH', 'Food from the Heart'),('RCS', 'Red Cross Singapore')],validators=[DataRequired()])
     submit = SubmitField('Submit Donation')
-    
+
 class DonateForm(FlaskForm):
     amount = FloatField(
         'Donation Amount',
