@@ -2,35 +2,127 @@
 {% block title %}Feedback Management{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Feedback Management</h2>
-    <table class="table table-hover table-bordered">
-        <thead class="table-success">
-            <tr>
-                <th scope="col" class="text-center">Feedback ID</th>
-                <th scope="col" class="text-center">Rating</th>
-                <th scope="col" class="text-center">Description</th>
-                <th scope="col" class="text-center">Issue</th>
-                <th scope="col" class="text-center">Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for feedback in feedback_list %}
-            <tr>
-                <td class="text-center">{{ feedback.id }}</td>
-                <td class="text-center">{{ feedback.rating }}</td>
-                <td>{{ feedback.description }}</td>
-                <td class="text-center">{{ feedback.issue }}</td>
-                <td class="text-center">{{ feedback.feedback_date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="feedback-background py-5">
+    <div class="container">
+        <div class="feedback-card">
+            <div class="feedback-header text-center mb-4">
+                <h1 class="display-6 fw-bold">Feedback Management</h1>
+                <p class="text-muted lead">Review and manage customer feedback</p>
+            </div>
 
-    {% if not feedback_list %}
-    <div class="alert alert-warning text-center mt-4">
-        No feedback available.
+            {% if feedback_list %}
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-header">
+                        <tr>
+                            <th scope="col" class="text-center">Feedback ID</th>
+                            <th scope="col" class="text-center">Rating</th>
+                            <th scope="col" class="text-center">Description</th>
+                            <th scope="col" class="text-center">Issue</th>
+                            <th scope="col" class="text-center">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedback_list %}
+                        <tr>
+                            <td class="text-center">{{ feedback.id }}</td>
+                            <td class="text-center">
+                                <div class="rating-stars">
+                                    {% for i in range(1, 6) %}
+                                    <span class="star">{{ '★' if i <= feedback.rating else '☆' }}</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>{{ feedback.description }}</td>
+                            <td class="text-center">{{ feedback.issue }}</td>
+                            <td class="text-center">{{ feedback.feedback_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-warning text-center mt-4">
+                No feedback available.
+            </div>
+            {% endif %}
+        </div>
     </div>
-    {% endif %}
 </div>
+
+<style>
+/* Background styling */
+.feedback-background {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+}
+
+/* Card styling */
+.feedback-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    width: 100%;
+    max-width: 1200px;
+    transition: all 0.3s ease;
+}
+
+.feedback-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Table styling */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table-header {
+    background-color: #20c997;
+    color: white;
+    font-size: 1rem;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f7fafc;
+    transition: background-color 0.3s ease;
+}
+
+.table-bordered th,
+.table-bordered td {
+    vertical-align: middle;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    padding: 12px;
+}
+
+/* Rating stars styling */
+.rating-stars {
+    font-size: 1.5rem;
+    color: #ffc107;
+}
+
+.rating-stars .star {
+    font-size: 1.2rem;
+    margin: 0 2px;
+}
+
+/* Alert styling */
+.alert {
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+}
+</style>
 {% endblock %}

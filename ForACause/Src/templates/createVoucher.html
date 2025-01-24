@@ -2,116 +2,198 @@
 {% block title %}Grocery Store - Create Voucher{% endblock %}
 
 {% block content %}
-<div class="container">
-    <form method="POST">
-        {{form.hidden_tag()}}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Inventory Voucher</legend>
-            <div class="form-group" margin:5px;>
-                {{ form.name.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.name.errors %}
-                    {{ form.name(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.name.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.name(class="form-control form-control-lg") }}
-                {% endif %}
-
+<div class="voucher-background">
+    <div class="voucher-card">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Inventory Voucher</legend>
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.value.label(class="form-label") }}
+                    {% if form.value.errors %}
+                        {{ form.value(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.value.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.value(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.credits.label(class="form-label") }}
+                    {% if form.credits.errors %}
+                        {{ form.credits(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.credits.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.credits(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.redeem_date.label(class="form-label") }}
+                    {% if form.redeem_date.errors %}
+                        {{ form.redeem_date(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.redeem_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.redeem_date(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.expiry_date.label(class="form-label") }}
+                    {% if form.expiry_date.errors %}
+                        {{ form.expiry_date(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.expiry_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.expiry_date(class="form-control") }}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.image_file.label(class="form-label") }}
+                    {% if form.image_file.errors %}
+                        {{ form.image_file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.image_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.image_file(class="form-control") }}
+                    {% endif %}
+                </div>
+            </fieldset>
+            <div class="form-footer">
+                {{ form.submit(class="btn btn-submit") }}
             </div>
-            <div class="form-group">
-                {{ form.description.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.description.errors %}
-                    {{ form.description(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.description.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.description(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.value.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.value.errors %}
-                    {{ form.value(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.value.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.value(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.credits.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.credits.errors %}
-                    {{ form.credits(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.credits.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.credits(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.redeem_date.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.redeem_date.errors %}
-                    {{ form.redeem_date(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.redeem_date.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.redeem_date(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.expiry_date.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.expiry_date.errors %}
-                    {{ form.expiry_date(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.expiry_date.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.expiry_date(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            
-            <div class="form-group">                
-                {{ form.image_file.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.image_file.errors %}
-                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.image_file.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.image_file(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-        </fieldset>
-        <div class="form-group" style="margin:30px 0 30px 0">
-            {{ form.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
+<style>
+/* Background and container styling */
+.voucher-background {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.voucher-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.voucher-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Form styling */
+.voucher-card .form-group {
+    margin-bottom: 20px;
+}
+
+.voucher-card .form-label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.voucher-card .form-control, .voucher-card .form-select {
+    border-radius: 10px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.voucher-card .form-control:focus, .voucher-card .form-select:focus {
+    background-color: white;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Date picker and file input */
+.voucher-card .form-control[type="date"], .voucher-card .form-control[type="file"] {
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+/* Submit button */
+.voucher-card .btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-weight: 600;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.voucher-card .btn-submit:hover {
+    transform: scale(1.05);
+    background-color: #0056b3;
+    color: #fff;
+}
+
+/* Footer border */
+.voucher-card .form-footer {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+</style>
 {% endblock %}

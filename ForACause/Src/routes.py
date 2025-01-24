@@ -386,15 +386,22 @@ def checkout():
         return redirect(url_for('login'))
 
 # =================================  VOUCHER ==================================
-    
-@app.route('/voucher')
+@app.route('/voucher', methods=['GET'])
 def voucher():
-    vouchers_list = []
-    vouchers = Voucher.query.all()
-    for voucher in vouchers:
-        vouchers_list.append(voucher)
-    return render_template('voucher.html', vouchers_list=vouchers_list)
+    search_query = request.args.get('search', '')  # Get the search term from query parameters
 
+    if search_query:
+        # Filter vouchers based on the search query
+        vouchers_list = Voucher.query.filter(
+            (Voucher.name.ilike(f'%{search_query}%')) |
+            (Voucher.description.ilike(f'%{search_query}%')) |
+            (Voucher.id.ilike(f'%{search_query}%'))
+        ).all()
+    else:
+        # Fetch all vouchers if no search query
+        vouchers_list = Voucher.query.all()
+
+    return render_template('voucher.html', vouchers_list=vouchers_list, search_query=search_query)
 
 
 @app.route('/redeemVoucher/<int:id>', methods= ['GET', 'POST'])
