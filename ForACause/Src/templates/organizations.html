@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Select Organization to Donate{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Choose an Organization</h1>
+        <p class="lead text-muted">Select a cause you're passionate about supporting</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for organization in organizations %}
+<div class="card">
+    <h5>{{ organization.name }}</h5>
+    <p>{{ organization.description }}</p>
+</div>
+{% endfor %}
+
+        <div class="col">
+            <div class="card h-100 organization-card">
+                <img src="{{ url_for('static', filename='images/' + org.logo) }}" 
+                     class="card-img-top org-image" 
+                     alt="{{ org.name }}">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-3">{{ org.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ org.description }}</p>
+                    <a href="{{ url_for('donate', org_id=org.id) }}" class="btn btn-primary mt-3">
+                        Donate to {{ org.name }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .organization-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .organization-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .org-image {
+        height: 250px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .organization-card:hover .org-image {
+        transform: scale(1.05);
+    }
+
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

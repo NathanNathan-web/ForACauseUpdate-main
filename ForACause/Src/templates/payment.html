@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .donation-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .donation-card:hover {
+        transform: translateY(-5px);
+    }
+    .donation-header {
+        background-color: #4a90e2;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .payment-method {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .payment-method:hover {
+        border-color: #4a90e2;
+        background-color: rgba(74, 144, 226, 0.05);
+    }
+    .payment-method input[type="radio"] {
+        margin-right: 15px;
+        accent-color: #4a90e2;
+        transform: scale(1.2);
+    }
+    .payment-method label {
+        cursor: pointer;
+        flex-grow: 1;
+        margin-bottom: 0;
+    }
+    .qr-container {
+        background-color: #f1f5f9;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .qr-container img {
+        max-width: 250px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .btn-donate {
+        background-color: #4a90e2;
+        border: none;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-donate:hover {
+        background-color: #3a7bd5;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block title %}Complete Your Donation{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card donation-card mx-auto" style="max-width: 500px;">
+        <div class="donation-header">
+            <h2 class="mb-0">Complete Your Donation</h2>
+        </div>
+        <div class="card-body text-center px-4 pb-4">
+            <div class="mb-4">
+                <h5 class="text-muted mb-2">You're Donating To</h5>
+                <h3 class="text-primary">{{ organization_name }}</h3>
+                <p class="h4 mt-2">Amount: <strong class="text-success">${{ donation_amount }}</strong></p>
+            </div>
+
+            <h5 class="mt-4 mb-3">Choose Your Payment Method</h5>
+            
+            <form method="POST">
+                <div class="payment-method border">
+                    <input type="radio" id="paynow" name="payment_method" value="paynow" required>
+                    <label for="paynow">PayNow (Scan QR Code)</label>
+                </div>
+                <div class="payment-method border">
+                    <input type="radio" id="stripe" name="payment_method" value="stripe" required>
+                    <label for="stripe">Credit/Debit Card (Stripe)</label>
+                </div>
+
+                <div id="paynow-container" class="qr-container" style="display: none;">
+                    <h5 class="mb-3">Scan the QR Code</h5>
+                    <img src="{{ url_for('generate_qr', amount=donation_amount, reference=reference) }}"
+                         alt="PayNow QR Code"
+                         class="img-fluid mx-auto d-block mb-3">
+                    <p class="text-muted small">Use your PayNow app to complete the payment.</p>
+                </div>
+
+                <button type="submit" class="btn btn-donate btn-lg mt-4 w-100">
+                    Proceed with Donation
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const paynowOption = document.getElementById('paynow');
+        const stripeOption = document.getElementById('stripe');
+        const paynowContainer = document.getElementById('paynow-container');
+
+        function togglePaynowVisibility() {
+            paynowContainer.style.display = paynowOption.checked ? 'block' : 'none';
+        }
+
+        paynowOption.addEventListener('change', togglePaynowVisibility);
+        stripeOption.addEventListener('change', togglePaynowVisibility);
+    });
+</script>
+{% endblock %}

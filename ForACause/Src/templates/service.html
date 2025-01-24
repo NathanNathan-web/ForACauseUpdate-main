@@ -1,3 +1,173 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Service{% endblock %}
+{% block title %}ForACause - Service Feedback{% endblock %}
 
+{% block content %}
+<div class="feedback-background py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="feedback-card">
+                    <div class="feedback-header text-center mb-4">
+                        <h1 class="display-6 fw-bold">We Value Your Feedback</h1>
+                        <p class="text-muted lead">Help us improve our service</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('service') }}" class="feedback-form">
+
+                        <!-- Rating -->
+                        <div class="mb-4">
+                            <label for="rating" class="form-label fw-bold">Feedback Rating</label>
+                            <div class="rating-container">
+                                <select class="form-select" id="rating" name="rating" required>
+                                    <option value="">Select a rating</option>
+                                    <option value="1">1 - Very Poor</option>
+                                    <option value="2">2 - Poor</option>
+                                    <option value="3">3 - Average</option>
+                                    <option value="4">4 - Good</option>
+                                    <option value="5">5 - Excellent</option>
+                                </select>
+                                <div class="rating-stars">
+                                    <span class="star">☆</span>
+                                    <span class="star">☆</span>
+                                    <span class="star">☆</span>
+                                    <span class="star">☆</span>
+                                    <span class="star">☆</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Feedback Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Share your experience in detail..." required></textarea>
+                        </div>
+
+                        <!-- Issue Category -->
+                        <div class="mb-4">
+                            <label for="issue" class="form-label fw-bold">Feedback Category</label>
+                            <select class="form-select" id="issue" name="issue">
+                                <option value="">Select a category (optional)</option>
+                                <option value="Product Quality">Product Quality</option>
+                                <option value="Delivery Service">Delivery Service</option>
+                                <option value="Customer Support">Customer Support</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+
+                        <!-- Feedback Date -->
+                        <div class="mb-4">
+                            <label for="feedback_date" class="form-label fw-bold">Feedback Date</label>
+                            <input type="date" class="form-control" id="feedback_date" name="feedback_date" required>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="bi bi-send me-2"></i>Submit Feedback
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="feedback-footer text-center mt-4">
+                        <p class="text-muted small">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            Your feedback is confidential and helps us improve
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .feedback-background {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .feedback-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        padding: 40px;
+        transition: all 0.3s ease;
+    }
+
+    .feedback-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .rating-container {
+        position: relative;
+    }
+
+    .rating-stars {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #ffc107;
+    }
+
+    .rating-stars .star {
+        font-size: 1.5rem;
+        transition: color 0.3s ease;
+    }
+
+    .form-select, .form-control {
+        border-radius: 10px;
+        padding: 12px;
+        background-color: #f8f9fa;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        background-color: white;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-primary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: scale(1.05);
+    }
+
+    .feedback-footer {
+        border-top: 1px solid #e9ecef;
+        padding-top: 20px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingSelect = document.getElementById('rating');
+    const ratingStars = document.querySelectorAll('.rating-stars .star');
+
+    ratingSelect.addEventListener('change', function() {
+        const selectedRating = parseInt(this.value);
+        
+        ratingStars.forEach((star, index) => {
+            if (index < selectedRating) {
+                star.textContent = '★';
+            } else {
+                star.textContent = '☆';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

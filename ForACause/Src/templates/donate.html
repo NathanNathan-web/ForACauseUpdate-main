@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Donate{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Donate to a Cause</h2>
+
+    <!-- Display Flash Messages -->
+    <div class="alerts-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} text-center">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <form method="POST" class="mt-4">
+        {{ form.hidden_tag() }}
+
+        <!-- Organization Cards -->
+        <div class="row">
+            {% for key, org in organizations.items() %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="{{ url_for('static', filename='images/' + org.logo) }}" class="card-img-top" alt="{{ org.name }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ org.name }}</h5>
+                        <p class="card-text">{{ org.description }}</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <input type="radio" id="org_{{ key }}" name="organization" value="{{ key }}" required>
+                        <label for="org_{{ key }}">Select</label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Donation Amount -->
+        <div class="mb-3">
+            {{ form.amount.label(class_="form-label") }}
+            {{ form.amount(class_="form-control", placeholder="Enter donation amount") }}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mb-3 text-center">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Donate</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

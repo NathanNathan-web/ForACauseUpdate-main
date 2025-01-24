@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField, TimeField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError,NumberRange, Optional
 from .models import User, Product
 from wtforms.fields import DateField
 import pycountry
@@ -166,7 +166,7 @@ class TopUpForm(FlaskForm):
 
 class RedeemVoucherForm(FlaskForm):
     submit = SubmitField('Check Out')
-
+    
 class DonationItemForm(FlaskForm):
     name = StringField('Item Name', validators=[DataRequired(), Length(max=100)])
     description = TextAreaField('Description', validators=[DataRequired()])
@@ -180,4 +180,20 @@ class DonationItemForm(FlaskForm):
     preferred_time = TimeField('Preferred Time for Pickup', validators=[Optional()])
     organisation = SelectField('Choice of Organisation',choices=[('TSA', 'The Salvation Army'),('MINDS', 'MINDS'),('FFTH', 'Food from the Heart'),('RCS', 'Red Cross Singapore')],validators=[DataRequired()])
     submit = SubmitField('Submit Donation')
-
+    
+class DonateForm(FlaskForm):
+    amount = FloatField(
+        'Donation Amount',
+        validators=[
+            DataRequired(message="Please enter a valid donation amount."),
+            NumberRange(min=1, message="Donation amount must be at least $1.")
+        ]
+    )
+    organization = SelectField(
+        'Organization',
+        choices=[],  # Placeholder, will be populated dynamically
+        validators=[
+            DataRequired(message="Please select an organization.")
+        ]
+    )
+    submit = SubmitField('Donate')

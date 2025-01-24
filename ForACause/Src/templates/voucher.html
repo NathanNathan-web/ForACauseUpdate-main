@@ -1,36 +1,92 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Voucher{% endblock %}
+
+{% block title %}ForACause - Vouchers{% endblock %}
 
 {% block content %}
-<div class="column right" style="width:100%;">
-    {% with messages = get_flashed_messages(with_categories=true) %}
+<div class="container py-5">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-            {{ message }}
-        </div>
-        {% endfor %}
+            <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                {% for category, message in messages %}
+                    {{ message }}
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endif %}
-        {% endwith %}
-  <div class="row">
-    {% for voucher in vouchers_list %}
-    {% if voucher.isValid == True %}
+    {% endwith %}
 
-    <div class="col-lg-4" style="margin-top:20px;">
-      <div class="card">
-        <div class="card-body">
-          <img src="{{ url_for('static', filename='images/' + voucher.image_file )}}" alt="Logo"
-            style="height:70%; width: 100%;">
-          <h2>{{ voucher.name }}</h2>
-          <p>Voucher Description: {{ voucher.description }}</p>
-          <p>Voucher Price: ${{ voucher.value }}
-          <p>Credits to redeem: {{ voucher.credit}}</p>
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h1 class="display-5 fw-bold text-body-emphasis">Available Vouchers</h1>
+            <p class="lead text-muted">Redeem your credits for exciting rewards!</p>
         </div>
-        <div class="card-footer"><a href="/redeemVoucher/{{voucher.id}}"><button class="btn btn-outline-info">Redeem Voucher</button></a></div>
-      </div>
     </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for voucher in vouchers_list %}
+            {% if voucher.isValid == True %}
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-lg voucher-card">
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='images/' + voucher.image_file) }}" 
+                                 class="card-img-top voucher-image" 
+                                 alt="{{ voucher.name }}">
+                            <div class="voucher-overlay">
+                                <span class="badge bg-primary">{{ voucher.credit }} Credits</span>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-3">{{ voucher.name }}</h5>
+                            <p class="card-text text-muted flex-grow-1">{{ voucher.description }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="h5 mb-0 text-success">${{ voucher.value }}</span>
+                                <a href="/redeemVoucher/{{ voucher.id }}" class="btn btn-primary">
+                                    Redeem Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if vouchers_list|selectattr('isValid')|list|length == 0 %}
+        <div class="text-center py-5">
+            <h2 class="display-6 text-muted">No Vouchers Available</h2>
+            <p class="lead">Check back later for new exciting offers!</p>
+        </div>
     {% endif %}
-    {% endfor %}
-  </div>
 </div>
+
+<style>
+    .voucher-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+
+    .voucher-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
+    }
+
+    .voucher-image {
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .voucher-card:hover .voucher-image {
+        transform: scale(1.1);
+    }
+
+    .voucher-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+</style>
 {% endblock %}

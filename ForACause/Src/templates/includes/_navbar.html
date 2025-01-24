@@ -82,7 +82,7 @@
             aria-expanded="false">Donation</a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="{{ url_for('donateItem') }}">Item Donation</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('donateItem') }}">Monetary Donation</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('donate') }}">Monetary Donation</a></li>
           </ul>
         </li>
       </ul>
@@ -93,7 +93,11 @@
       <a href="{{ url_for('logout') }}"><button class="logout">Log out</button></a>
       {% elif current_user.is_authenticated %}
       <a href="{{ url_for('cart') }}"><span><i class="bi bi-cart"></i></span></a>
-      <a href="{{ url_for('account') }}"><span><i class="bi bi-person-circle"></i></span></a>
+      
+      <a href="{{ url_for('account') }}">
+        <img src="{{ url_for('static', filename='images/' + current_user.image_file) }}" 
+             alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+      </a>
       <a href="{{ url_for('logout') }}"><button class="logout">Log out</button></a>
       {% else %}
       <a href="{{ url_for('login') }}"><button class="acc">Login</button></a>

@@ -191,5 +191,35 @@ class Feedback(db.Model):
         self.description = description
         self.issue = issue
         self.feedback_date = feedback_date
-        
+
+class Donation(db.Model):
+    __tablename__ = 'donations'  # Explicit table name for clarity
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key linking to User
+    amount = db.Column(db.Float, nullable=False)  # Donation amount
+    organization = db.Column(db.String(100), nullable=True)  # Optional organization field
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)  # Timestamp of donation
+
+    # Relationship with User for easy querying
+    user = db.relationship('User', backref='donations', lazy=True)
+
+    def __init__(self, user_id, amount, organization=None, date=None):
+        self.user_id = user_id
+        self.amount = amount
+        self.organization = organization
+        self.date = date if date else datetime.utcnow()
+
+    def __repr__(self):
+        return (f"Donation(id={self.id}, user_id={self.user_id}, amount={self.amount}, "
+                f"organization={self.organization}, date={self.date})")
+
+
+class Organization(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    logo = db.Column(db.String(255))  # Store logo file path or URL
+
+    def __repr__(self):
+        return f'<Organization {self.name}>'
 db.create_all()
