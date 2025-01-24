@@ -1,93 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Grocery Store - Account Management{% endblock %}
 
-
 {% block content %}
-<div class="container">
-    <table class="table table-hover">
-        <thead class="table-success">
-            <tr>
-                <th scope="col" class="topleft">Profile Image</th>
-                <th scope="col">User ID</th>
-                <th scope="col">Username</th>
-                <th scope="col">User Email</th>
-                <th scope="col" colspan="2">Password</th>
-                <th scope="col">Phone</th>
-                <th scope="col">Address</th>
-                <th scope="col">Secret Question</th>
-                <th scope="col">Balance</th>
-                <th scope="col">Credit</th>
-                <th scope="col" class="topright" colspan="2">Action</th>
+<div class="container-fluid">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <tr>
+                    <th scope="col" class="topleft">Profile Image</th>
+                    <th scope="col">User ID</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">User Email</th>
+                    <th scope="col" colspan="2">Password</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Address</th>
+                    <th scope="col">Secret Question</th>
+                    <th scope="col">Balance</th>
+                    <th scope="col">Credit</th>
+                    <th scope="col" class="topright" colspan="2">Action</th>
+                </tr>
+            </thead>
 
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for user in user_list %}
-            <tr>
-                <td><img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="Logo"
-                        style="height:5vh; width: 3vw;"></td>
-
-                <td>{{ user.id }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td colspan="2">{{ user.password }}</td>
-                <td>{{ user.phone }}</td>
-                <td>{{ user.address }}</td>
-                <td>{{ user.secretQn }}</td>
-                <td>{{ user.balance }}</td>
-                <td>{{ user.credit }}</td>
-                {% if user.email == 'admin@admin.com' %}
-                <td></td>
-                <td></td>
-                {% else %}
-                <td><a href="/updateUser/{{user.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a></td>
-                <td>
-                    <form action="{{url_for('deleteuser', id=user.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{user.id}}"><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{user.id}}">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <!-- Modal Header -->
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{user.username}}?
-                                    </div>
-                                    <!-- Modal footer -->
-                                    <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
+            <tbody>
+                {% for user in user_list %}
+                <tr>
+                    <td>
+                        <img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="Logo"
+                            class="img-fluid" style="height: 5vh; width: 3vw;">
+                    </td>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td colspan="2">{{ user.password }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.address }}</td>
+                    <td>{{ user.secretQn }}</td>
+                    <td>{{ user.balance }}</td>
+                    <td>{{ user.credit }}</td>
+                    {% if user.email == 'admin@admin.com' %}
+                    <td></td>
+                    <td></td>
+                    {% else %}
+                    <td>
+                        <a href="/updateUser/{{user.id}}" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </td>
+                    <td>
+                        <form action="{{url_for('deleteuser', id=user.id)}}" method="POST">
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                                data-bs-target="#myModal_{{user.id}}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <!-- Modal -->
+                            <div class="modal" id="myModal_{{user.id}}">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <!-- Modal Header -->
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Delete Confirmation</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <!-- Modal Body -->
+                                        <div class="modal-body">Are you sure you want to delete {{user.username}}?</div>
+                                        <!-- Modal Footer -->
+                                        <div class="modal-footer">
+                                            <input type="submit" value="Delete" class="btn btn-danger">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Cancel</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot class="table-success">
-            <tr>
-                <th class="bottomleft"></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th colspan=5 class="bottomright"></th>
-            </tr>
-        </tfoot>
-    </table>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+
+            <tfoot class="table-success">
+                <tr>
+                    <th class="bottomleft"></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th colspan=5 class="bottomright"></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 </div>
 {% endblock %}
