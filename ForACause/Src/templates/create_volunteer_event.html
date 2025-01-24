@@ -1,17 +1,36 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container-fluid px-4 py-5">
-    <div class="row">
+    <!-- Anchor Buttons -->
+    <div class="d-flex justify-content-center mb-4">
+        <a href="#dashboard" class="btn btn-outline-primary mx-2">
+            <i class="bi bi-speedometer2 me-2"></i>Create Event
+        </a>
+        <a href="#events-overview" class="btn btn-outline-primary mx-2">
+            <i class="bi bi-list-check me-2"></i>Event Overview
+        </a>
+        <a href="#user-signups" class="btn btn-outline-primary mx-2">
+            <i class="bi bi-people me-2"></i>User Signups
+        </a>
+        <a href="#dashboard-section" class="btn btn-outline-primary mx-2">
+            <i class="bi bi-bar-chart me-2"></i>Volunteer Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+    <!-- Volunteer Dashboard Section -->
+    <div id="dashboard" class="row">
         <div class="col-lg-8 offset-lg-2">
             <div class="card shadow-lg mb-5">
                 <div class="card-header bg-primary text-white">
                     <h2 class="mb-0">
-                        <i class="bi bi-calendar-event me-3"></i>Volunteer Dashboard
+                        <i class="bi bi-calendar-event me-3"></i>Create Event
                     </h2>
                 </div>
                 <div class="card-body">
                     <h4 class="mb-4">
-                        <i class="bi bi-plus-circle text-success me-2"></i>Create Volunteer Event
+                        <i class="bi bi-plus-circle text-success me-2"></i>Event Details
                     </h4>
                     <form method="POST" enctype="multipart/form-data">
                         <div class="row">
@@ -66,172 +85,341 @@
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="card shadow-lg">
-                <div class="card-header bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
-                            <i class="bi bi-list-check text-primary me-2"></i>Events Overview
-                        </h4>
-                    </div>
+    <!-- Events Overview Section -->
+    <div id="events-overview" class="card shadow-lg">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">
+                <i class="bi bi-list-check text-primary me-2"></i>Events Overview
+            </h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="mb-3 px-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
                 </div>
-                <div class="card-body p-0">
-                    <div class="mb-3 px-3">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
-                        </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="eventsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4 align-middle">Name & Category</th>
+                            <th class="align-middle">Date</th>
+                            <th class="align-middle">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td class="ps-4 align-middle">
+                                <h6 class="mb-1 fw-bold">{{ event.name }}</h6>
+                                <p class="text-muted mb-1 small">{{ event.description | truncate(50) }}</p>
+                                <span class="badge bg-primary">{{ event.category }}</span>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge bg-secondary text-white">
+                                    <i class="bi bi-calendar me-1"></i>{{ event.date }}
+                                </span>
+                            </td>
+                            <td class="align-middle">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" class="btn btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Signups Section -->
+    <div id="user-signups" class="card shadow-lg mt-4">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">
+                <i class="bi bi-people me-3"></i>User Signups
+            </h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="mb-3 px-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="userSignupsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>User</th>
+                            <th>Contact</th>
+                            <th>Event</th>
+                            <th>Sign-Up Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for signup in signups %}
+                        <tr>
+                            <td>{{ signup.user.username }}</td>
+                            <td>{{ signup.user.email }}</td>
+                            <td>{{ signup.event.name }}</td>
+                            <td>{{ signup.sign_up_date }}</td>
+                            <td>
+                                {% if not signup.attended %}
+                                <form method="POST" action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Mark as Attended</button>
+                                </form>
+                                {% else %}
+                                <span class="badge bg-success">Attended</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Section -->
+<div id="dashboard-section" class="card shadow-lg mt-5">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">
+            <i class="bi bi-bar-chart-line me-3"></i>Volunteer Dashboard
+        </h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Top Volunteer -->
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Top Volunteer</h5>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="eventsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4 align-middle">Name & Category</th>
-                                    <th class="align-middle">Date</th>
-                                    <th class="align-middle">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for event in events %}
-                                <tr>
-                                    <td class="ps-4 align-middle">
-                                        <div>
-                                            <h6 class="mb-1 fw-bold">{{ event.name }}</h6>
-                                            <p class="text-muted mb-1 small">{{ event.description | truncate(50) }}</p>
-                                            <span class="badge bg-primary">{{ event.category }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="align-middle">
-                                        <span class="badge bg-secondary text-white">
-                                            <i class="bi bi-calendar me-1"></i>{{ event.date }}
-                                        </span>
-                                    </td>
-                                    <td class="align-middle">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" 
-                                               class="btn btn-outline-warning">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <form method="POST" 
-                                                  action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" 
-                                                  style="display: inline;" class="d-inline">
-                                                <button type="submit" class="btn btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="card-body">
+                        <h6 class="fw-bold text-center">
+                            <i class="bi bi-person-circle"></i> {{ top_volunteer.username }}
+                        </h6>
+                        <p class="text-center">Total Signups: {{ top_volunteer.signup_count }}</p>
+                        <hr />
+                        <h6 class="fw-bold">Top 5 Volunteers:</h6>
+                        <ul>
+                            {% for volunteer in top_volunteers %}
+                                <li>
+                                    {{ volunteer.username }} - Total Signups: {{ volunteer.signup_count }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <hr />
+                        <h6 class="fw-bold">Bar Chart:</h6>
+                        <canvas id="volunteerBarChart" width="400" height="300"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="card shadow-lg mt-4">
-                <div class="card-header bg-success text-white">
-                    <h3 class="mb-0">
-                        <i class="bi bi-people me-3"></i>User Signups
-                    </h3>
-                </div>
-                <div class="card-body p-0">
-                    <div class="mb-3 px-3">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
-                        </div>
+            <!-- Event Signups Pie Chart -->
+            <div class="col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">Most Signed-Up Events</h5>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0" id="userSignupsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>User</th>
-                                    <th>Contact</th>
-                                    <th>Event</th>
-                                    <th>Sign-Up Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for signup in signups %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-person-circle me-2"></i>
-                                            <div>
-                                                <h6 class="mb-0">{{ signup.user.username }}</h6>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{{ signup.user.email }}</td>
-                                    <td>
-                                        <span class="badge bg-primary">{{ signup.event.name }}</span>
-                                    </td>
-                                    <td>{{ signup.sign_up_date }}</td>
-                                    <td>
-                                        {% if not signup.attended %}
-                                        <form method="POST" action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
-                                            <button type="submit" class="btn btn-outline-success btn-sm">
-                                                Mark as Attended
-                                            </button>
-                                        </form>
-                                        {% else %}
-                                        <span class="badge bg-success">Attended</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="card-body">
+                        <canvas id="eventSignupChart" width="400" height="300"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<!-- Floating Button -->
+<button id="scrollTopBtn" class="btn btn-primary rounded-circle shadow-lg" style="position: fixed; bottom: 20px; right: 20px; display: none;">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-function filterEvents() {
-    const input = document.getElementById('eventSearch');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('eventsTable');
-    const tr = table.getElementsByTagName('tr');
+    function filterEvents() {
+        const input = document.getElementById('eventSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('eventsTable');
+        const tr = table.getElementsByTagName('tr');
 
-    for (let i = 1; i < tr.length; i++) {
-        const tdName = tr[i].getElementsByTagName('td')[0];
-        const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
-        if (tdName || tdCategory) {
-            const txtValueName = tdName.textContent || tdName.innerText;
-            const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
-            if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueCategory.toLowerCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+        for (let i = 1; i < tr.length; i++) {
+            const tdName = tr[i].getElementsByTagName('td')[0];
+            const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
+            if (tdName || tdCategory) {
+                const txtValueName = tdName.textContent || tdName.innerText;
+                const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
+                if (
+                    txtValueName.toLowerCase().indexOf(filter) > -1 ||
+                    txtValueCategory.toLowerCase().indexOf(filter) > -1
+                ) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
     }
-}
 
-function filterUsers() {
-    const input = document.getElementById('userSearch');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('userSignupsTable');
-    const tr = table.getElementsByTagName('tr');
+    function filterUsers() {
+        const input = document.getElementById('userSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('userSignupsTable');
+        const tr = table.getElementsByTagName('tr');
 
-    for (let i = 1; i < tr.length; i++) {
-        const tdUser  = tr[i].getElementsByTagName('td')[0];
-        const tdEmail = tr[i].getElementsByTagName('td')[1];
-        if (tdUser  || tdEmail) {
-            const txtValueUser  = tdUser .textContent || tdUser .innerText;
-            const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
-            if (txtValueUser .toLowerCase().indexOf(filter) > -1 || txtValueEmail.toLowerCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+        for (let i = 1; i < tr.length; i++) {
+            const tdUser = tr[i].getElementsByTagName('td')[0];
+            const tdEmail = tr[i].getElementsByTagName('td')[1];
+            if (tdUser || tdEmail) {
+                const txtValueUser = tdUser.textContent || tdUser.innerText;
+                const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
+                if (
+                    txtValueUser.toLowerCase().indexOf(filter) > -1 ||
+                    txtValueEmail.toLowerCase().indexOf(filter) > -1
+                ) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
     }
-}
-</script>
-{% endblock %}
+
+
+    // Data for Pie Chart
+    const eventData = {{ event_data|tojson }};
+    const eventLabels = Object.keys(eventData);
+    const eventCounts = Object.values(eventData);
+
+    // Data for Bar Chart
+    const volunteerData = {{ top_volunteers|tojson }};
+    const volunteerLabels = volunteerData.map(v => v.username);
+    const volunteerCounts = volunteerData.map(v => v.signup_count);
+
+    // Render Bar Chart
+    if (volunteerData.length > 0) {
+        const barCtx = document.getElementById('volunteerBarChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: volunteerLabels,
+                datasets: [{
+                    label: 'Total Signups',
+                    data: volunteerCounts,
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                    ],
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Signups',
+                        },
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Volunteers',
+                        },
+                    },
+                },
+            },
+        });
+    } else {
+        const barContainer = document.getElementById('volunteerBarChart').parentElement;
+        barContainer.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
+    }
+
+
+
+    // Check if there is data before rendering the chart
+    if (Object.keys(eventData).length > 0) {
+        const ctx = document.getElementById('eventSignupChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: eventLabels,
+                datasets: [
+                    {
+                        label: 'Event Signups',
+                        data: eventCounts,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                        ],
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+            },
+        });
+    } else {
+        // If no data, display a message instead of the chart
+        const chartContainer = document.getElementById('eventSignupChart').parentElement;
+        chartContainer.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
+    }
+
+    // Show/hide scroll-to-top button
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    window.onscroll = function () {
+        if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+            scrollTopBtn.style.display = 'block';
+        } else {
+            scrollTopBtn.style.display = 'none';
+        }
+    };
+
+    // Scroll to the top
+    scrollTopBtn.onclick = function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+</script>{% endblock %}

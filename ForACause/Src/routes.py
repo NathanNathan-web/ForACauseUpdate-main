@@ -1,5 +1,5 @@
 from datetime import date
-from flask import render_template, url_for, flash, redirect, request, session
+from flask import render_template, url_for, flash, redirect, request, session, jsonify
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
 from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,db
 from Src import app, db, bcrypt
@@ -8,7 +8,9 @@ from werkzeug.utils import secure_filename
 import os
 from flask_babel import _
 from datetime import datetime
-
+from collections import Counter
+from sqlalchemy import func  # Import func for SQL functions
+from sqlalchemy.sql import desc
 
 
 
@@ -940,6 +942,8 @@ def confirm_volunteer_event(event_id):
 
     return render_template('confirm_volunteer.html', event=event)
 
+from sqlalchemy import func
+
 @app.route('/create_volunteer_event', methods=['GET', 'POST'])
 @login_required
 def create_volunteer_event():
@@ -948,37 +952,84 @@ def create_volunteer_event():
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
-        category = request.form['category']
-        image_file = None
+        try:
+            name = request.form['name']
+            description = request.form['description']
+            date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+            category = request.form['category']
+            image_file = None
 
-        if 'image_file' in request.files and request.files['image_file'].filename != '':
-            file = request.files['image_file']
-            image_file = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
+            if 'image_file' in request.files and request.files['image_file'].filename != '':
+                file = request.files['image_file']
+                image_file = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
 
-        new_event = VolunteerEvent(
-            name=name,
-            description=description,
-            date=date,
-            category=category,
-            image_file=image_file
-        )
-        db.session.add(new_event)
-        db.session.commit()
-        flash('Event created successfully!', 'success')
+            new_event = VolunteerEvent(
+                name=name,
+                description=description,
+                date=date,
+                category=category,
+                image_file=image_file
+            )
+            db.session.add(new_event)
+            db.session.commit()
+            flash('Event created successfully!', 'success')
+        except Exception as e:
+            flash(f"Error creating event: {str(e)}", "danger")
         return redirect(url_for('create_volunteer_event'))
 
+    # Fetch all events
     events = VolunteerEvent.query.all()
+
+    # Fetch all user signups
     signups = UserVolunteer.query.all()
+
+    # Fetch the top volunteer (user with the most signups)
+    top_volunteer_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .first()
+    )
+
+    top_volunteer = {
+        'username': top_volunteer_query[0].username if top_volunteer_query else 'No Volunteers',
+        'signup_count': top_volunteer_query[1] if top_volunteer_query else 0
+    }
+
+    # Fetch the top 5 volunteers
+    top_volunteers_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .limit(5)
+    )
+
+    top_volunteers = [
+        {'username': volunteer[0].username, 'signup_count': volunteer[1]} for volunteer in top_volunteers_query
+    ]
+
+    # Prepare event signup data for the pie chart
+    event_data_query = (
+        db.session.query(VolunteerEvent.name, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, VolunteerEvent.id == UserVolunteer.event_id)
+        .group_by(VolunteerEvent.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+    )
+
+    event_data = {event[0]: event[1] for event in event_data_query}
 
     return render_template(
         'create_volunteer_event.html',
         events=events,
-        signups=signups
+        signups=signups,
+        top_volunteer=top_volunteer,
+        top_volunteers=top_volunteers,
+        event_data=event_data
     )
+
 
 
 @app.route('/manage_volunteer_event')
@@ -1070,3 +1121,18 @@ def mark_attended(event_id, user_id):
     flash(f'User {signup.user.username} marked as attended for {signup.event.name}.', 'success')
     return redirect(url_for('create_volunteer_event'))
 
+@app.route('/dashboard')
+def dashboard():
+    # Top volunteer
+    signup_counts = db.session.query(User.username, func.count(Signup.id)).join(Signup).group_by(User.username).all()
+    top_volunteer = max(signup_counts, key=lambda x: x[1])
+
+    # Event signup counts
+    event_counts = db.session.query(Event.name, func.count(Signup.id)).join(Signup).group_by(Event.name).all()
+    event_data = dict(event_counts)
+
+    return render_template(
+        'your_template.html',
+        top_volunteer={'username': top_volunteer[0], 'signup_count': top_volunteer[1]},
+        event_data=event_data
+    )
