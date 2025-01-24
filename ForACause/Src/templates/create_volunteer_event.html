@@ -60,6 +60,15 @@
                                 <input type="file" class="form-control" id="image_file" name="image_file">
                             </div>
                         </div>
+                        <!-- Google Maps Integration -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">
+                                <i class="bi bi-geo-alt me-2"></i>Event Location
+                            </label>
+                            <div id="map" style="height: 400px; width: 100%;"></div>
+                            <input type="hidden" id="latitude" name="latitude">
+                            <input type="hidden" id="longitude" name="longitude">
+                        </div>
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="bi bi-plus-circle me-2"></i>Create Event
                         </button>
@@ -79,7 +88,8 @@
                     <div class="mb-3 px-3">
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
+                            <input type="text" id="eventSearch" class="form-control"
+                                placeholder="Filter by event name or category" onkeyup="filterEvents()">
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -88,6 +98,7 @@
                                 <tr>
                                     <th class="ps-4 align-middle">Name & Category</th>
                                     <th class="align-middle">Date</th>
+                                    <th class="align-middle">Location</th> <!-- Added Location Column -->
                                     <th class="align-middle">Actions</th>
                                 </tr>
                             </thead>
@@ -107,14 +118,20 @@
                                         </span>
                                     </td>
                                     <td class="align-middle">
+                                        <!-- Display event's address here -->
+                                        <span class="badge bg-info text-white">
+                                            <i class="bi bi-geo-alt me-1"></i>{{ event.address }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" 
-                                               class="btn btn-outline-warning">
+                                            <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}"
+                                                class="btn btn-outline-warning">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <form method="POST" 
-                                                  action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" 
-                                                  style="display: inline;" class="d-inline">
+                                            <form method="POST"
+                                                action="{{ url_for('delete_volunteer_event', event_id=event.id) }}"
+                                                style="display: inline;" class="d-inline">
                                                 <button type="submit" class="btn btn-outline-danger">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
@@ -127,7 +144,7 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            </div>            
 
             <div class="card shadow-lg mt-4">
                 <div class="card-header bg-success text-white">
@@ -139,7 +156,8 @@
                     <div class="mb-3 px-3">
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
+                            <input type="text" id="userSearch" class="form-control"
+                                placeholder="Filter by user name or email" onkeyup="filterUsers()">
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -171,7 +189,8 @@
                                     <td>{{ signup.sign_up_date }}</td>
                                     <td>
                                         {% if not signup.attended %}
-                                        <form method="POST" action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
+                                        <form method="POST"
+                                            action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
                                             <button type="submit" class="btn btn-outline-success btn-sm">
                                                 Mark as Attended
                                             </button>
@@ -192,46 +211,86 @@
 </div>
 
 <script>
-function filterEvents() {
-    const input = document.getElementById('eventSearch');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('eventsTable');
-    const tr = table.getElementsByTagName('tr');
+    let map, marker;
 
-    for (let i = 1; i < tr.length; i++) {
-        const tdName = tr[i].getElementsByTagName('td')[0];
-        const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
-        if (tdName || tdCategory) {
-            const txtValueName = tdName.textContent || tdName.innerText;
-            const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
-            if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueCategory.toLowerCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+    function initMap() {
+        const defaultLocation = { lat: 1.3521, lng: 103.8198 }; // Singapore default
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: defaultLocation,
+            zoom: 12,
+        });
+
+        marker = new google.maps.Marker({
+            position: defaultLocation,
+            map: map,
+            draggable: true,
+        });
+
+        // Update hidden input fields on marker drag
+        marker.addListener("dragend", () => {
+            const position = marker.getPosition();
+            document.getElementById("latitude").value = position.lat();
+            document.getElementById("longitude").value = position.lng();
+        });
+
+        // Update marker position and hidden fields on map click
+        map.addListener("click", (event) => {
+            const clickedLocation = event.latLng;
+            marker.setPosition(clickedLocation);
+            document.getElementById("latitude").value = clickedLocation.lat();
+            document.getElementById("longitude").value = clickedLocation.lng();
+        });
+
+        // Initialize hidden input fields with default values
+        document.getElementById("latitude").value = defaultLocation.lat;
+        document.getElementById("longitude").value = defaultLocation.lng;
+    }
+
+    function filterEvents() {
+        const input = document.getElementById('eventSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('eventsTable');
+        const tr = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < tr.length; i++) {
+            const tdName = tr[i].getElementsByTagName('td')[0];
+            const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
+            if (tdName || tdCategory) {
+                const txtValueName = tdName.textContent || tdName.innerText;
+                const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
+                if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueCategory.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
     }
-}
 
-function filterUsers() {
-    const input = document.getElementById('userSearch');
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById('userSignupsTable');
-    const tr = table.getElementsByTagName('tr');
+    function filterUsers() {
+        const input = document.getElementById('userSearch');
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById('userSignupsTable');
+        const tr = table.getElementsByTagName('tr');
 
-    for (let i = 1; i < tr.length; i++) {
-        const tdUser  = tr[i].getElementsByTagName('td')[0];
-        const tdEmail = tr[i].getElementsByTagName('td')[1];
-        if (tdUser  || tdEmail) {
-            const txtValueUser  = tdUser .textContent || tdUser .innerText;
-            const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
-            if (txtValueUser .toLowerCase().indexOf(filter) > -1 || txtValueEmail.toLowerCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+        for (let i = 1; i < tr.length; i++) {
+            const tdUser = tr[i].getElementsByTagName('td')[0];
+            const tdEmail = tr[i].getElementsByTagName('td')[1];
+            if (tdUser || tdEmail) {
+                const txtValueUser = tdUser.textContent || tdUser.innerText;
+                const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
+                if (txtValueUser.toLowerCase().indexOf(filter) > -1 || txtValueEmail.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
         }
     }
-}
+</script>
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo&callback=initMap"
+    async
+    defer>
 </script>
 {% endblock %}

@@ -202,6 +202,9 @@ class VolunteerEvent(db.Model):
     description = db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
     category = db.Column(db.String(50), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    address = db.Column(db.String(255), nullable=True) 
     image_file = db.Column(db.String(100), nullable=True)
 
     # Add overlaps parameter to resolve conflicts

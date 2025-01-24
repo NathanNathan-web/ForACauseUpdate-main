@@ -1373,6 +1373,20 @@ def confirm_volunteer_event(event_id):
 
     return render_template('confirm_volunteer.html', event=event)
 
+def get_address_from_coordinates(lat, lon):
+    api_key = 'AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo'
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lon}&key={api_key}'
+    response = requests.get(url)
+    data = response.json()
+
+    if data['status'] == 'OK':
+        # Get the formatted address from the API response
+        address = data['results'][0]['formatted_address']
+        return address
+    else:
+        return "Address not found"
+    
+
 @app.route('/create_volunteer_event', methods=['GET', 'POST'])
 @login_required
 def create_volunteer_event():
@@ -1385,6 +1399,8 @@ def create_volunteer_event():
         description = request.form['description']
         date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
         category = request.form['category']
+        latitude = float(request.form['latitude'])
+        longitude = float(request.form['longitude'])
         image_file = None
 
         if 'image_file' in request.files and request.files['image_file'].filename != '':
@@ -1392,12 +1408,19 @@ def create_volunteer_event():
             image_file = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
 
+        # Get the address from the latitude and longitude
+        address = get_address_from_coordinates(latitude, longitude)
+
+        # Create the new event
         new_event = VolunteerEvent(
             name=name,
             description=description,
             date=date,
             category=category,
-            image_file=image_file
+            image_file=image_file, 
+            latitude=latitude,
+            longitude=longitude,
+            address=address  
         )
         db.session.add(new_event)
         db.session.commit()
