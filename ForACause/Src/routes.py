@@ -1387,6 +1387,45 @@ def get_address_from_coordinates(lat, lon):
         return "Address not found"
     
 
+@app.route('/map_view', methods=['GET'])
+@login_required
+def map_view():
+    # Fetch all events from the database
+    events = VolunteerEvent.query.all()
+
+    # Get the signed-up events for the current user (to exclude them from the list)
+    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+
+    # Filter out events that the user has signed up for
+    events_not_signed_up = [
+        event for event in events if event.id not in signed_up_event_ids
+    ]
+
+    # Prepare event data for both the map and the event list
+    events_data = [
+        {
+            'id': event.id,
+            'name': event.name,
+            'description': event.description,
+            'latitude': event.latitude,
+            'longitude': event.longitude,
+            'date': event.date.strftime('%Y-%m-%d') if event.date else 'Not available',
+            'category': event.category if event.category else 'Not available',
+            'address': event.address if event.address else 'Not available'
+        }
+        for event in events_not_signed_up
+    ]
+
+    # Serialize the events data to JSON for the map
+    events_data_json = json.dumps(events_data)
+
+    return render_template(
+        'map_view.html',
+        events_data=events_data_json,  # This will be used for the map markers
+        events=events_data,  # This will be used for the list view
+        api_key=app.config['GOOGLE_MAPS_API_KEY']
+    )
+
 @app.route('/create_volunteer_event', methods=['GET', 'POST'])
 @login_required
 def create_volunteer_event():

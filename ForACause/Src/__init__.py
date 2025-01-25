@@ -19,6 +19,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
 app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+GOOGLE_MAPS_API_KEY = ['AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo']
+app.config['GOOGLE_MAPS_API_KEY'] = GOOGLE_MAPS_API_KEY
 # Configure languages for Flask-Babel
 app.config['LANGUAGES'] = {
     'en': 'English',  # English

@@ -16,36 +16,45 @@
             <form id="filterForm" method="GET" class="row g-3 align-items-center">
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input type="text" name="search_name" class="form-control" id="searchInput" 
-                               placeholder="Search events" 
-                               value="{{ request.args.get('search_name', '') }}">
+                        <input type="text" name="search_name" class="form-control" id="searchInput"
+                            placeholder="Search events" value="{{ request.args.get('search_name', '') }}">
                         <label for="searchInput"><i class="bi bi-search me-2"></i>Search by event name</label>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-floating">
-                        <input type="date" name="filter_date" class="form-control" id="dateInput" 
-                               value="{{ request.args.get('filter_date', '') }}">
+                        <input type="date" name="filter_date" class="form-control" id="dateInput"
+                            value="{{ request.args.get('filter_date', '') }}">
                         <label for="dateInput"><i class="bi bi-calendar me-2"></i>Filter by date</label>
                     </div>
                 </div>
+
                 <div class="col-md-5 d-flex justify-content-end">
                     <div class="btn-group shadow-sm" role="group" aria-label="Volunteer Filter">
                         {% if request.args.get('show_signed_up') == 'true' %}
-                            <button type="button" id="showAllButton" class="btn btn-outline-primary" onclick="showAllEvents()">
-                                <i class="bi bi-list-ul me-2"></i>All Events
-                            </button>
-                            <button type="button" id="showSignedUpButton" class="btn btn-primary active" disabled>
-                                <i class="bi bi-check-circle me-2"></i>My Events
-                            </button>
+                        <button type="button" id="showAllButton" class="btn btn-outline-primary"
+                            onclick="showAllEvents()">
+                            <i class="bi bi-list-ul me-2"></i>All Events
+                        </button>
+                        <button type="button" id="showSignedUpButton" class="btn btn-primary active" disabled>
+                            <i class="bi bi-check-circle me-2"></i>My Events
+                        </button>
                         {% else %}
-                            <button type="button" id="showAllButton" class="btn btn-primary active" disabled>
-                                <i class="bi bi-list-ul me-2"></i>All Events
-                            </button>
-                            <button type="button" id="showSignedUpButton" class="btn btn-outline-primary" onclick="showOnlySignedUp()">
-                                <i class="bi bi-check-circle me-2"></i>My Events
-                            </button>
+                        <button type="button" id="showAllButton" class="btn btn-primary active" disabled>
+                            <i class="bi bi-list-ul me-2"></i>All Events
+                        </button>
+                        <button type="button" id="showSignedUpButton" class="btn btn-outline-primary"
+                            onclick="showOnlySignedUp()">
+                            <i class="bi bi-check-circle me-2"></i>My Events
+                        </button>
                         {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <a href="{{ url_for('map_view') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-geo-alt me-2"></i>Map 
+                            </a>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -58,8 +67,8 @@
         <div class="col">
             <div class="card h-100 border-0 shadow-sm hover-lift">
                 <div class="position-relative overflow-hidden rounded-3">
-                    <img src="{{ url_for('static', filename='images/' + event.image_file) }}" 
-                         class="card-img-top event-image" alt="{{ event.name }}">
+                    <img src="{{ url_for('static', filename='images/' + event.image_file) }}"
+                        class="card-img-top event-image" alt="{{ event.name }}">
                     <div class="badge bg-primary position-absolute top-0 end-0 m-3 rounded-pill">
                         {{ event.category }}
                     </div>
@@ -72,23 +81,24 @@
                             {{ event.date }}
                         </div>
                         {% if event.id in signed_up_event_ids %}
-                            {% for signup in current_user.user_volunteers %}
-                                {% if signup.event_id == event.id %}
-                                    {% if signup.attended %}
-                                    <span class="badge bg-success rounded-pill">
-                                        <i class="bi bi-check-circle me-1"></i>Completed
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-warning rounded-pill">
-                                        <i class="bi bi-clock me-1"></i>Signed Up
-                                    </span>
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
+                        {% for signup in current_user.user_volunteers %}
+                        {% if signup.event_id == event.id %}
+                        {% if signup.attended %}
+                        <span class="badge bg-success rounded-pill">
+                            <i class="bi bi-check-circle me-1"></i>Completed
+                        </span>
                         {% else %}
-                            <a href="{{ url_for('confirm_volunteer', event_id=event.id) }}" class="btn btn-primary btn-sm rounded-pill">
-                                Volunteer
-                            </a>
+                        <span class="badge bg-warning rounded-pill">
+                            <i class="bi bi-clock me-1"></i>Signed Up
+                        </span>
+                        {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        <a href="{{ url_for('confirm_volunteer', event_id=event.id) }}"
+                            class="btn btn-primary btn-sm rounded-pill">
+                            Volunteer Now
+                        </a>
                         {% endif %}
                     </div>
                 </div>
@@ -109,45 +119,45 @@
 
 <!-- Custom CSS for Enhanced Styling -->
 <style>
-.event-image {
-    height: 250px;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
+    .event-image {
+        height: 250px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
 
-.hover-lift {
-    transition: all 0.3s ease;
-}
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
 
-.hover-lift:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
-}
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
+    }
 
-.btn-group .btn {
-    transition: all 0.3s ease;
-}
+    .btn-group .btn {
+        transition: all 0.3s ease;
+    }
 </style>
 
 <script>
-function showOnlySignedUp() {
-    const form = document.getElementById('filterForm');
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'show_signed_up';
-    input.value = 'true';
-    form.appendChild(input);
-    form.submit();
-}
+    function showOnlySignedUp() {
+        const form = document.getElementById('filterForm');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'show_signed_up';
+        input.value = 'true';
+        form.appendChild(input);
+        form.submit();
+    }
 
-function showAllEvents() {
-    const form = document.getElementById('filterForm');
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'show_signed_up';
-    input.value = 'false';
-    form.appendChild(input);
-    form.submit();
-}
+    function showAllEvents() {
+        const form = document.getElementById('filterForm');
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'show_signed_up';
+        input.value = 'false';
+        form.appendChild(input);
+        form.submit();
+    }
 </script>
 {% endblock %}
