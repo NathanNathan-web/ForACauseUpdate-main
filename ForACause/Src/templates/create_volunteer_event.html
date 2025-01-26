@@ -102,6 +102,11 @@
                     <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
                 </div>
             </div>
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('export_events') }}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Export Events
+                </a>
+            </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0" id="eventsTable">
                     <thead class="table-light">
@@ -157,6 +162,11 @@
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
                 </div>
+            </div>
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('export_user_signups') }}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Export User Signups
+                </a>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover table-striped mb-0" id="userSignupsTable">
@@ -303,7 +313,7 @@
 
 
     // Data for Pie Chart
-    const eventData = {{ event_data|tojson }};
+    const eventData = {{ event_data|tojson|safe }};
     const eventLabels = Object.keys(eventData);
     const eventCounts = Object.values(eventData);
 

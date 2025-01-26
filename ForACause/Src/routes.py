@@ -1244,3 +1244,58 @@ def export_users():
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment;filename=users_data.csv'}
     )
+
+@app.route('/export_events', methods=['GET'])
+@login_required
+def export_events():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    events = VolunteerEvent.query.all()
+
+    def generate_csv():
+        data = [['Name', 'Category', 'Description', 'Date']]
+        for event in events:
+            data.append([event.name, event.category, event.description, event.date])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=events.csv'}
+    )
+
+@app.route('/export_user_signups', methods=['GET'])
+@login_required
+def export_user_signups():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch all user signups
+    signups = UserVolunteer.query.all()
+
+    # Debugging: Print the results to see if there are signups
+    for signup in signups:
+        print(f"User: {signup.user.username}, Event: {signup.event.name}, Date: {signup.sign_up_date}, Attended: {signup.attended}")
+
+    def generate_csv():
+        data = [['User', 'Email', 'Event', 'Sign-Up Date', 'Attended']]
+        for signup in signups:
+            data.append([
+                signup.user.username,
+                signup.user.email,
+                signup.event.name,
+                signup.sign_up_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'Yes' if signup.attended else 'No',
+            ])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=user_signups.csv'}
+    )
