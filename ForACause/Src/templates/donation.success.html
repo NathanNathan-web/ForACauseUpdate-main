@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %} ForACause Donation Successful{% endblock %}
+{% block title %}ForACause - Donation Successful{% endblock %}
 
 {% block content %}
 <div class="container py-5 text-center">
-    <div class="card mx-auto shadow-lg" style="max-width: 600px; border-radius: 20px; overflow: hidden;">
+    <div class="card mx-auto shadow-lg" style="max-width: 600px;">
         <div class="card-body p-5">
             <div class="icon-wrapper mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 10.97l-2.47-2.47a.75.75 0 0 1 1.06-1.06l1.72 1.72 3.72-3.72a.75.75 0 0 1 1.06 1.06L7.97 10.97a.75.75 0 0 1-1.06 0z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 10.97l-2.47-2.47a.75.75 0 0 1 1.06-1.06l1.72 1.72 3.72-3.72a.75.75 0 0 1 1.06 1.06L7.97 10.97a.75.75 0 0 1-1.06 0z" fill="green" />
                 </svg>
             </div>
             <h2 class="text-success mb-3">Thank You for Your Donation!</h2>
@@ -22,72 +22,103 @@
 </div>
 
 <style>
-    body {
-        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8ff 100%);
-        font-family: 'Poppins', sans-serif;
-    }
+/* General Page Background */
+body {
+    background: linear-gradient(135deg, #edf2f7 0%, #ffffff 100%);
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
 
-    .card {
-        background: #ffffff;
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    }
+/* Card Styling */
+.card {
+    background: #ffffff;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
 
+.icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background-color: #e8f5e9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+}
+
+.icon-wrapper svg {
+    width: 60px;
+    height: 60px;
+    fill: #28a745;
+}
+
+/* Typography */
+h2 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: #28a745;
+    margin-top: 20px;
+}
+
+.text-muted {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin: 15px 0 25px;
+}
+
+strong.text-primary {
+    color: #007bff;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Button Styling */
+.btn-primary {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    color: white;
+    padding: 12px 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #0056b3, #007bff);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Adjustments for Smaller Screens */
+@media (max-width: 768px) {
     h2 {
-        font-weight: 700;
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
-    .text-success {
-        color: #28a745 !important;
+    .btn-primary {
+        font-size: 1rem;
+        padding: 10px 30px;
     }
 
     .text-muted {
         font-size: 1rem;
-        color: #6c757d;
-    }
-
-    .btn-primary {
-        background: linear-gradient(90deg, #007bff, #0056b3);
-        border: none;
-        font-size: 1.2rem;
-        font-weight: 600;
-        border-radius: 50px;
-        color: white;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(90deg, #0056b3, #007bff);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
 
     .icon-wrapper {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto;
-        background-color: #e8f5e9;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 70px;
+        height: 70px;
     }
 
-    @media (max-width: 768px) {
-        h2 {
-            font-size: 2rem;
-        }
-
-        .btn-primary {
-            font-size: 1rem;
-            padding: 12px 30px;
-        }
-
-        .text-muted {
-            font-size: 0.95rem;
-        }
+    .icon-wrapper svg {
+        width: 50px;
+        height: 50px;
     }
+}
 </style>
 {% endblock %}

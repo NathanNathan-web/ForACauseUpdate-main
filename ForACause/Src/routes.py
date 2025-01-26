@@ -1156,8 +1156,8 @@ def create_checkout_session():
 @app.route('/payment/success')
 @login_required
 def payment_success():
-    flash("Your payment was successful! Thank you for your donation.", "success")
-    return redirect(url_for('home'))
+    flash("Your payment was successful! Thank you for your donation.Do you want to donate again ?", "success")
+    return redirect(url_for('donate'))
 
 
 @app.route('/payment/cancel')
