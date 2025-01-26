@@ -204,6 +204,18 @@ class UserVolunteer(db.Model):
     # Add overlaps parameter to resolve conflicts
     user = db.relationship('User', backref='user_volunteers', lazy=True, overlaps="volunteer_events,volunteers")
 
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
+
+    user = db.relationship('User', backref='wishlist_items', lazy=True)
+    event = db.relationship('VolunteerEvent', backref='wishlist_users', lazy=True)
+
+    def __init__(self, user_id, event_id):
+        self.user_id = user_id
+        self.event_id = event_id
+
 
 
 db.create_all()

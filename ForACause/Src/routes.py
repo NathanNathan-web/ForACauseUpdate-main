@@ -1,7 +1,7 @@
 from datetime import date
 from flask import render_template, url_for, flash, redirect, request, session, jsonify,Response
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,db
+from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,Wishlist,db
 from Src import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
@@ -939,6 +939,9 @@ def volunteer():
     # Fetch signed-up event IDs for the current user
     signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
 
+    # Fetch wishlist event IDs for the current user
+    wishlisted_event_ids = {item.event_id for item in current_user.wishlist_items}
+
     # Get filter parameters from the request
     search_name = request.args.get('search_name', '')
     filter_date = request.args.get('filter_date', '')
@@ -958,7 +961,13 @@ def volunteer():
     if show_signed_up:
         events = [event for event in events if event.id in signed_up_event_ids]
 
-    return render_template('volunteer.html', events=events, signed_up_event_ids=signed_up_event_ids)
+    return render_template(
+        'volunteer.html',
+        events=events,
+        signed_up_event_ids=signed_up_event_ids,
+        wishlisted_event_ids=wishlisted_event_ids
+    )
+
 
 
 @app.route('/volunteer/<int:event_id>', methods=['GET', 'POST'])
@@ -1299,3 +1308,37 @@ def export_user_signups():
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment;filename=user_signups.csv'}
     )
+
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+from Src import db
+from Src.models import Wishlist, VolunteerEvent  # Import Wishlist and other required models
+
+@app.route('/add_to_wishlist/<int:event_id>', methods=['POST'])
+@login_required
+def add_to_wishlist(event_id):
+    existing_wishlist_item = Wishlist.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+    if not existing_wishlist_item:
+        wishlist_item = Wishlist(user_id=current_user.id, event_id=event_id)
+        db.session.add(wishlist_item)
+        db.session.commit()
+    flash("Event added to your wishlist!", "success")
+    return redirect(url_for('volunteer'))
+
+
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    events = [item.event for item in wishlist_items]
+    return render_template('wishlist.html', events=events)
+
+@app.route('/remove_from_wishlist/<int:event_id>', methods=['POST'])
+@login_required
+def remove_from_wishlist(event_id):
+    wishlist_item = Wishlist.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+    if wishlist_item:
+        db.session.delete(wishlist_item)
+        db.session.commit()
+    flash("Event removed from your wishlist!", "success")
+    return redirect(url_for('volunteer'))

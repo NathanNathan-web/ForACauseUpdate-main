@@ -7,13 +7,11 @@ from flask_login import LoginManager
 from flask_babel import Babel
 from flask_migrate import Migrate
 
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 secretKey = secrets.token_hex(16)
-app.config['SQLALCHEMY_DATABASE_URI'] =\
-        'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
 app.config['SECRET_KEY'] = secretKey
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -28,6 +26,7 @@ app.config['LANGUAGES'] = {
     'ms': 'Malay'     # Malay
 }
 
+# Initialize Login Manager
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
@@ -46,11 +45,15 @@ def get_locale():
 # Initialize Babel with the locale selector
 babel.init_app(app, locale_selector=get_locale)
 
+
+
+# Initialize SQLAlchemy, Bcrypt, and Migrate
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-
 migrate = Migrate(app, db)
 
+# Push app context
 app.app_context().push()
 
+# Import routes
 from Src import routes
