@@ -418,17 +418,30 @@ def service():
 
 # ===================================== Admin =====================================
 
-@app.route('/accountAdmin')
+@app.route('/accountadmin', methods=['GET'])
 @login_required
 def accountadmin():
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        user_list = []
-        users = User.query.all()
-        for user in users:
-            user_list.append(user)
+    if current_user.is_authenticated and current_user.isAdmin:
+        search_filter = request.args.get('search_filter', '').strip()
+
+        # Start with all users
+        query = User.query
+
+        # Apply filter if provided
+        if search_filter:
+            query = query.filter(
+                (User.username.ilike(f"%{search_filter}%")) |
+                (User.email.ilike(f"%{search_filter}%"))
+            )
+
+        # Fetch the filtered users
+        user_list = query.all()
+
         return render_template('accountAdmin.html', adminStat=True, user_list=user_list)
     else:
         return redirect(url_for('login'))
+
+
 
 
 @app.route('/deleteUser/<int:id>', methods=['POST'])
