@@ -47,7 +47,7 @@
                         </a>
                     </td>
                     <td>
-                        <form action="{{url_for('deleteuser', id=user.id)}}" method="POST">
+                        <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST">
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                                 data-bs-target="#myModal_{{user.id}}">
                                 <i class="bi bi-trash"></i>

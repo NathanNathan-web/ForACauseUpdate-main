@@ -1136,3 +1136,28 @@ def dashboard():
         top_volunteer={'username': top_volunteer[0], 'signup_count': top_volunteer[1]},
         event_data=event_data
     )
+
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    user = User.query.get(user_id)
+    if user:
+        try:
+            # Delete associated UserVolunteer records
+            UserVolunteer.query.filter_by(user_id=user_id).delete()
+
+            # Delete the user
+            db.session.delete(user)
+            db.session.commit()
+            flash(f'User {user.username} deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+    else:
+        flash('User not found!', 'danger')
+
+    return redirect(url_for('accountadmin'))
