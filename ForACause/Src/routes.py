@@ -1329,9 +1329,13 @@ def add_to_wishlist(event_id):
 @app.route('/wishlist')
 @login_required
 def wishlist():
-    wishlist_items = Wishlist.query.filter_by(user_id=current_user.id).all()
-    events = [item.event for item in wishlist_items]
-    return render_template('wishlist.html', events=events)
+    wishlisted_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    wishlisted_events = [item.event for item in wishlisted_items] if wishlisted_items else []
+
+    # Debugging
+    print("Wishlisted Events:", wishlisted_events)
+    
+    return render_template('wishlist.html', wishlisted_events=wishlisted_events)
 
 @app.route('/remove_from_wishlist/<int:event_id>', methods=['POST'])
 @login_required
