@@ -16,6 +16,13 @@
         </div>
     </form>
 
+    <!-- Export Button -->
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ url_for('export_users') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-arrow-down"></i> Export Users
+        </a>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">

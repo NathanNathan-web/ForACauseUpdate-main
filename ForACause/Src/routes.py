@@ -1,5 +1,5 @@
 from datetime import date
-from flask import render_template, url_for, flash, redirect, request, session, jsonify
+from flask import render_template, url_for, flash, redirect, request, session, jsonify,Response
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
 from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,db
 from Src import app, db, bcrypt
@@ -11,6 +11,7 @@ from datetime import datetime
 from collections import Counter
 from sqlalchemy import func  # Import func for SQL functions
 from sqlalchemy.sql import desc
+import csv
 
 
 
@@ -180,16 +181,48 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
-        redeemvoucher_list = []
-        image_file = url_for('static', filename='images/' + current_user.image_file)
-        user = User.query.filter_by(id=current_user.id).first()
-        redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
-        for redeemvoucher in redeemvouchers:
-            redeemvoucher_list.append(redeemvoucher)
-        # Pass app or app.config['LANGUAGES'] to the template
-        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'])
+        user = User.query.get(current_user.id)
+
+        # Fetch user volunteering history
+        user_volunteer_events = UserVolunteer.query.filter_by(user_id=current_user.id).all()
+
+        # Prepare donation and volunteering history
+        volunteering_history = [
+            {
+                "date": volunteer.sign_up_date.strftime('%Y-%m-%d'),
+                "type": "Volunteering",
+                "details": volunteer.event.name,
+                "status": "Completed" if volunteer.attended else "Pending",
+            }
+            for volunteer in user_volunteer_events
+        ]
+
+        # Fetch user vouchers
+        user_vouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+
+        # Prepare voucher data
+        voucher_data = [
+            {
+                "id": voucher.voucher.id,
+                "value": voucher.voucher.value,
+                "expiry_date": voucher.voucher.expiry_date.strftime('%Y-%m-%d'),
+                "image_file": voucher.voucher.image_file,
+                "status": "Active" if voucher.status == "active" else "Expired",
+            }
+            for voucher in user_vouchers
+        ]
+
+        # Pass data to the template
+        return render_template(
+            'account.html',
+            user=user,
+            donation_volunteering_history=volunteering_history,
+            user_vouchers=voucher_data,
+            languages=app.config['LANGUAGES'],
+        )
     else:
-        return render_template('login.html')
+        return redirect(url_for('login'))
+
 
 @app.route('/topup', methods=['GET', 'POST'])
 @login_required
@@ -1174,3 +1207,40 @@ def delete_user(user_id):
         flash('User not found!', 'danger')
 
     return redirect(url_for('accountadmin'))
+
+@app.route('/export_users', methods=['GET'])
+@login_required
+def export_users():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch all user data
+    users = User.query.all()
+
+    # Prepare CSV data
+    def generate_csv():
+        data = [
+            ['User ID', 'Username', 'Email', 'Password', 'Phone', 'Address', 'Secret Question', 'Balance', 'Credit']
+        ]
+        for user in users:
+            data.append([
+                user.id, 
+                user.username, 
+                user.email, 
+                user.password, 
+                user.phone, 
+                user.address, 
+                user.secretQn, 
+                user.balance, 
+                user.credit
+            ])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    # Create and return CSV response
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=users_data.csv'}
+    )
