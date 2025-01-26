@@ -1004,7 +1004,6 @@ def generate_qr():
     # Return the QR code as a PNG
     return send_file(buffer, mimetype='image/png')
 
-
 @app.route('/donation/payment', methods=['GET', 'POST'])
 @login_required
 def donation_payment():
@@ -1021,11 +1020,10 @@ def donation_payment():
 
     # Organization details
     organization_name = organizations[selected_org]['name']
-    uen_or_mobile = "88185649"  # Registered PayNow mobile number
     reference = "Donation"  # Payment reference
 
     if request.method == 'POST':
-        # Handle Stripe or PayNow confirmation
+        # Handle payment method selection
         payment_method = request.form.get('payment_method')
 
         if payment_method == 'stripe':
@@ -1037,8 +1035,13 @@ def donation_payment():
             ))
 
         elif payment_method == 'paynow':
-            flash("Please scan the QR code with your PayNow app to complete the payment.", "info")
-            return redirect(url_for('donation_payment', amount=donation_amount, organization=selected_org))
+            # Simulate PayNow payment success
+            flash("Your PayNow donation has been successfully processed!", "success")
+            return redirect(url_for(
+                'donation_success',
+                amount=donation_amount,
+                organization=selected_org
+            ))
 
         flash('Invalid payment method selected. Please try again.', 'danger')
 
@@ -1046,9 +1049,20 @@ def donation_payment():
         'payment.html',
         organization_name=organization_name,
         donation_amount=donation_amount,
-        uen_or_mobile=uen_or_mobile,
         reference=reference
     )
+@app.route('/donation/success', methods=['GET'])
+@login_required
+def donation_success():
+    donation_amount = request.args.get('amount', type=float)
+    organization_name = request.args.get('organization')
+
+    return render_template(
+        'donation.success.html',
+        donation_amount=donation_amount,
+        organization_name=organization_name
+    )
+
 
 
 def calculate_crc(payload: str) -> str:

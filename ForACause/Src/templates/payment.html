@@ -47,18 +47,24 @@
         const stripeOption = document.getElementById('stripe');
         const paynowContainer = document.getElementById('paynow-container');
 
+        // Show QR code when PayNow is selected
         paynowOption.addEventListener('change', function () {
-            if (this.checked) paynowContainer.style.display = 'block';
+            if (this.checked) {
+                paynowContainer.style.display = 'block';
+            }
         });
 
+        // Hide QR code when Stripe is selected
         stripeOption.addEventListener('change', function () {
-            if (this.checked) paynowContainer.style.display = 'none';
+            if (this.checked) {
+                paynowContainer.style.display = 'none';
+            }
         });
     });
+</script>
 
-    </script>
-
-    <style>
+<style>
+    /* General Body Styling */
     body {
         background: linear-gradient(135deg, #e9f6ff 0%, #f3f8fd 100%);
         font-family: 'Poppins', sans-serif;
@@ -200,6 +206,5 @@
             font-size: 1rem;
         }
     }
-    
-    </style>
+</style>
 {% endblock %}
