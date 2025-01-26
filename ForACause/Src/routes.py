@@ -815,11 +815,21 @@ def createorder(id):
 @app.route('/retrieveOrder')
 def retrieveorder():
     if current_user.is_authenticated and current_user.isAdmin == True:
-        order_list = []
-        orders = Order.query.all()
-        for order in orders:
-            order_list.append(order)
-        return render_template('retrieveOrder.html', adminStat=True, order_list=order_list)
+        # Get the sorting order from query parameters (default is ascending)
+        sort_by_date = request.args.get('sort_by_date', 'asc')
+        
+        # Fetch and sort orders based on the sorting order
+        if sort_by_date == 'asc':
+            orders = Order.query.order_by(Order.date_ordered.asc()).all()
+        else:
+            orders = Order.query.order_by(Order.date_ordered.desc()).all()
+        
+        return render_template(
+            'retrieveOrder.html', 
+            adminStat=True, 
+            order_list=orders, 
+            sort_by_date=sort_by_date
+        )
     else:
         return redirect(url_for('login'))
     

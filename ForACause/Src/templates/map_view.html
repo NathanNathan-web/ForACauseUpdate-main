@@ -41,7 +41,13 @@
                         <strong>Category:</strong> {{ event.category }}<br>
                         <strong>Address:</strong> {{ event.address }}
                     </p>
-                    <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-primary btn-sm mt-2">Volunteer Now</a>
+                    <div class="d-flex justify-content-between mt-2">
+                        <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-primary btn-sm">Volunteer Now</a>
+                        <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
+                            class="btn btn-secondary btn-sm" target="_blank">
+                            Get Directions
+                        </a>
+                    </div>
                 </li>
                 {% endfor %}
                 {% else %}
@@ -49,6 +55,7 @@
                 {% endif %}
             </ul>
         </div>
+
 
         <!-- Search Box -->
         <input id="search-box" type="text" placeholder="Search for a city, district, or location..." style="
@@ -142,25 +149,74 @@
                             font-size: 14px;
                             line-height: 1.4;
                         ">${event.description}</p>
-                        <a href="/confirm_volunteer/${event.id}" style="
-                            display: inline-block;
-                            margin-top: 10px;
-                            padding: 8px 16px;
-                            background-color: #007BFF;
-                            color: #ffffff;
-                            text-decoration: none;
-                            border-radius: 5px;
-                            font-size: 14px;
-                            text-align: center;
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                        ">Volunteer Now!</a>
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <a href="/confirm_volunteer/${event.id}" style="
+                                display: inline-block;
+                                padding: 8px 16px;
+                                background-color: #007BFF;
+                                color: #ffffff;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                font-size: 14px;
+                                text-align: center;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            ">Volunteer Now!</a>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
+                                display: inline-block;
+                                padding: 8px 16px;
+                                background-color: #28A745;
+                                color: #ffffff;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                font-size: 14px;
+                                text-align: center;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            ">Directions</a>
+                        </div>
                     </div>
                 `);
                 infoWindow.open(map, marker);
             });
 
             return marker;
+
         });
+
+        // Get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    // Center the map on the user's current location
+                    map.setCenter(new google.maps.LatLng(userLat, userLng));
+                    map.setZoom(14); // Optionally set a zoom level
+
+                    // Add a marker for the user's current location
+                    const userMarker = new google.maps.Marker({
+                        position: { lat: userLat, lng: userLng },
+                        map: map,
+                        title: 'You are here',
+                        icon: {
+                            url: '{{ url_for("static", filename="images/current-location.png") }}',
+                            scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
+                        },
+                    });
+
+                    // Optionally, add an info window
+                    userMarker.addListener('click', () => {
+                        infoWindow.setContent('You are here');
+                        infoWindow.open(map, userMarker);
+                    });
+                },
+                () => {
+                    alert('Error: The Geolocation service failed. Defaulting to Singapore.');
+                }
+            );
+        } else {
+            alert('Error: Your browser does not support geolocation.');
+        }
 
         // Search box functionality
         searchBox.addListener('places_changed', () => {
