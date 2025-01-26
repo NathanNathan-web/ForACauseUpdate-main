@@ -1,13 +1,13 @@
 from datetime import date
 from flask import abort, render_template, url_for, flash, redirect, request, session, jsonify
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm, DonateForm
-from .models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
-from . import app, db, bcrypt
+from Src.models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
+from . import app, db, bcrypt, mail
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 import os
 from flask_babel import _
-from datetime import datetime
+from datetime import datetime, timedelta
 import http.client  # Import for chatbot API
 import json  # Required for JSON serialization and deserialization
 from flask import render_template, url_for, flash, redirect, request, session, jsonify
@@ -17,7 +17,10 @@ import qrcode
 from io import BytesIO
 from flask import send_file
 import stripe
-
+from sched import scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_mail import Message
+import pytz
 
 stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
 
@@ -52,6 +55,81 @@ def category(i):
                 8:Vegetable()
              }
         return switch.get(i, default())
+
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+def send_reminder_email(donation):
+    if not isinstance(donation, DonateItem):
+        raise ValueError("schedule_pickup_reminder only handles item donations.")
+    
+    try:
+        print(f"Preparing to send email to {donation.user.email}")
+        if not donation.user.email:
+            print("No email address found for donation user.")
+            return
+
+        # Push app context manually
+        with app.app_context():
+            msg = Message(
+                'Reminder: Your Pickup Schedule for Donation',
+                recipients=[donation.user.email]
+            )
+            msg.body = f"""
+            Dear {donation.user.username},
+
+            Thank you once again for your generous donation! We wanted to send you a gentle reminder about your scheduled pickup.
+
+            Here are the details of your donation:
+
+            Donation Name: {donation.name}
+            Description: {donation.description}
+            Pickup Date: {donation.preferred_date}
+            Pickup Time: {donation.preferred_time}
+
+            Please ensure that you're available at the specified time for a smooth and efficient pickup.
+
+            If you have any questions or need to make changes to your pickup details, feel free to reach out to us. 
+            We truly appreciate your support in helping those in need!
+
+            Warm regards,
+            ForACause
+            """
+
+            mail.send(msg)
+            print(f"Email sent to {donation.user.email}")
+    except Exception as e:
+        print(f"Error during email sending: {e}")
+
+
+def schedule_pickup_reminder(donation):
+    if not isinstance(donation, DonateItem):
+        raise ValueError("schedule_pickup_reminder only handles item donations.")
+    
+    if donation.preferred_drop_off_method == 'pickup':
+        tz = pytz.timezone('Asia/Singapore')  # Set your desired time zone
+        
+        # Localize preferred time to Singapore timezone
+        preferred_time = tz.localize(datetime.combine(donation.preferred_date, donation.preferred_time))
+        current_time = datetime.now(tz)  # Get current time in the same time zone
+        
+        # Calculate reminder time as 12 hours before the preferred pickup time
+        reminder_time = preferred_time - timedelta(hours=12)
+
+        # Check if the preferred time is at least 12 hours ahead of current time
+        if preferred_time > current_time + timedelta(hours=12):
+            # Schedule reminder email 12 hours before the preferred pickup time
+            scheduler.add_job(
+                send_reminder_email,
+                'date',
+                run_date=reminder_time,
+                args=[donation],
+                timezone=tz  # Specify time zone for the job
+            )
+            print(f"Reminder email scheduled for {donation.user.email} at {reminder_time}")
+        else:
+            print(f"Preferred time is too close to the current time for {donation.user.email}, skipping reminder.")
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -265,12 +343,34 @@ def donateItem():
         db.session.add(new_donation)
         db.session.commit()
 
+        schedule_pickup_reminder(new_donation)
+
         # Flash success message and redirect to home page
         flash('Thank you for your donation!', 'success')
         return redirect(url_for('home'))
 
     # If form isn't submitted or valid, just render the form
     return render_template('donateItem.html', form=form)
+
+@app.route('/check_donations')
+def check_donations():
+    donations = DonateItem.query.filter(DonateItem.preferred_drop_off_method == 'pickup').all()
+
+    for donation in donations:
+        # Combine preferred_date and preferred_time into a single datetime object
+        preferred_datetime = datetime.combine(donation.preferred_date, donation.preferred_time)
+        
+        # Calculate 12 hours before preferred_time
+        reminder_time = preferred_datetime - timedelta(hours=12)
+        
+        # Get the current time
+        current_time = datetime.now()
+
+        # If the current time is 12 hours before the preferred_time, send the reminder
+        if current_time >= reminder_time and current_time < preferred_datetime:
+            send_reminder_email(donation)
+
+    return redirect(url_for('some_route'))  # or some other view
 
 @app.route('/edit_donation_item/<int:item_id>', methods=['GET', 'POST'])
 @login_required
@@ -308,6 +408,8 @@ def edit_donation_item(item_id):
                     flash(f"Error saving image: {str(e)}", 'danger')
 
         db.session.commit()
+
+        schedule_pickup_reminder(donate_item)
 
         flash('Donation item updated successfully!', 'success')
         if current_user.isAdmin:
@@ -1332,7 +1434,7 @@ def volunteer():
         return redirect(url_for('home'))
 
     # Fetch signed-up event IDs for the current user
-    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+    signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
 
     # Get filter parameters from the request
     search_name = request.args.get('search_name', '')
@@ -1404,7 +1506,7 @@ def map_view():
     events = VolunteerEvent.query.all()
 
     # Get the signed-up events for the current user (to exclude them from the list)
-    signed_up_event_ids = {signup.event_id for signup in current_user.user_volunteers}
+    signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
 
     # Filter out events that the user has signed up for
     events_not_signed_up = [

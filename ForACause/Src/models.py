@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
     # Establish relationships
     carts = db.relationship('Cart', backref='user', lazy=True)
     redeemedvouchers = db.relationship('RedeemedVouchers', backref='user', lazy=True)
-    volunteer_events = db.relationship('VolunteerEvent', secondary='user_volunteer', backref='volunteers', lazy=True, overlaps="user_volunteers,volunteers")
+    volunteer_events = db.relationship('UserVolunteer', back_populates='user', lazy=True)
 
     
     def add_to_cart(self, product, quantity):
@@ -165,13 +165,15 @@ class DonateItem(db.Model):
     category = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     condition = db.Column(db.String(10), nullable=False)
-    image_file = db.Column(db.String(200), nullable=True) 
+    image_file = db.Column(db.String(200), nullable=True)
     preferred_drop_off_method = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(200), nullable=True)
     preferred_date = db.Column(db.Date, nullable=True)
     preferred_time = db.Column(db.Time, nullable=True)
     organisation = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(20), nullable=False, default="Pending")
+
+    user = db.relationship('User', backref='donated_items', lazy=True)
 
 class RedeemedVouchers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -207,8 +209,7 @@ class VolunteerEvent(db.Model):
     address = db.Column(db.String(255), nullable=True) 
     image_file = db.Column(db.String(100), nullable=True)
 
-    # Add overlaps parameter to resolve conflicts
-    user_volunteers = db.relationship('UserVolunteer', backref='event', lazy=True, overlaps="volunteer_event,volunteers")
+    volunteers = db.relationship('UserVolunteer', back_populates='event', lazy=True)
 
 class UserVolunteer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -217,8 +218,8 @@ class UserVolunteer(db.Model):
     sign_up_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     attended = db.Column(db.Boolean, nullable=False, default=False)
 
-    # Add overlaps parameter to resolve conflicts
-    user = db.relationship('User', backref='user_volunteers', lazy=True, overlaps="volunteer_events,volunteers")
+    user = db.relationship('User', back_populates='volunteer_events', lazy=True)
+    event = db.relationship('VolunteerEvent', back_populates='volunteers', lazy=True)
 
 class Donation(db.Model):
     __tablename__ = 'donations'  # Explicit table name for clarity
