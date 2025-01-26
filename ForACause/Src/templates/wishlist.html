@@ -30,6 +30,9 @@
                         <a href="{{ url_for('confirm_volunteer', event_id=event.id) }}" class="btn btn-primary btn-sm ms-2">
                             <i class="bi bi-person-plus-fill"></i> Volunteer
                         </a>
+                        <button class="btn btn-outline-secondary btn-sm ms-2" onclick="shareEvent('{{ url_for('productdetails', id=event.id, _external=True) }}')">
+                            <i class="bi bi-share-fill"></i> Share
+                        </button>
                     </div>
                 </div>
             </div>
@@ -46,6 +49,7 @@
     {% endif %}
 </div>
 
+<!-- Custom CSS -->
 <style>
 .card {
     height: 100%;
@@ -58,4 +62,29 @@
     border-bottom: 2px solid #eaeaea;
 }
 </style>
+
+<!-- JavaScript for Sharing -->
+<script>
+function shareEvent(eventUrl) {
+    const shareData = {
+        title: 'Check out this event!',
+        text: 'I found this amazing event on ForACause!',
+        url: eventUrl
+    };
+
+    if (navigator.share) {
+        // Use the Web Share API if supported
+        navigator.share(shareData).catch((err) => {
+            console.error('Error sharing:', err);
+        });
+    } else {
+        // Fallback for browsers without Web Share API
+        navigator.clipboard.writeText(eventUrl).then(() => {
+            alert('Event link copied to clipboard!');
+        }).catch((err) => {
+            console.error('Error copying link:', err);
+        });
+    }
+}
+</script>
 {% endblock %}
