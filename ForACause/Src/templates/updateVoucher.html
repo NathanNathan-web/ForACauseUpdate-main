@@ -1,134 +1,281 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Admin Update Voucher{% endblock %}
+{% block title %}ForACause Admin - Update Voucher{% endblock %}
 
 {% block content %}
-<div class="container">
-    <form method="POST">
-        {{form.hidden_tag()}}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Update Voucher</legend>
-            <div class="form-group" margin:5px;>
-                {{ form.name.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.name.errors %}
-                    {{ form.name(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.name.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.name(class="form-control form-control-lg") }}
-                {% endif %}
+<div class="container py-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4 text-primary">Update Voucher</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <!-- Voucher Name -->
+                <div class="col-md-6 mb-3">
+                    {{ form.name.label(class="form-label fw-bold") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control") }}
+                    {% endif %}
+                </div>
 
+                <!-- Voucher Description -->
+                <div class="col-md-6 mb-3">
+                    {{ form.description.label(class="form-label fw-bold") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control") }}
+                    {% endif %}
+                </div>
             </div>
-            <div class="form-group">
-                {{ form.description.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.description.errors %}
-                    {{ form.description(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.description.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
+
+            <div class="row">
+                <!-- Voucher Value -->
+                <div class="col-md-6 mb-3">
+                    {{ form.value.label(class="form-label fw-bold") }}
+                    {% if form.value.errors %}
+                        {{ form.value(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.value.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.value(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                <!-- Voucher Credits -->
+                <div class="col-md-6 mb-3">
+                    {{ form.credits.label(class="form-label fw-bold") }}
+                    {% if form.credits.errors %}
+                        {{ form.credits(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.credits.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.credits(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Redeem Date -->
+                <div class="col-md-6 mb-3">
+                    {{ form.redeem_date.label(class="form-label fw-bold") }}
+                    {% if form.redeem_date.errors %}
+                        {{ form.redeem_date(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.redeem_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.redeem_date(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                <!-- Expiry Date -->
+                <div class="col-md-6 mb-3">
+                    {{ form.expiry_date.label(class="form-label fw-bold") }}
+                    {% if form.expiry_date.errors %}
+                        {{ form.expiry_date(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.expiry_date.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.expiry_date(class="form-control") }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Voucher Image -->
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Current Image:</label>
+                    <div>
+                        <img src="{{ url_for('static', filename='images/' + voucherimage) }}" alt="Voucher Image" class="img-thumbnail mb-2" style="height: 100px;">
                     </div>
-                {% else %}
-                {{ form.description(class="form-control form-control-lg") }}
+                    {{ form.image_file.label(class="form-label fw-bold") }}
+                    {% if form.image_file.errors %}
+                        {{ form.image_file(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.image_file.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.image_file(class="form-control") }}
+                    {% endif %}
+                </div>
+
+                <!-- Is Valid (for Admins) -->
+                {% if adminStats %}
+                <div class="col-md-6 mb-3">
+                    {{ form.isValid.label(class="form-label fw-bold") }}
+                    {% if form.isValid.errors %}
+                        {{ form.isValid(class="form-check-input is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.isValid.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="form-check">
+                            {{ form.isValid(class="form-check-input") }}
+                            <label class="form-check-label" for="{{ form.isValid.id }}">Mark as Valid</label>
+                        </div>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
-            <div class="form-group">
-                {{ form.value.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.value.errors %}
-                    {{ form.value(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.value.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.value(class="form-control form-control-lg") }}
-                {% endif %}
+
+            <!-- Submit Button -->
+            <div class="text-center mt-4">
+                {{ form.submit(class="btn btn-primary btn-lg px-5") }}
             </div>
-             <div class="form-group">
-                {{ form.credits.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.credits.errors %}
-                    {{ form.credits(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for credits in form.value.errors %}
-                            <span>{{ credits }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.credits(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.redeem_date.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.redeem_date.errors %}
-                    {{ form.redeem_date(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.redeem_date.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.redeem_date(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.expiry_date.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.expiry_date.errors %}
-                    {{ form.expiry_date(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.expiry_date.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.expiry_date(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <img src="{{ url_for('static', filename='images/' + voucherimage) }}" alt="Logo" style="height:5vh; width: 3vw;">
-                {{ form.image_file.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.image_file.errors %}
-                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.image_file.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.image_file(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            {% if adminStats == True %}
-            <div class="form-group">
-                {{ form.isValid.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.isValid.errors %}
-                    {{ form.isValid(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.isValid.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.isValid(class="form-control form-control-lg", style="display:inline-flex;") }}
-                {% endif %}
-            </div>
-            {% endif %}
-        </fieldset>
-        <div class="form-group" style="margin:30px 0 30px 0">
-            {{ form.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
+<style>
+   .container {
+    max-width: 800px; /* Slightly reduced for better readability */
+    margin: auto;
+    padding: 20px;
+}
+
+.form-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #495057; /* Subtle gray for readability */
+}
+
+.card {
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Softer shadow for elegance */
+    background: linear-gradient(145deg, #ffffff, #f7f7f7); /* Light gradient for a premium feel */
+    border: none;
+    padding: 30px;
+}
+
+.card h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff; /* Primary brand color for header */
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2); /* Slight glow effect */
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3); /* Enhanced hover glow */
+    transform: translateY(-2px); /* Lift effect on hover */
+}
+
+.img-thumbnail {
+    max-width: 100%;
+    border-radius: 12px; /* Softer edges for thumbnails */
+    border: 2px solid #dee2e6;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for thumbnails */
+    margin-bottom: 15px;
+}
+
+.form-control {
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Slight inner shadow for depth */
+    transition: all 0.3s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+.invalid-feedback {
+    font-size: 0.9rem;
+    color: #dc3545;
+    margin-top: 5px;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    margin: 5px 5px 0 0;
+    border-radius: 4px;
+    border: 2px solid #ced4da;
+    transition: all 0.3s ease-in-out;
+}
+
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.2);
+}
+
+textarea.form-control {
+    height: 120px; /* Better height for description fields */
+}
+
+.submit-btn {
+    background-color: #28a745;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.submit-btn:hover {
+    background-color: #218838;
+    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    transform: translateY(-2px);
+}
+
+</style>
 {% endblock %}

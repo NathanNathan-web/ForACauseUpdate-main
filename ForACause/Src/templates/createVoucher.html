@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Create Voucher{% endblock %}
+{% block title %}ForACause - Create Voucher{% endblock %}
 
 {% block content %}
 <div class="voucher-background">
@@ -108,92 +108,106 @@
 </div>
 
 <style>
-/* Background and container styling */
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #50c878;
+  --background-color: #f4f7f9;
+  --text-color: #2c3e50;
+  --border-radius: 12px;
+}
+
 .voucher-background {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+  background: linear-gradient(135deg, #e6f2ff 0%, #f0f9ff 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .voucher-card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    max-width: 600px;
-    width: 100%;
-    transition: all 0.3s ease;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.08),
+    0 5px 15px rgba(0, 0, 0, 0.04);
+  padding: 40px;
+  width: 100%;
+  max-width: 550px;
+  transition: all 0.3s ease;
 }
 
 .voucher-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-/* Form styling */
-.voucher-card .form-group {
-    margin-bottom: 20px;
+.form-group {
+  margin-bottom: 20px;
 }
 
-.voucher-card .form-label {
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 8px;
-    display: block;
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.2s ease;
 }
 
-.voucher-card .form-control, .voucher-card .form-select {
-    border-radius: 10px;
-    padding: 12px;
-    background-color: #f8f9fa;
-    border: none;
-    transition: all 0.3s ease;
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  background-color: #f9fafb;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
 
-.voucher-card .form-control:focus, .voucher-card .form-select:focus {
-    background-color: white;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.form-control:focus {
+  border-color: var(--primary-color);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  outline: none;
 }
 
-/* Date picker and file input */
-.voucher-card .form-control[type="date"], .voucher-card .form-control[type="file"] {
-    padding: 10px;
-    font-size: 1rem;
-    border-radius: 10px;
+.form-control.is-invalid {
+  border-color: #f56565;
+  background-color: #fff5f5;
 }
 
-/* Submit button */
-.voucher-card .btn-submit {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 20px;
-    font-weight: 600;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    width: 100%;
+.invalid-feedback {
+  color: #f56565;
+  font-size: 0.9rem;
+  margin-top: 6px;
 }
 
-.voucher-card .btn-submit:hover {
-    transform: scale(1.05);
-    background-color: #0056b3;
-    color: #fff;
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(74, 144, 226, 0.2);
 }
 
-/* Footer border */
-.voucher-card .form-footer {
-    border-top: 1px solid #e9ecef;
-    padding-top: 20px;
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #6c757d;
+.btn-submit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(74, 144, 226, 0.25);
+}
+
+.form-footer {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
 }
 </style>
 {% endblock %}

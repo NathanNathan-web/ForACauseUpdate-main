@@ -48,7 +48,6 @@ babel.init_app(app, locale_selector=get_locale)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 app.app_context().push()
-
 from Src import routes
 
 

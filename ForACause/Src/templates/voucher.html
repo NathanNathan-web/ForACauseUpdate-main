@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Grocery Store - Vouchers{% endblock %}
+{% block title %}ForACause - Vouchers{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -26,31 +26,32 @@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for voucher in vouchers_list %}
             {% if voucher.isValid == True %}
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-lg voucher-card">
-                        <div class="position-relative">
-                            <img src="{{ url_for('static', filename='images/' + voucher.image_file) }}" 
-                                 class="card-img-top voucher-image" 
-                                 alt="{{ voucher.name }}">
-                            <div class="voucher-overlay">
-                                <span class="badge bg-primary">{{ voucher.credit }} Credits</span>
-                            </div>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title fw-bold mb-3">{{ voucher.name }}</h5>
-                            <p class="card-text text-muted flex-grow-1">{{ voucher.description }}</p>
-                            
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <span class="h5 mb-0 text-success">${{ voucher.value }}</span>
-                                <a href="/redeemVoucher/{{ voucher.id }}" class="btn btn-primary">
-                                    Redeem Now
-                                </a>
-                            </div>
-                        </div>
+        <div class="col">
+            <div class="card h-100 border-0 shadow-lg voucher-card">
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='images/' + voucher.image_file) }}" 
+                         class="card-img-top voucher-image" 
+                         alt="{{ voucher.name }}">
+                    <div class="voucher-overlay">
+                        <span class="badge bg-primary">{{ voucher.credit }} Credits</span>
                     </div>
                 </div>
-            {% endif %}
-        {% endfor %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-3">{{ voucher.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ voucher.description }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="h5 mb-0 text-success">${{ voucher.value }}</span>
+                        <a href="/redeemVoucher/{{ voucher.id }}" class="btn btn-primary">
+                            Redeem Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
     </div>
 
     {% if vouchers_list|selectattr('isValid')|list|length == 0 %}

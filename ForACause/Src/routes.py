@@ -17,10 +17,9 @@ import qrcode
 from io import BytesIO
 from flask import send_file
 import stripe
-
-
+from datetime import datetime
 stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
-
+import timedelta
 def Vegetable():
     return "Vegetable"
 def Fruits():
@@ -404,6 +403,7 @@ def voucher():
     return render_template('voucher.html', vouchers_list=vouchers_list, search_query=search_query)
 
 
+
 @app.route('/redeemVoucher/<int:id>', methods= ['GET', 'POST'])
 def redeemvoucher(id):
     if current_user.is_authenticated:
@@ -777,17 +777,50 @@ def acceptorder(id):
 # ===================== Voucher =======================
 
 
+
 @app.route('/voucherAdmin', methods=['GET', 'POST'])
 @login_required
 def retrievevoucher():
-    if current_user.is_authenticated and current_user.isAdmin == True:
+    if current_user.is_authenticated and current_user.isAdmin:
+        # Fetch all vouchers
         voucher_list = []
         vouchers = Voucher.query.all()
         for voucher in vouchers:
             voucher_list.append(voucher)
-        return render_template('voucherAdmin.html', voucher_list=voucher_list, adminStat=True)
+
+        # Fetch expired vouchers
+        today = datetime.today().date()
+        expired_vouchers = Voucher.query.filter(Voucher.expiry_date < today).all()
+        notifications = [
+            f"Voucher '{voucher.name}' expired on {voucher.expiry_date}."
+            for voucher in expired_vouchers
+        ]
+
+        # Pass voucher list and notifications to the template
+        return render_template(
+            'voucherAdmin.html',
+            voucher_list=voucher_list,
+            adminStat=True,
+            notifications=notifications
+        )
     else:
         return redirect(url_for('login'))
+
+@app.route('/toggleVoucherStatus/<int:id>', methods=['POST'])
+@login_required
+def toggle_voucher_status(id):
+    if not current_user.is_authenticated or not current_user.isAdmin:
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    voucher = Voucher.query.get(id)
+    if not voucher:
+        return jsonify({"success": False, "message": "Voucher not found"}), 404
+
+    # Toggle the status between 'valid' and 'non-valid'
+    voucher.status = 'non-valid' if voucher.status == 'valid' else 'valid'
+    db.session.commit()
+
+    return jsonify({"success": True, "new_status": voucher.status})
 
 
 @app.route('/createVoucher', methods=['GET', 'POST'])
@@ -839,9 +872,14 @@ def updatevoucher(id):
 @login_required
 def deletevoucher(id):
     voucher = Voucher.query.filter_by(id=id).first()
-    db.session.delete(voucher)
-    db.session.commit()
-    return redirect(url_for('retrievevoucher'), idsite=True)
+    if voucher:
+        db.session.delete(voucher)
+        db.session.commit()
+        flash('Voucher deleted successfully!', 'success')
+    else:
+        flash('Voucher not found.', 'danger')
+    return redirect(url_for('retrievevoucher'))
+
 
 # ============ SERVICE ===============
 
@@ -1129,7 +1167,6 @@ def payment_cancel():
     return redirect(url_for('donate'))
 
 
-
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
@@ -1159,5 +1196,4 @@ def chat():
             return jsonify({"reply": f"API error: {response.status_code} - {response.reason}"}), response.status_code
 
     except Exception as e:
-        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 500
-
+        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 

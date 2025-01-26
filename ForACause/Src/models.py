@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy import ARRAY
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -206,4 +207,4 @@ class Organization(db.Model):
 
     def __repr__(self):
         return f'<Organization {self.name}>'
-db.create_all()
+
