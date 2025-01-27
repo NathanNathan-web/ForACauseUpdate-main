@@ -1,72 +1,316 @@
 {% extends "base.html" %}
 {% block title %}Grocery Store - Shopping Cart{% endblock %}
 
-
-
 {% block content %}
-<div class="column">
-     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <div class="column left" style="width:50%;">Cart<div>
-            <table class="table table-hover">
-                <thead class="table-success">
-                    <tr border:1px solid black;>
-                        <th scope="col" class="topleft">Image</th>
-                        <th scope="col">Product Name</th>
-                        <th scope="col">Price</th>
-                        <th scope='col'>Quantity</th>
-                        <th scope="col" class="topright">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="table-secondary">
-                    {% for cart in carts_list %}
-                    <tr style="height:175px; overflow-y: scroll;">
-                        
-                        <td><img src="{{ url_for('static', filename='images/' + cart.product.image_file )}}" alt="Logo" style="height:200px; width:200px;"></td>
-                        <td>{{ cart.product.name }}</td>
-                        <td>{{ cart.product.price }}</td>
-                        <td>{{ cart.quantity }}</td>
-                        <td><a href="/remove_from_cart/{{ cart.product_id }}" class="btn btn-danger"><i class="bi bi-x-lg"></i></a></td>
+<style>
+  body {
+    background-color: #F7F8FA;
+    font-family: 'Poppins', sans-serif;
+  }
 
+  .cart-container {
+    width: 100%;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    margin-top: 20px;
+    overflow-x: auto;
+  }
 
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot class="table-success">
-                    <tr border:1px solid black;>
-                        <th scope="col" class="bottomleft"></th>
-                        <th scope="col"></th>
-                        <th scope="col"></th>
-                        <th scope="col"></th>
-                        <th scope="col" colspan="3" class='bottomright'></th>
-                    </tr>
-                </tfoot>
-            </table>
+  .cart-header {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #FF7043;
+  }
+
+  .table {
+    margin-bottom: 0;
+    width: 100%;
+  }
+
+  .table th {
+    background-color: #FF7043;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    vertical-align: middle;
+    font-size: 1.1rem;
+  }
+
+  .table td {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1rem;
+    color: #555555;
+  }
+
+  .product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .quantity-input {
+    width: 80px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .btn-danger {
+    background-color: #FF5252;
+    border: none;
+    color: #ffffff;
+    font-size: 1rem;
+    padding: 5px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-danger:hover {
+    background-color: #D32F2F;
+  }
+
+  .cart-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #EEEEEE;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+  }
+
+  .total {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #BF360C;
+  }
+
+  .btn-update {
+    background-color: #FF7043;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-update:hover {
+    background-color: #E64A19;
+  }
+
+  .btn-checkout {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-checkout:hover {
+    background-color: #388E3C;
+  }
+
+  .recommendation-section {
+    margin-top: 40px;
+  }
+
+  .recommendation-header {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #FF7043;
+    text-align: center;
+  }
+
+  .recommendation-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .recommendation-card {
+    width: 250px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .recommendation-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .recommendation-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .recommendation-card .card-body {
+    padding: 10px;
+    text-align: center;
+  }
+
+  .recommendation-card h5 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+  }
+
+  .recommendation-card .btn-view {
+    background-color: #FF7043;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 5px 10px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    display: inline-block;
+  }
+
+  .recommendation-card .btn-view:hover {
+    background-color: #E64A19;
+  }
+
+  @media (max-width: 768px) {
+    .cart-footer {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .total {
+      font-size: 1.2rem;
+    }
+
+    .btn-update,
+    .btn-checkout {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="cart-container">
+    <!-- Header -->
+    <h1 class="cart-header">🛒 Your Shopping Cart</h1>
+
+    <!-- Display Validation Errors -->
+    {% if error_messages %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for error in error_messages %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
-    <div class="column right" style="width:50%;">Details</div>
-    <p>TotalPrice: {{ total }}
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Cart Table -->
     <form method="POST">
-     <div class="form-group">
-                <label for="vouchercode">Voucher Code</label>
-                <select name="vouchercode" id="vouchercode" class="form-control form-control-lg">
-               {% for redeemvoucher in vouchers_list %}
-                <option>{{redeemvoucher.id}}</option>
-               {% endfor %}
-                </select>
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cart in carts %}
+          {% if cart.product %}
+          <tr>
+            <td>
+              <img src="{{ url_for('static', filename='images/' + cart.product.image_file) }}" alt="Product" class="product-image">
+            </td>
+            <td>{{ cart.product.name }}</td>
+            <td>${{ '%.2f' % (cart.product.price * 0.85) }}</td>
+            <td>
+              <input 
+                type="number" 
+                name="quantity_{{ cart.id }}" 
+                value="{{ cart.quantity }}" 
+                min="1" 
+                max="{{ cart.product.stock }}" 
+                class="quantity-input">
+            </td>
+            <td>
+              <!-- Delete button with confirmation -->
+              <a 
+                href="{{ url_for('remove_from_cart', product_id=cart.product_id) }}" 
+                class="btn btn-danger" 
+                onclick="return confirm('Are you sure you want to remove this product from your cart?');">
+                Remove
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-danger">Product no longer exists.</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
 
+      <!-- Cart Footer -->
+      <div class="cart-footer">
+        <div class="actions">
+          <button type="submit" class="btn-update">Update Cart</button>
+          <a href="/checkout" class="btn-checkout">Proceed to Checkout</a>
+        </div>
+        <div class="total">Total Price: ${{ '%.2f' % total }}</div>
+      </div>
+    </form>
 
+    <!-- Recommendation Section -->
+    <div class="recommendation-section">
+      <h2 class="recommendation-header">You May Also Like</h2>
+      <div class="recommendation-grid">
+        {% for product in recommendations %}
+        <div class="recommendation-card">
+          <img src="{{ url_for('static', filename='images/' + product.image_file) }}" alt="{{ product.name }}">
+          <div class="card-body">
+            <h5>{{ product.name }}</h5>
+            <a href="{{ url_for('productdetails', id=product.id) }}" class="btn-view">View Product</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
     </div>
-        </form>
-    <a href="/usevoucher" class="btn btn-outline-info"> Use Voucher</a>
-    <a href="/checkOut" class="btn btn-outline-info"> Check Out</a>
-
+  </div>
 </div>
 {% endblock %}

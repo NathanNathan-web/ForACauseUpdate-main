@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmation{% endblock %}
+
+{% block content %}
+<style>
+    .order-confirmation-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-confirmation-container h2 {
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+
+    .order-confirmation-container p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .order-details ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .order-details li {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .order-details img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 20px;
+    }
+
+    .order-details .item-info {
+        flex-grow: 1;
+    }
+
+    .order-details .item-info span {
+        display: block;
+        font-size: 1rem;
+        color: #495057;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 8px;
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        text-decoration: none;
+    }
+</style>
+
+<div class="order-confirmation-container">
+    <h2 class="text-center">Order Confirmation</h2>
+    <p class="text-center">Thank you for your purchase! Here are your order details:</p>
+    
+    <div class="order-details">
+        <h3>Items Purchased:</h3>
+        <ul>
+            {% for item in items %}
+            <li>
+                <img src="{{ url_for('static', filename='images/' + item['image_file']) }}" alt="{{ item['name'] }}">
+                <div class="item-info">
+                    <span><strong>Product:</strong> {{ item['name'] }}</span>
+                    <span><strong>Quantity:</strong> {{ item['quantity'] }}</span>
+                    <span><strong>Price:</strong> ${{ '%.2f' % item['price'] }}</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="order-summary">
+        <p><strong>Mode of Delivery:</strong> {{ delivery_method }}</p>
+        <p><strong>Time Slot:</strong> {{ time_slot }}</p>
+        <p><strong>Total Amount Paid:</strong> ${{ '%.2f' % total }}</p>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}

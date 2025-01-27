@@ -1,66 +1,167 @@
 {% extends "base.html" %}
-{% block title %}Grocery Store - Product Details{% endblock %}
+{% block title %}Bakery Store - {{ product.name }}{% endblock %}
 
 {% block content %}
+<style>
+  body {
+    background: linear-gradient(135deg, #FFF3E0, #FFCCBC);
+    font-family: 'Poppins', sans-serif;
+  }
 
-<div class="row" style="--bs-gutter-x:0;">
-    <div class="column">
+  .product-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
 
-        <div class="row">
+  .product-header {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 2px solid #FF7043;
+    padding-bottom: 20px;
+  }
 
-            <div class="col-lg-8" style="margin:0 auto;">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="column" style="display:flex;">
-                            <div class="column left" style="height:30vh;width:30vw;"><img
-                                    src="{{ url_for('static', filename='images/' + product.image_file )}}" alt="Logo">
-                            </div>
-                            <div class="column right">
-                                <h2>Product Name: {{ product.name }}</h2>
-                                <p>Description: {{ product.description }}</p>
-                                <p>Category: {{ product.category }}</p>
-                                <p>Origin: {{ product.country }}</p>
-                                <p>Price: ${{ product.price }}</p>
-                                <p>Stock: {{product.stock}}</p>
-                                <form method="post">
-                                    <div class="form-group" style="margin-top:30px;">
-                                        {{ form.quantity.label(class="form-control-label") }}
-                                        <!-- Feedback For Errors for Register-->
-                                        {% if form.quantity.errors %}
-                                        {{ form.quantity(class="form-control form-control-lg is-invalid") }}
-                                        <div class="invalid-feedback">
-                                            {% for errors in form.quantity.errors %}
-                                            <span>{{ errors }}</span>
-                                            {% endfor %}
-                                        </div>
-                                        {% else %}
-                                        {{ form.quantity(class="form-control form-control-lg") }}
-                                        {% endif %}
-                                    </div>
+  .product-image {
+    flex: 1;
+    max-width: 400px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
 
-                                    <div class="addtocart" style="margin-top:50px;">
-                                        <a href="{{url_for('cart')}}"><button class="btn btn-outline-info">Add to
-                                                cart</button></a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+  .product-details {
+    flex: 2;
+  }
 
+  .product-details h1 {
+    color: #BF360C;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+  }
 
-                    </div>
+  .product-details p {
+    font-size: 1.1rem;
+    color: #5D4037;
+    margin: 8px 0;
+  }
 
-                </div>
-            </div>
-        </div>
+  .price {
+    font-size: 1.4rem;
+    margin-top: 15px;
+  }
+
+  .price .original-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 10px;
+  }
+
+  .price .discounted-price {
+    color: #D84315;
+    font-weight: bold;
+  }
+
+  .add-to-cart-section {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .quantity-input {
+    width: 80px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .add-to-cart-btn {
+    background-color: #FF7043;
+    color: #fff;
+    font-weight: bold;
+    padding: 12px 25px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .add-to-cart-btn:hover {
+    background-color: #D84315;
+  }
+
+  @media (max-width: 768px) {
+    .product-header {
+      flex-direction: column;
+    }
+
+    .product-image {
+      width: 100%;
+    }
+
+    .product-details {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="product-container">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <!-- Product Header -->
+  <div class="product-header">
+    <!-- Product Image -->
+    <img
+      src="{{ url_for('static', filename='images/' + product.image_file) }}"
+      alt="{{ product.name }}"
+      class="product-image"
+    />
+
+    <!-- Product Details -->
+    <div class="product-details">
+      <h1>{{ product.name }}</h1>
+      <p><strong>Description:</strong> {{ product.description }}</p>
+      <p><strong>Category:</strong> {{ product.category }}</p>
+      <p><strong>Allergens:</strong> {{ product.allergens }}</p>
+      <p><strong>Stock Available:</strong> {{ product.stock }}</p>
+      <div class="price">
+        <span class="original-price">${{ product.price }}</span>
+        <span class="discounted-price">${{ '%.2f' % (product.price * 0.85) }}</span>
+      </div>
     </div>
+  </div>
+
+  <!-- Add to Cart Form -->
+  <div class="add-to-cart-section">
+    <form method="POST">
+      <label for="quantity" style="font-size: 1.2rem; color: #5D4037;">Quantity:</label>
+      <input
+        type="number"
+        name="quantity"
+        id="quantity"
+        class="quantity-input"
+        min="1"
+        max="{{ product.stock }}"
+        value="1"
+        required
+      />
+      <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+    </form>
+  </div>
 </div>
 {% endblock %}

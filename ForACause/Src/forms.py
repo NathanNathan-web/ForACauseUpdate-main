@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
-from wtforms import StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from Src.models import User, Product
+from wtforms import SelectMultipleField, StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange
+from .models import User, Product
 from wtforms.fields import DateField
 import pycountry
 
@@ -74,16 +74,42 @@ class VoucherForm(FlaskForm):
     redeem_date = DateField('Redemption Date',format='%Y-%m-%d')
     expiry_date = DateField('Expiry Date',format='%Y-%m-%d')
     image_file = FileField('Logo', validators=[DataRequired(),FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    stock = IntegerField('Stock Quantity', validators=[DataRequired()])
     isValid = RadioField('Validity', coerce=bool, choices=[(True, 'Available'),(False, 'Not Available')], default=True)
     submit = SubmitField('Add Voucher')
 
 class ProductForm(FlaskForm):
-    name = StringField('Product Name', validators=[DataRequired()])
-    description = TextAreaField('Description', validators=[DataRequired()])
-    category = SelectField('Category', coerce=int, choices=[(1,'Fruits'),(2,'Bakery and Bread'),(3,'Drinks'),(4,'Oil and Condiments'),(5,'Dairy, Cheese and Eggs'),(6,'Cereals'), (7, 'Meat'),(8,'Vegetable'),] ,validators=[DataRequired()])
-    country = SelectField('Country', choices=country(), validators=[DataRequired()])
-    price = FloatField('Product price', validators=[DataRequired('Please enter a valid price')])
-    image_file = FileField('Product Image', validators=[DataRequired(),FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    name = StringField('Product Name', validators=[DataRequired(), Length(min=1, max=100)])
+    description = TextAreaField('Description', validators=[DataRequired(), Length(max=1000)])
+    category = SelectField(
+        'Category',
+        choices=[
+            ('Cakes and Pastries', 'Cakes and Pastries'),
+            ('Bread and Rolls', 'Bread and Rolls'),
+            ('Cookies and Biscuits', 'Cookies and Biscuits'),
+            ('Pies and Tarts', 'Pies and Tarts'),
+        ],
+        validators=[DataRequired()],
+        coerce=str,
+        default=[]
+    )
+    allergens = SelectMultipleField(
+        'Product Allergens',
+        choices=[
+            ('nuts', 'Nuts'),
+            ('gluten', 'Gluten'),
+            ('dairy', 'Dairy'),
+            ('eggs', 'Eggs'),
+            ('soy', 'Soy'),
+            
+        ],
+        
+        coerce=str,
+        
+    )
+    price = FloatField('Product Price', validators=[DataRequired(), NumberRange(min=0, message="Price must be positive")])
+    stock = IntegerField('Stock Quantity', validators=[DataRequired(), NumberRange(min=0, message="Stock cannot be negative")])
+    image_file = FileField('Product Image', [FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     submit = SubmitField('Add Product')
     
 

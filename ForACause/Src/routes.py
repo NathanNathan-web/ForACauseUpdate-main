@@ -1,46 +1,25 @@
-from datetime import date
+from datetime import date, datetime
 from flask import render_template, url_for, flash, redirect, request, session
-from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
-from Src import app, db, bcrypt
+from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
+from .models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
+from . import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 import os
 from flask_babel import _
+import qrcode
+import pytz
 
 
 
-def Vegetable():
-    return "Vegetable"
-def Fruits():
-    return "Fruits"
-def BakeryandBread():
-    return "Bakery and Bread"
-def OilandCondiments():
-    return "Oil and Condiments"
-def Drinks():
-    return "Drinks"
-def DairyCheeseEggs():
-    return "Dairy, Cheese and Eggs"
-def Cereals():
-    return "Cereals"
-def Meat():
-    return "Meat"
-def default():
-    return "Uncategorized"
 
-def category(i):
-        switch={
-                1:Fruits(),
-                2:BakeryandBread(),
-                3:Drinks(),
-                4:OilandCondiments(),
-                5:DairyCheeseEggs(),
-                6:Cereals(),
-                7:Meat(),
-                8:Vegetable()
-             }
-        return switch.get(i, default())
+
+
+@app.route('/favouritepage')
+def favouritepage():
+    # Logic for the favourites page
+    return render_template('favouritepage.html')
+
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -176,16 +155,26 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
+        # Redeem vouchers and other user info (unchanged)
         redeemvoucher_list = []
-        image_file = url_for('static', filename='images/' + current_user.image_file)
         user = User.query.filter_by(id=current_user.id).first()
         redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
         for redeemvoucher in redeemvouchers:
             redeemvoucher_list.append(redeemvoucher)
-        # Pass app or app.config['LANGUAGES'] to the template
-        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'])
+
+        # Get order history from session (or temporary storage)
+        order_history = session.get('order_history', [])
+
+        return render_template(
+            'account.html',
+            user=user,
+            redeemvoucher_list=redeemvoucher_list,
+            order_history=order_history,
+            languages=app.config['LANGUAGES']
+        )
     else:
         return render_template('login.html')
+
 
 @app.route('/topup', methods=['GET', 'POST'])
 @login_required
@@ -234,14 +223,82 @@ def updateoneuser(id):
     else:
         return redirect(url_for('login'))
 
-
-@app.route('/product')
+@app.route('/product', methods=['GET', 'POST'])
 def product():
-    products_list = []
-    products = Product.query.all()
-    for product in products:
-        products_list.append(product)
-    return render_template('product.html', products_list=products_list)
+    search_query = ''
+    category_filter = ''
+    allergy_filter = ''
+
+    # Handle POST request
+    if request.method == 'POST':
+        search_query = request.form.get('search', '').strip().lower()
+        category_filter = request.form.get('category', '')
+        allergy_filter = request.form.get('allergy', '')
+
+    # Fetch all products
+    products_query = Product.query
+
+    # Apply search filter
+    if search_query:
+        products_query = products_query.filter(Product.name.ilike(f"%{search_query}%"))
+
+    # Apply category filter (now filtering by string)
+    if category_filter:
+        products_query = products_query.filter(Product.category == category_filter)
+
+    # Apply allergy filter
+    if allergy_filter:
+        products_query = products_query.filter(~Product.allergens.ilike(f"%{allergy_filter}%"))
+
+    # Execute query and fetch results
+    products = products_query.all()
+
+    # Category map for dropdowns (can now match string directly)
+    category_map = {
+        "Cakes and Pastries": "Cakes and Pastries",
+        "Bread and Rolls": "Bread and Rolls",
+        "Cookies and Biscuits": "Cookies and Biscuits",
+        "Pies and Tarts": "Pies and Tarts"
+    }
+
+    return render_template(
+        'product.html',
+        products_list=products,
+        category_map=category_map,
+        search=search_query,
+        category=category_filter,
+        allergy=allergy_filter
+    )
+
+
+
+@app.route('/add_to_cart/<int:product_id>', methods=['GET'])
+@login_required
+def add_to_cart(product_id):
+    # Fetch the product from the database
+    product = Product.query.get_or_404(product_id)
+
+    # Check if the product is already in the cart for the current user
+    existing_cart_item = Cart.query.filter_by(product_id=product_id, user_id=current_user.id).first()
+
+    if existing_cart_item:
+        # Increment quantity if it exists
+        if existing_cart_item.quantity < product.stock:
+            existing_cart_item.quantity += 1
+            flash(f"{product.name} quantity updated in your cart!", "success")
+        else:
+            flash(f"Cannot add more of {product.name}. Stock limit reached!", "danger")
+    else:
+        # Add new item to the cart
+        new_cart_item = Cart(user_id=current_user.id, product_id=product.id, quantity=1)
+        db.session.add(new_cart_item)
+        flash(f"{product.name} added to your cart!", "success")
+
+    # Commit the changes
+    db.session.commit()
+
+    # Redirect to the shopping cart page
+    return redirect(url_for('cart'))
 
 
 @app.route('/productDetails/<int:id>', methods=['GET','POST'])
@@ -327,23 +384,190 @@ def remove_from_cart(product_id):
 @app.route("/shoppingcart", methods=['GET', 'POST'])
 @login_required
 def cart():
-    carts_list = []
-    vouchers_list = []
+    carts_list = []  # List to store cart items
+    total = 0  # Total price of the cart
+    error_messages = []  # Store validation errors
+    recommendations = []  # List to store recommended products
+
     if current_user.is_authenticated:
-        redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
-        for redeemvoucher in redeemvouchers:
-            vouchers_list.append(redeemvoucher)
-        total = 0
+        # Fetch all cart items for the logged-in user
         carts = Cart.query.filter_by(user_id=current_user.id).all()
 
+        if request.method == 'POST':
+            # Handle quantity updates from the form
+            for cart in carts:
+                # Get the dynamic field name for the quantity input
+                quantity_field = f"quantity_{cart.id}"  
+                new_quantity = request.form.get(quantity_field, type=int)  # Fetch new quantity from the form
+
+                if new_quantity is not None:
+                    # Validate the new quantity
+                    if new_quantity > cart.product.stock:
+                        error_messages.append(
+                            f"Quantity for '{cart.product.name}' cannot exceed available stock ({cart.product.stock})."
+                        )
+                    elif new_quantity <= 0:
+                        error_messages.append(
+                            f"Quantity for '{cart.product.name}' must be at least 1."
+                        )
+                    else:
+                        # Update the cart item with the new valid quantity
+                        cart.quantity = new_quantity
+                        db.session.commit()
+
+        # Calculate the total price and validate cart items
         for cart in carts:
-            total += cart.quantity * cart.product.price
-            carts_list.append(cart)
-            print(cart)
+            if cart.product:  # Check if the product exists
+                if cart.quantity > cart.product.stock:
+                    error_messages.append(
+                        f"'{cart.product.name}' quantity ({cart.quantity}) exceeds available stock ({cart.product.stock})."
+                    )
+                else:
+                    # Add valid cart items to the list and calculate the total price
+                    discounted_price = cart.product.price * 0.85  # Apply 15% discount
+                    total += cart.quantity * discounted_price
+                    carts_list.append(cart)
+            else:
+                # Remove invalid cart entries (e.g., product no longer exists)
+                db.session.delete(cart)
+                db.session.commit()
+
+        # Fetch recommendations
+        if carts_list:
+            # Get the category of the first product in the cart
+            first_product_category = carts_list[0].product.category
+
+            # Exclude products already in the cart from recommendations
+            cart_product_ids = [cart.product_id for cart in carts_list]
+            recommendations = Product.query.filter(
+                Product.category == first_product_category,
+                ~Product.id.in_(cart_product_ids)
+            ).limit(3).all()
+
+        # Store the total in the session for use elsewhere
         session['total'] = total
-        return render_template('shoppingcart.html', carts=carts, total=total, carts_list = carts_list, vouchers_list = vouchers_list)
+
+        # Render the template with updated cart information
+        return render_template(
+            'shoppingcart.html',
+            carts=carts_list,
+            total=total,
+            error_messages=error_messages,
+            recommendations=recommendations  # Pass recommendations to the template
+        )
+
     else:
+        # Redirect to login if the user is not authenticated
+        flash("Please log in to view your shopping cart.", "warning")
         return redirect(url_for('login'))
+
+
+
+@app.route('/order_confirmation')
+@login_required
+def order_confirmation():
+    items = session.get('items', [])  # Ensure items are passed as dictionaries
+    delivery_method = session.get('delivery_method', 'Not Specified')
+    time_slot = session.get('time_slot', 'Not Specified')
+    total = session.get('total', 0)
+
+    if not items or total == 0:
+        return redirect(url_for('cart'))  # Redirect if order is incomplete
+
+    # Convert datetime to Singapore timezone
+    singapore_tz = pytz.timezone('Asia/Singapore')
+    current_time = datetime.now(singapore_tz).strftime("%Y-%m-%d %H:%M:%S")  # Singapore time
+
+    # Create the order
+    order = {
+        "date": current_time,
+        "order_items": items,  # Items list with quantity
+        "delivery_method": delivery_method,
+        "time_slot": time_slot,
+        "total": total,
+    }
+
+    # Append the order to the session's order history
+    order_history = session.get('order_history', [])
+    order_history.append(order)
+    session['order_history'] = order_history
+
+    # Clear session variables used for the order
+    session.pop('items', None)
+    session.pop('delivery_method', None)
+    session.pop('time_slot', None)
+    session.pop('total', None)
+
+    return render_template(
+        'order_confirmation.html',
+        items=order["order_items"],
+        delivery_method=order["delivery_method"],
+        time_slot=order["time_slot"],
+        total=order["total"]
+    )
+
+
+
+
+
+@app.route('/finalize_payment', methods=['POST'])
+@login_required
+def finalize_payment():
+    # Retrieve form data
+    delivery_method = request.form.get('delivery_method', 'Not Specified')
+    time_slot = request.form.get('time_slot', 'Not Specified')
+    payment_method = request.form.get('payment_method')
+
+    if not session.get('total'):
+        flash("Total amount not found in session. Please try again.", "danger")
+        return redirect(url_for('checkout'))
+
+    if payment_method == "paynow":
+        try:
+            # Simulate product stock update
+            carts = Cart.query.filter_by(user_id=current_user.id).all()
+            items = []
+            for cart in carts:
+                product = cart.product  # Assuming Cart has a relationship to Product
+                if product.stock >= cart.quantity:
+                    product.stock -= cart.quantity  # Deduct purchased quantity
+                    items.append({
+                        "name": product.name,
+                        "quantity": cart.quantity,
+                        "price": product.price * 0.85,
+                        "image_file": product.image_file,
+                    })
+                    db.session.delete(cart)  # Remove the cart item
+                else:
+                    flash(f"Insufficient stock for {product.name}. Please adjust your cart.", "danger")
+                    return redirect(url_for('cart'))
+            
+            db.session.commit()  # Save changes to the database
+            
+            # Store items and delivery info in session
+            session['items'] = items
+            session['delivery_method'] = delivery_method
+            session['time_slot'] = time_slot
+
+            # Redirect to payment confirmation
+            qr_code_path = "/static/images/yh_qr.jpg"  # Hardcoded QR code
+            return render_template('payment_confirmation.html', qr_code_path=qr_code_path, total=session['total'])
+        
+        except Exception as e:
+            flash(f"An error occurred while processing your payment: {str(e)}", "danger")
+            return redirect(url_for('checkout'))
+    else:
+        flash("Unsupported payment method selected.", "warning")
+        return redirect(url_for('checkout'))
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/usevoucher', methods=['GET', 'POST'])
@@ -357,22 +581,34 @@ def usevoucher():
         return redirect(url_for('cart'))
     else:
         return redirect(url_for('login'))
-@app.route('/checkOut')
+
+@app.route('/checkout', methods=['GET', 'POST'])
+@login_required
 def checkout():
-    if current_user.is_authenticated:
-        if current_user.balance >= session['total']:
-            carts = Cart.query.filter_by(user_id=current_user.id).all()
-            for cart in carts:
-                db.session.delete(cart)
-                db.session.commit()
-            current_user.balance -= session['total']
-            flash('You have successfully checked out!')
-            return redirect(url_for('home'))
-        else:
-            flash('Not even balance to checkout!')
-            return redirect(url_for('cart'))
-    else:
-        return redirect(url_for('login'))
+    if request.method == 'POST':
+        # Retrieve delivery method and time slot from form
+        delivery_method = request.form.get('delivery_method')
+        time_slot = request.form.get('time_slot')
+
+        # Validate the inputs
+        if not delivery_method or not time_slot:
+            flash("Please select a delivery method and time slot.", "warning")
+            return redirect(url_for('checkout'))
+
+        # Store delivery details in the session
+        session['delivery_details'] = {
+            "delivery_method": delivery_method,
+            "time_slot": time_slot
+        }
+
+        # Redirect to the payment page
+        return redirect(url_for('payment_page'))
+
+    # Render the checkout page
+    total = session.get('total', 0)
+    return render_template('checkout.html', total=total)
+
+
 
 # =================================  VOUCHER ==================================
     
@@ -438,36 +674,144 @@ def deleteuser(id):
 
 # ============================= PRODUCT =============================
 
-@app.route('/productAdmin')
+@app.route('/productadmin', methods=['GET', 'POST'])
 @login_required
 def productadmin():
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        product_list = []
-        products = Product.query.all()
-        orders_list = []
-        suppliercount = 0
-        for product in products:
-            orders = Order.query.filter_by(product_id=product.id)
-            orders_list.append(orders)
-            product_list.append(product)
-        return render_template('productAdmin.html', product_list=product_list, adminStat = True, orders_list=orders_list, suppliercount = suppliercount)
+    if current_user.is_authenticated and current_user.isAdmin:
+        search_query = ''
+        selected_category = ''
+        selected_allergen = ''
+
+        if request.method == 'POST':
+            search_query = request.form.get('search', '').strip().lower()
+            selected_category = request.form.get('category', '')
+            selected_allergen = request.form.get('allergen', '')
+
+        # Fetch all products
+        products_query = Product.query
+
+        # Apply search filter
+        if search_query:
+            products_query = products_query.filter(Product.name.ilike(f"%{search_query}%"))
+
+        # Apply category filter
+        if selected_category:
+            products_query = products_query.filter(Product.category == selected_category)
+
+        # Apply allergen filter (ensure it shows products containing the allergen)
+        if selected_allergen:
+            products_query = products_query.filter(Product.allergens.ilike(f"%{selected_allergen}%"))
+
+        # Fetch the filtered products
+        products = products_query.all()
+
+        return render_template(
+            'productAdmin.html',
+            product_list=products,
+            search=search_query,
+            selected_category=selected_category,
+            selected_allergen=selected_allergen,
+            adminStat=True,
+            suppliercount=Supplier.query.count()
+        )
     else:
+        flash("You need admin privileges to access this page.", "warning")
         return redirect(url_for('login'))
+
+
+
+
+
+
 
 @app.route('/createProduct', methods=['GET', 'POST'])
 @login_required
 def createProduct():
-    if current_user.is_authenticated and current_user.isAdmin == True:
+    # Ensure only admin users can access this route
+    if current_user.is_authenticated and current_user.isAdmin:
+        # Initialize the ProductForm
         form = ProductForm()
+
+        # Handle form submission
         if form.validate_on_submit():
-            product = Product(name=form.name.data, description=form.description.data, category=category(form.category.data), country=form.country.data,price=form.price.data, stock=0, image_file=form.image_file.data, isValid=True)
+            # Get selected allergens as a comma-separated string
+            selected_allergens = ', '.join(form.allergens.data)
+
+            # Create a new Product object with form data
+            product = Product(
+                name=form.name.data,
+                description=form.description.data,
+                category=form.category.data,
+                allergens=selected_allergens,  # Save selected allergens
+                price=form.price.data,
+                stock=form.stock.data,
+                image_file=form.image_file.data.filename,
+                isValid=True
+            )
+
+            # Save the uploaded image file
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], form.image_file.data.filename)
+            form.image_file.data.save(file_path)
+
+            # Add and commit the product to the database
             db.session.add(product)
             db.session.commit()
-            flash('New Product created!', 'success')
+
+            # Flash a success message and redirect to the admin page
+            flash('New product created successfully!', 'success')
             return redirect(url_for('productadmin'))
-        return render_template('createProduct.html',form=form)
+
+        # Render the form if it’s a GET request or form validation failed
+        return render_template('createProduct.html', form=form, adminStat=True)
+    
+    # Redirect non-admin users to the login page
+    return redirect(url_for('login'))
+
+
+@app.route('/updateProduct', methods=['GET', 'POST'])
+def updateProduct():
+    product_id = request.args.get('id')  # Get product ID from query string
+    product = Product.query.get(product_id)  # Fetch the product from the database
+
+    if not product:
+        flash('Product not found.', 'danger')
+        return redirect(url_for('productadmin'))  # Redirect to productAdmin if product is not found
+
+    form = ProductForm(obj=product)  # Populate the form with existing product data
+
+    # Ensure allergens are initialized correctly for pre-check
+    if product.allergens:
+        form.allergens.data = product.allergens.split(', ')
     else:
-        return redirect(url_for('login'))
+        form.allergens.data = []  # Initialize as an empty list if no allergens
+
+    if form.validate_on_submit():
+        # Update product fields with form data
+        product.name = form.name.data
+        product.description = form.description.data
+        product.category = form.category.data
+
+        # Handle allergens safely
+        submitted_allergens = request.form.getlist('allergens[]')  # Get list of selected allergens
+        product.allergens = ', '.join(submitted_allergens) if submitted_allergens else ''  # Save as a comma-separated string
+
+        product.price = form.price.data
+        product.stock = form.stock.data
+
+        # Handle image upload (keep the old image if no new image is uploaded)
+        if form.image_file.data:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], form.image_file.data.filename)
+            form.image_file.data.save(file_path)
+            product.image_file = form.image_file.data.filename  # Update the image file name in the database
+
+        db.session.commit()  # Commit the changes to the database
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('productadmin'))  # Redirect to productAdmin after updating the product
+
+    return render_template('updateProduct.html', form=form, product=product,adminStat=True)
+
+
+
 
 @app.route('/updateUser/<int:id>/', methods=['GET', 'POST'])
 def updateuser(id):

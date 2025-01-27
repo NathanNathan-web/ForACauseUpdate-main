@@ -129,6 +129,67 @@
             </div>
         </div>
 
+
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOrders">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOrders" aria-expanded="false" aria-controls="collapseOrders">
+                    Order History
+                </button>
+            </h2>
+            <div id="collapseOrders" class="accordion-collapse collapse" aria-labelledby="headingOrders" data-bs-parent="#profileAccordion">
+                <div class="accordion-body p-0">
+                    {% if order_history %}
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Delivery Method</th>
+                                <th>Time Slot</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in order_history %}
+                            <tr>
+                                <!-- Datetime column -->
+                                <td>{{ order.date }}</td>
+        
+                                <!-- Items column with quantity -->
+                                <td>
+                                    <ul style="list-style: none; padding: 0;">
+                                        {% for item in order.order_items %}
+                                        <li class="d-flex align-items-center mb-2">
+                                            <img src="{{ url_for('static', filename='images/' + item.image_file) }}" 
+                                                 alt="{{ item.name }}" style="width: 100px; height: 100px; object-fit: cover; margin-right: 355px;">
+                                            {{ item.name }} - <strong>Quantity: {{ item.quantity }}</strong>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+        
+                                <!-- Delivery Method column -->
+                                <td>{{ order.delivery_method }}</td>
+        
+                                <!-- Time Slot column -->
+                                <td>{{ order.time_slot }}</td>
+        
+                                <!-- Total column -->
+                                <td>${{ order.total | round(2) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-center p-3">No orders found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    
         <!-- Donation and Volunteering History -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingHistory">
@@ -167,6 +228,14 @@
                 </div>
             </div>
         </div>
+        <script>
+            document.getElementById('update-profile-btn').addEventListener('click', function() {
+                const uploadContainer = document.getElementById('file-upload-container');
+                uploadContainer.style.display = 'block';
+                this.style.display = 'none';
+            });
+        </script>
+    
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Bakery - Update Product{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="background-color: #FFF5E6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card" style="border: 2px solid #D2691E; box-shadow: 0 8px 16px rgba(210, 105, 30, 0.2); background-color: #FFFAF0;">
+                <div class="card-header" style="background-color: #D2691E; color: white; border-bottom: 3px solid #8B4513;">
+                    <h4 class="mb-0 text-center" style="font-family: 'Brush Script MT', cursive; font-size: 2.5rem;">
+                        Edit {{ product.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('updateProduct', id=product.id) }}" method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Product Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label" style="color: #8B4513; font-weight: bold;">Product Name</label>
+                            <input type="text" id="name" name="name" class="form-control" 
+                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
+                                   value="{{ product.name }}" required>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label" style="color: #8B4513; font-weight: bold;">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="3"
+                                      style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
+                                      required>{{ product.description }}</textarea>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label" style="color: #8B4513; font-weight: bold;">Category</label>
+                            <select id="category" name="category" class="form-select" 
+                                    style="border: 2px solid #D2691E; background-color: #FFF8DC;" required>
+                                <option value="Cakes and Pastries" {% if product.category == 'Cakes and Pastries' %}selected{% endif %}>Cakes and Pastries</option>
+                                <option value="Bread and Rolls" {% if product.category == 'Bread and Rolls' %}selected{% endif %}>Bread and Rolls</option>
+                                <option value="Cookies and Biscuits" {% if product.category == 'Cookies and Biscuits' %}selected{% endif %}>Cookies and Biscuits</option>
+                                <option value="Pies and Tarts" {% if product.category == 'Pies and Tarts' %}selected{% endif %}>Pies and Tarts</option>
+                            </select>
+                        </div>
+
+                        
+                       <!-- Allergens -->
+                        <div class="mb-3">
+                            <label class="form-label" style="color: #8B4513; font-weight: bold;">Product Allergens</label>
+                            <div class="row">
+                                {% for value, label in [('Nuts', 'Nuts'), ('Gluten', 'Gluten'), ('Dairy', 'Dairy'), ('Eggs', 'Eggs'), ('Soy', 'Soy')] %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input 
+                                            type="checkbox" 
+                                            name="allergens[]" 
+                                            value="{{ value }}" 
+                                            id="{{ value }}" 
+                                            class="form-check-input" 
+                                            style="border: 2px solid #D2691E;" 
+                                            {% if value in product.allergens.split(', ') %}checked{% endif %}>
+                                        <label for="{{ value }}" class="form-check-label" style="color: #8B4513;">{{ label }}</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+
+                        <!-- Price -->
+                        <div class="mb-3">
+                            <label for="price" class="form-label" style="color: #8B4513; font-weight: bold;">Price</label>
+                            <input type="number" id="price" name="price" class="form-control"
+                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
+                                   value="{{ product.price }}" step="0.01" required>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="mb-3">
+                            <label for="stock" class="form-label" style="color: #8B4513; font-weight: bold;">Stock</label>
+                            <input type="number" id="stock" name="stock" class="form-control"
+                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
+                                   value="{{ product.stock }}" required>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label for="image_file" class="form-label" style="color: #8B4513; font-weight: bold;">Product Image</label>
+                            <input type="file" id="image_file" name="image_file" class="form-control"
+                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" accept="image/*">
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success" style="background-color: #228B22; border-color: #008000;">
+                                Update Product
+                            </button>
+                            <a href="{{ url_for('productadmin') }}" class="btn btn-secondary" style="background-color: #8B4513; border-color: #5D3A1A;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
