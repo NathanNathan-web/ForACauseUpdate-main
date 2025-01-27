@@ -208,14 +208,14 @@
 <div id="dashboard-section" class="card shadow-lg mt-5">
     <div class="card-header bg-info text-white">
         <h3 class="mb-0">
-            <i class="bi bi-bar-chart-line me-3"></i>Volunteer Dashboard
+            <i class="bi bi-bar-chart-line me-3"></i> Volunteer Dashboard
         </h3>
     </div>
     <div class="card-body">
-        <div class="row">
+        <div class="row g-4">
             <!-- Top Volunteer -->
             <div class="col-lg-6">
-                <div class="card shadow">
+                <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Top Volunteer</h5>
                     </div>
@@ -229,12 +229,19 @@
                         <ul>
                             {% for volunteer in top_volunteers %}
                                 <li>
+                                    {% if loop.index == 1 %}
+                                        <i class="bi bi-award-fill text-warning"></i> <!-- Gold Icon -->
+                                    {% elif loop.index == 2 %}
+                                        <i class="bi bi-award-fill text-secondary"></i> <!-- Silver Icon -->
+                                    {% elif loop.index == 3 %}
+                                        <i class="bi bi-award-fill" style="color: #cd7f32;"></i> <!-- Bronze Icon -->
+                                    {% endif %}
                                     {{ volunteer.username }} - Total Signups: {{ volunteer.signup_count }}
                                 </li>
                             {% endfor %}
                         </ul>
                         <hr />
-                        <h6 class="fw-bold">Bar Chart:</h6>
+                        <h6 class="fw-bold text-center">Bar Chart</h6>
                         <canvas id="volunteerBarChart" width="400" height="300"></canvas>
                     </div>
                 </div>
@@ -242,7 +249,7 @@
 
             <!-- Event Signups Pie Chart -->
             <div class="col-lg-6">
-                <div class="card shadow">
+                <div class="card shadow-sm">
                     <div class="card-header bg-warning text-white">
                         <h5 class="mb-0">Most Signed-Up Events</h5>
                     </div>
@@ -254,73 +261,86 @@
         </div>
     </div>
 </div>
+
 <!-- Floating Button -->
 <button id="scrollTopBtn" class="btn btn-primary rounded-circle shadow-lg" style="position: fixed; bottom: 20px; right: 20px; display: none;">
     <i class="bi bi-arrow-up"></i>
 </button>
 
-<!-- Include Chart.js library -->
+<!-- Include Chart.js and ChartDataLabels -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 <script>
-    function filterEvents() {
-        const input = document.getElementById('eventSearch');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('eventsTable');
-        const tr = table.getElementsByTagName('tr');
-
-        for (let i = 1; i < tr.length; i++) {
-            const tdName = tr[i].getElementsByTagName('td')[0];
-            const tdCategory = tr[i].getElementsByTagName('td')[0].getElementsByTagName('span')[0];
-            if (tdName || tdCategory) {
-                const txtValueName = tdName.textContent || tdName.innerText;
-                const txtValueCategory = tdCategory.textContent || tdCategory.innerText;
-                if (
-                    txtValueName.toLowerCase().indexOf(filter) > -1 ||
-                    txtValueCategory.toLowerCase().indexOf(filter) > -1
-                ) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-
-    function filterUsers() {
-        const input = document.getElementById('userSearch');
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById('userSignupsTable');
-        const tr = table.getElementsByTagName('tr');
-
-        for (let i = 1; i < tr.length; i++) {
-            const tdUser = tr[i].getElementsByTagName('td')[0];
-            const tdEmail = tr[i].getElementsByTagName('td')[1];
-            if (tdUser || tdEmail) {
-                const txtValueUser = tdUser.textContent || tdUser.innerText;
-                const txtValueEmail = tdEmail.textContent || tdEmail.innerText;
-                if (
-                    txtValueUser.toLowerCase().indexOf(filter) > -1 ||
-                    txtValueEmail.toLowerCase().indexOf(filter) > -1
-                ) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-
-
     // Data for Pie Chart
     const eventData = {{ event_data|tojson|safe }};
     const eventLabels = Object.keys(eventData);
     const eventCounts = Object.values(eventData);
+    const totalEventSignups = eventCounts.reduce((a, b) => a + b, 0);
+    const eventPercentages = eventCounts.map(count => ((count / totalEventSignups) * 100).toFixed(1));
 
     // Data for Bar Chart
-    const volunteerData = {{ top_volunteers|tojson }};
+    const volunteerData = {{ top_volunteers|tojson|safe }};
     const volunteerLabels = volunteerData.map(v => v.username);
     const volunteerCounts = volunteerData.map(v => v.signup_count);
+
+    // Render Pie Chart with Labels
+    if (eventData && eventCounts.length > 0) {
+        const ctx = document.getElementById('eventSignupChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: eventLabels.map((label, index) => `${label} (${eventPercentages[index]}%)`),
+                datasets: [{
+                    data: eventCounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                    ],
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14,
+                            },
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const percentage = eventPercentages[context.dataIndex];
+                                return `${context.label}: ${context.raw} (${percentage}%)`;
+                            },
+                        },
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14,
+                        },
+                        formatter: function (value, context) {
+                            const percentage = eventPercentages[context.dataIndex];
+                            return `${percentage}%`;
+                        },
+                    },
+                },
+            },
+            plugins: [ChartDataLabels],
+        });
+    } else {
+        document.getElementById('eventSignupChart').parentElement.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
+    }
 
     // Render Bar Chart
     if (volunteerData.length > 0) {
@@ -333,18 +353,18 @@
                     label: 'Total Signups',
                     data: volunteerCounts,
                     backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
                         'rgba(75, 192, 192, 0.7)',
                         'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 99, 132, 0.7)',
                     ],
                     borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
                         'rgba(75, 192, 192, 1)',
                         'rgba(153, 102, 255, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 99, 132, 1)',
                     ],
                     borderWidth: 1,
                 }],
@@ -354,6 +374,13 @@
                 plugins: {
                     legend: {
                         display: false,
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${context.raw} Signups`;
+                            },
+                        },
                     },
                 },
                 scales: {
@@ -374,51 +401,10 @@
             },
         });
     } else {
-        const barContainer = document.getElementById('volunteerBarChart').parentElement;
-        barContainer.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
+        document.getElementById('volunteerBarChart').parentElement.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
     }
 
-
-
-    // Check if there is data before rendering the chart
-    if (Object.keys(eventData).length > 0) {
-        const ctx = document.getElementById('eventSignupChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: eventLabels,
-                datasets: [
-                    {
-                        label: 'Event Signups',
-                        data: eventCounts,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)',
-                            'rgba(255, 159, 64, 0.7)',
-                        ],
-                        borderWidth: 1,
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                },
-            },
-        });
-    } else {
-        // If no data, display a message instead of the chart
-        const chartContainer = document.getElementById('eventSignupChart').parentElement;
-        chartContainer.innerHTML = "<p class='text-center text-muted'>No data to display</p>";
-    }
-
-    // Show/hide scroll-to-top button
+    // Scroll-to-top Button
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     window.onscroll = function () {
         if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
@@ -427,9 +413,27 @@
             scrollTopBtn.style.display = 'none';
         }
     };
-
-    // Scroll to the top
     scrollTopBtn.onclick = function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-</script>{% endblock %}
+</script>
+
+<style>
+    .card-header {
+        font-size: 1.25rem;
+    }
+
+    #scrollTopBtn {
+        z-index: 1000;
+    }
+
+    canvas {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    ul {
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}
