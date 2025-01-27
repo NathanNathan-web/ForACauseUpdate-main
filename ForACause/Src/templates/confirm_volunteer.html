@@ -1,12 +1,87 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Confirm Volunteer</h2>
-    <p>Are you sure you want to volunteer for the event <strong>{{ event.name }}</strong> on <strong>{{ event.date }}</strong>?</p>
-    <form method="POST">
-        <button type="submit" class="btn btn-success">Confirm</button>
-        <a href="{{ url_for('volunteer') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+<div class="container py-5">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Volunteer Confirmation</h1>
+        <p class="fs-5 text-muted">Join the cause and make a difference by volunteering for this event.</p>
+    </div>
+
+    <!-- Card Section -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg p-4">
+                <div class="card-body text-center">
+                    <!-- Event Details -->
+                    <h3 class="card-title text-success fw-bold">{{ event.name }}</h3>
+                    <p class="text-muted">Happening on: <strong>{{ event.date }}</strong></p>
+                    <p class="fs-5 text-secondary mb-4">{{ event.description }}</p>
+
+                    <!-- Confirmation Text -->
+                    <p class="fs-5">
+                        Are you sure you want to volunteer for this event?
+                    </p>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <form method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm">
+                                <i class="bi bi-check-circle-fill"></i> Confirm
+                            </button>
+                        </form>
+                        <a href="{{ url_for('volunteer') }}" class="btn btn-outline-secondary btn-lg px-4 shadow-sm">
+                            <i class="bi bi-x-circle-fill"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Custom CSS -->
+<style>
+body {
+    background-color: #f8f9fa; /* Light background for better contrast */
+}
+
+.card {
+    border: 1px solid #eaeaea;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.8rem;
+}
+
+.card-body p {
+    font-size: 1.2rem;
+}
+
+.btn {
+    font-weight: 600;
+    border-radius: 30px;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+</style>
 {% endblock %}

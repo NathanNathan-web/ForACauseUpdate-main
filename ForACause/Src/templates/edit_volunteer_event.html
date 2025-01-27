@@ -1,26 +1,117 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>Edit Volunteer Event</h1>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="name" class="form-label">Event Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ event.name }}" required>
+<div class="container-fluid px-4 py-5">
+    <!-- Page Header -->
+    <div class="row align-items-center mb-4">
+        <div class="col text-center">
+            <h1 class="display-5 fw-bold text-primary">Edit Volunteer Event</h1>
+            <p class="text-muted fs-5">Update the details of your volunteer event below to keep everything up-to-date.</p>
         </div>
-        <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" name="description" rows="3" required>{{ event.description }}</textarea>
+    </div>
+
+    <!-- Form to Edit Volunteer Event -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <form method="POST" class="shadow-lg p-5 rounded bg-white">
+                <!-- Event Name -->
+                <div class="mb-4">
+                    <label for="name" class="form-label fw-bold text-secondary">Event Name</label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-lg" 
+                        id="name" 
+                        name="name" 
+                        value="{{ event.name }}" 
+                        placeholder="Enter event name" 
+                        required>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label for="description" class="form-label fw-bold text-secondary">Description</label>
+                    <textarea 
+                        class="form-control form-control-lg" 
+                        id="description" 
+                        name="description" 
+                        rows="4" 
+                        placeholder="Enter event description" 
+                        required>{{ event.description }}</textarea>
+                </div>
+
+                <!-- Event Date -->
+                <div class="mb-4">
+                    <label for="date" class="form-label fw-bold text-secondary">Event Date</label>
+                    <input 
+                        type="date" 
+                        class="form-control form-control-lg" 
+                        id="date" 
+                        name="date" 
+                        value="{{ event.date }}" 
+                        required>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-4">
+                    <label for="category" class="form-label fw-bold text-secondary">Category</label>
+                    <select 
+                        class="form-select form-select-lg" 
+                        id="category" 
+                        name="category" 
+                        required>
+                        <option value="Education" {% if event.category == "Education" %}selected{% endif %}>Education</option>
+                        <option value="Environment" {% if event.category == "Environment" %}selected{% endif %}>Environment</option>
+                        <option value="Health" {% if event.category == "Health" %}selected{% endif %}>Health</option>
+                        <option value="Community" {% if event.category == "Community" %}selected{% endif %}>Community</option>
+                        <option value="Other" {% if event.category == "Other" %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                        <i class="bi bi-save"></i> Save Changes
+                    </button>
+                    <a href="{{ url_for('manage_volunteer_event') }}" class="btn btn-outline-secondary btn-lg px-4 ms-3 shadow-sm">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="date" class="form-label">Event Date</label>
-            <input type="date" class="form-control" id="date" name="date" value="{{ event.date }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <input type="text" class="form-control" id="category" name="category" value="{{ event.category }}" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-    </form>
+    </div>
 </div>
+
+<!-- Custom CSS -->
+<style>
+body {
+    background-color: #f0f2f5; /* Light background to make the form stand out */
+}
+
+h1 {
+    font-size: 2.8rem;
+}
+
+p {
+    font-size: 1.1rem;
+}
+
+.form-label {
+    font-size: 1.2rem;
+}
+
+button {
+    font-weight: 600;
+}
+
+form {
+    background-color: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+form:hover {
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+}
+</style>
 {% endblock %}
