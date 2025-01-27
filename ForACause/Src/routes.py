@@ -21,6 +21,7 @@ from sched import scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Message
 import pytz
+from sqlalchemy.exc import IntegrityError
 
 stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
 
@@ -114,10 +115,10 @@ def schedule_pickup_reminder(donation):
         current_time = datetime.now(tz)  # Get current time in the same time zone
         
         # Calculate reminder time as 12 hours before the preferred pickup time
-        reminder_time = preferred_time - timedelta(hours=12)
+        reminder_time = preferred_time - timedelta(hours=24)
 
         # Check if the preferred time is at least 12 hours ahead of current time
-        if preferred_time > current_time + timedelta(hours=12):
+        if preferred_time > current_time + timedelta(hours=24):
             # Schedule reminder email 12 hours before the preferred pickup time
             scheduler.add_job(
                 send_reminder_email,
@@ -818,27 +819,67 @@ def inventoryadmin():
 
 
 @app.route('/createSupplier', methods=['GET', 'POST'])
+@login_required
 def createsupplier():
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        form = SupplierForm()
-        if form.validate_on_submit():
-            if form.phone.data[0] == '8' or form.phone.data[0] == '9' or form.phone.data[0] == '6' and form.name.data.isalpha() == True:
+    # Ensure only admins can access this page
+    if not current_user.isAdmin:
+        flash('You must be an admin to access this page!', 'danger')
+        return redirect(url_for('home'))
+
+    form = SupplierForm()
+
+    if form.validate_on_submit():  # Check if the form is valid and submitted
+        image_file_path = None  # Default to None for no image
+
+        # Handle image file if uploaded
+        if form.image_file.data:
+            image = form.image_file.data
+            if allowed_file(image.filename):  # Check if the file is allowed
+                filename = secure_filename(image.filename)  # Secure the filename
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
                 try:
-                    supplier = Supplier(name=form.name.data, email=form.email.data, password=form.password.data, phone=form.phone.data, company=form.company.data,
-                                        address=form.address.data, country=form.country.data, image_file=form.image_file.data, isValid=True)
-                    db.session.add(supplier)
-                    db.session.commit()
-                    flash('New supplier created!', 'success')
-                    return redirect(url_for('inventoryadmin'))
-                except:
-                    db.session.rollback()
-                    flash('Supplier exist, try new name')
-            else:
-                flash(
-                    'Update supplier failed, Phone number must start with 8 , 9 or 6 or Name cannot contain number', 'danger')
-        return render_template('createSupplier.html', form=form, adminStat=True)
-    else:
-        return render_template('login.html')
+                    image.save(file_path)  # Save the file to the server
+                    image_file_path = filename  # Store the file name for DB
+                except Exception as e:
+                    flash(f"Error saving logo image: {str(e)}", 'danger')
+
+        # Check if a supplier with the same name or email already exists
+        existing_supplier = Supplier.query.filter(
+            (Supplier.name == form.name.data) |
+            (Supplier.email == form.email.data)
+        ).first()
+
+        if existing_supplier:
+            flash('A supplier with this name or email already exists. Please use different details.', 'danger')
+        else:
+            # Create a new Supplier object with the form data
+            new_supplier = Supplier(
+                name=form.name.data,
+                email=form.email.data,
+                password=form.password.data,
+                phone=form.phone.data,
+                company=form.company.data,
+                address=form.address.data,
+                country=form.country.data,
+                image_file=image_file_path,  # Store the image file path
+                isValid=form.isValid.data == 1
+            )
+
+            # Add the new supplier to the database session
+            db.session.add(new_supplier)
+
+            try:
+                db.session.commit()  # Commit the changes
+                flash('New supplier created successfully!', 'success')
+                return redirect(url_for('inventoryadmin'))
+            except Exception as e:
+                db.session.rollback()  # Rollback changes on error
+                flash(f"An error occurred while saving the supplier: {str(e)}", 'danger')
+
+    # If form isn't submitted or valid, just render the form
+    return render_template('createSupplier.html', form=form, adminStat=True)
+
 
 
 @app.route('/updateSupplier/<int:id>/', methods=['GET', 'POST'])

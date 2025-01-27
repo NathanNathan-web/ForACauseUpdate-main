@@ -61,10 +61,10 @@ class SupplierForm(FlaskForm):
     isValid = RadioField('Validity', coerce=int, choices=[(1, 'Available'), (0, 'Not Available')], default=1)
     submit = SubmitField('Add Supplier')
     def validate_phone(self, phone):
-        if len(phone.data) == 8 and (phone.data).isdigit() == True and phone.data[0] == '8' or '9' or '6':
-            print('Success')
-        else:
-            raise ValidationError('Invalid phone number. Phone number needs to start with 8, 9 ,6')
+        if len(phone.data) == 8 and phone.data.isdigit() and phone.data[0] in ['8', '9', '6']:
+            return
+        raise ValidationError('Invalid phone number. Phone number needs to start with 8, 9, or 6.')
+
 
 class VoucherForm(FlaskForm):
     name = StringField('Voucher Name', validators=[DataRequired()])
