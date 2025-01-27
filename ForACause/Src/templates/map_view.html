@@ -41,11 +41,30 @@
                         <strong>Category:</strong> {{ event.category }}<br>
                         <strong>Address:</strong> {{ event.address }}
                     </p>
+
+                    <!-- Conditionally render button or label based on 'is_signed_up' -->
                     <div class="d-flex justify-content-between mt-2">
-                        <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-primary btn-sm">Volunteer Now</a>
+                        {% if event.is_signed_up %}
+                        <!-- Show "Signed Up" label if user is signed up -->
+                        <span class="badge-signed-up">Signed Up</span>
+                        {% else %}
+                        <!-- Show "Volunteer Now" button if user is not signed up -->
+                        <a href="/confirm_volunteer/{{ event.id }}"
+                        target="_blank"
+                        style="display: inline-block; padding: 8px 16px; background-color: #0059ff; color: #ffffff; 
+                            text-decoration: none; border-radius: 5px; font-size: 14px; text-align: center; 
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        Volunteer Now
+                        </a>
+                        {% endif %}
+
+                        <!-- Get Directions Button -->
                         <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
-                            class="btn btn-secondary btn-sm" target="_blank">
-                            Get Directions
+                        target="_blank"
+                        style="display: inline-block; padding: 8px 16px; background-color: #28A745; color: #ffffff; 
+                            text-decoration: none; border-radius: 5px; font-size: 14px; text-align: center; 
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                        Directions
                         </a>
                     </div>
                 </li>
@@ -55,19 +74,18 @@
                 {% endif %}
             </ul>
         </div>
-
-
-        <!-- Search Box -->
-        <input id="search-box" type="text" placeholder="Search for a city, district, or location..." style="
-            width: 300px;
-            padding: 10px;
-            margin: 10px auto;
-            display: block;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            " />
     </div>
 </div>
+
+<!-- Search Box -->
+<input id="search-box" type="text" placeholder="Search for a city, district, or location..." style="
+        width: 300px;
+        padding: 10px;
+        margin: 10px auto;
+        display: block;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        " />
 
 <script>
     document.getElementById('reset-btn').addEventListener('mouseover', function () {
@@ -78,6 +96,13 @@
     document.getElementById('reset-btn').addEventListener('mouseout', function () {
         this.style.backgroundColor = '#007BFF';
         this.style.transform = 'scale(1)';
+    });
+
+    // Reset button functionality
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        markers.forEach(marker => marker.setMap(map)); // Show all markers
+        map.setCenter(mapOptions.center); // Reset map center
+        map.setZoom(mapOptions.zoom); // Reset zoom
     });
 </script>
 
@@ -91,7 +116,7 @@
     function initMap() {
         const map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-        // Category icons
+        // Category icons for non-signed-up events
         const categoryIcons = {
             'Community': '{{ url_for("static", filename="images/community.png") }}',
             'Cleanup': '{{ url_for("static", filename="images/cleanup.png") }}',
@@ -100,86 +125,144 @@
             'Healthcare': '{{ url_for("static", filename="images/healthcare.png") }}',
         };
 
-        // Search Box
-        const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
+        // Custom marker for signed-up events
+        const signedUpMarker = '{{ url_for("static", filename="images/signed-up-event.png") }}'; // Replace with your image path
 
         const infoWindow = new google.maps.InfoWindow();
 
         // Add markers and store references
         const markers = eventsData.map(event => {
+            const isSignedUp = event.is_signed_up; // Assuming you pass a `is_signed_up` flag in your data
+            const markerIcon = isSignedUp
+                ? signedUpMarker
+                : (categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}');
+
             const marker = new google.maps.Marker({
                 position: { lat: event.latitude, lng: event.longitude },
                 map: map,
                 title: event.name,
                 icon: {
-                    url: categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}',
+                    url: markerIcon,
                     scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
                 },
             });
 
             // Attach InfoWindow content
             marker.addListener('click', () => {
-                infoWindow.setContent(`
-                    <div style="
-                        max-width: 300px;
-                        padding: 10px;
-                        font-family: Arial, sans-serif;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        background-color: #ffffff;
-                        color: #333333;
+                const infoWindowContent = `
+                <div style="
+                    max-width: 300px;
+                    padding: 10px;
+                    font-family: Arial, sans-serif;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    background-color: #ffffff;
+                    color: #333333;
+                ">
+                    <h5 style="
+                        margin: 0 0 8px;
+                        font-size: 18px;
+                        color: #007BFF;
+                    ">${event.name}</h5>
+                    <p style="
+                        margin: 0;
+                        font-size: 14px;
+                        color: #555555;
                     ">
-                        <h5 style="
-                            margin: 0 0 8px;
-                            font-size: 18px;
-                            color: #007BFF;
-                        ">${event.name}</h5>
-                        <p style="
-                            margin: 0;
-                            font-size: 14px;
-                            color: #555555;
-                        ">
-                            <strong>Date:</strong> ${event.date}<br>
-                            <strong>Category:</strong> ${event.category}<br>
-                            <strong>Address:</strong> ${event.address}
-                        </p>
-                        <p style="
-                            margin-top: 8px;
-                            font-size: 14px;
-                            line-height: 1.4;
-                        ">${event.description}</p>
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <a href="/confirm_volunteer/${event.id}" style="
-                                display: inline-block;
-                                padding: 8px 16px;
-                                background-color: #007BFF;
-                                color: #ffffff;
-                                text-decoration: none;
-                                border-radius: 5px;
-                                font-size: 14px;
-                                text-align: center;
-                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                            ">Volunteer Now!</a>
-                            <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
-                                display: inline-block;
-                                padding: 8px 16px;
-                                background-color: #28A745;
-                                color: #ffffff;
-                                text-decoration: none;
-                                border-radius: 5px;
-                                font-size: 14px;
-                                text-align: center;
-                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                            ">Directions</a>
-                        </div>
+                        <strong>Date:</strong> ${event.date}<br>
+                        <strong>Category:</strong> ${event.category}<br>
+                        <strong>Address:</strong> ${event.address}
+                    </p>
+                    <p style="
+                        margin-top: 8px;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    ">${event.description}</p>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        ${isSignedUp
+                        ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
+                                    display: inline-block;
+                                    padding: 8px 16px;
+                                    background-color: #28A745;
+                                    color: #ffffff;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    font-size: 14px;
+                                    text-align: center;
+                                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                ">Directions</a>`
+                        : `
+                                <a href="/confirm_volunteer/${event.id}" style="
+                                    display: inline-block;
+                                    padding: 8px 16px;
+                                    background-color: #007BFF;
+                                    color: #ffffff;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    font-size: 14px;
+                                    text-align: center;
+                                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                ">Volunteer Now!</a>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
+                                    display: inline-block;
+                                    padding: 8px 16px;
+                                    background-color: #28A745;
+                                    color: #ffffff;
+                                    text-decoration: none;
+                                    border-radius: 5px;
+                                    font-size: 14px;
+                                    text-align: center;
+                                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                ">Directions</a>`
+                    }
                     </div>
-                `);
+                </div>
+            `;
+
+                infoWindow.setContent(infoWindowContent);
                 infoWindow.open(map, marker);
             });
 
             return marker;
+        });
 
+        // Reset functionality
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            markers.forEach(marker => marker.setMap(map));
+            map.setCenter(mapOptions.center);
+            map.setZoom(mapOptions.zoom);
+        });
+
+        const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
+
+        // Add listener for search box
+        searchBox.addListener('places_changed', () => {
+            const places = searchBox.getPlaces();
+            if (places.length === 0) return;
+
+            const bounds = new google.maps.LatLngBounds();
+            places.forEach(place => {
+                if (!place.geometry || !place.geometry.location) return;
+                bounds.extend(place.geometry.location);
+            });
+            map.fitBounds(bounds);
+
+            // Show only markers within the bounds
+            let visibleMarkerFound = false;
+            markers.forEach(marker => {
+                if (bounds.contains(marker.getPosition())) {
+                    marker.setMap(map); // Show marker
+                    visibleMarkerFound = true;
+                } else {
+                    marker.setMap(null); // Hide marker
+                }
+            });
+
+            // Display a message if no visible markers remain
+            if (!visibleMarkerFound) {
+                alert('No events found in this area!');
+            }
         });
 
         // Get user's current location
@@ -218,48 +301,6 @@
             alert('Error: Your browser does not support geolocation.');
         }
 
-        // Search box functionality
-        searchBox.addListener('places_changed', () => {
-            const places = searchBox.getPlaces();
-            if (places.length === 0) return;
-
-            const bounds = new google.maps.LatLngBounds();
-            places.forEach(place => {
-                if (!place.geometry) return;
-
-                // Fit the map to the selected place
-                if (place.geometry.viewport) {
-                    bounds.union(place.geometry.viewport);
-                } else {
-                    bounds.extend(place.geometry.location);
-                }
-            });
-
-            map.fitBounds(bounds);
-
-            // Show only markers within the bounds
-            let visibleMarkerFound = false;
-            markers.forEach(marker => {
-                if (bounds.contains(marker.getPosition())) {
-                    marker.setMap(map); // Show marker
-                    visibleMarkerFound = true;
-                } else {
-                    marker.setMap(null); // Hide marker
-                }
-            });
-
-            // Display a message if no visible markers remain
-            if (!visibleMarkerFound) {
-                alert('No events found in this area!');
-            }
-        });
-
-        // Reset button functionality
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            markers.forEach(marker => marker.setMap(map)); // Show all markers
-            map.setCenter(mapOptions.center); // Reset map center
-            map.setZoom(mapOptions.zoom); // Reset zoom
-        });
     }
 </script>
 

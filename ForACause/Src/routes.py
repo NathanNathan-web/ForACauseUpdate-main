@@ -958,20 +958,30 @@ def createorder(id):
 @app.route('/retrieveOrder')
 def retrieveorder():
     if current_user.is_authenticated and current_user.isAdmin == True:
-        # Get the sorting order from query parameters (default is ascending)
-        sort_by_date = request.args.get('sort_by_date', 'asc')
-        
-        # Fetch and sort orders based on the sorting order
-        if sort_by_date == 'asc':
-            orders = Order.query.order_by(Order.date_ordered.asc()).all()
-        else:
-            orders = Order.query.order_by(Order.date_ordered.desc()).all()
-        
+        # Get the search and filter parameters from the query string
+        search_order_id = request.args.get('search_order_id', '')
+        filter_status = request.args.get('filter_status', '')
+
+        # Start with the base query
+        orders_query = Order.query
+
+        # Apply the filter by order ID if provided
+        if search_order_id:
+            orders_query = orders_query.filter(Order.id.like(f'%{search_order_id}%'))
+
+        # Apply the filter by status if provided
+        if filter_status:
+            orders_query = orders_query.filter(Order.status == int(filter_status))
+
+        # Fetch the filtered orders
+        orders = orders_query.all()
+
         return render_template(
             'retrieveOrder.html', 
             adminStat=True, 
             order_list=orders, 
-            sort_by_date=sort_by_date
+            search_order_id=search_order_id,  # Pass the search term back to the template
+            filter_status=filter_status       # Pass the selected filter back to the template
         )
     else:
         return redirect(url_for('login'))
@@ -1546,15 +1556,10 @@ def map_view():
     # Fetch all events from the database
     events = VolunteerEvent.query.all()
 
-    # Get the signed-up events for the current user (to exclude them from the list)
+    # Get the signed-up events for the current user
     signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
 
-    # Filter out events that the user has signed up for
-    events_not_signed_up = [
-        event for event in events if event.id not in signed_up_event_ids
-    ]
-
-    # Prepare event data for both the map and the event list
+    # Prepare event data with the signed-up flag
     events_data = [
         {
             'id': event.id,
@@ -1564,9 +1569,10 @@ def map_view():
             'longitude': event.longitude,
             'date': event.date.strftime('%Y-%m-%d') if event.date else 'Not available',
             'category': event.category if event.category else 'Not available',
-            'address': event.address if event.address else 'Not available'
+            'address': event.address if event.address else 'Not available',
+            'is_signed_up': event.id in signed_up_event_ids
         }
-        for event in events_not_signed_up
+        for event in events
     ]
 
     # Serialize the events data to JSON for the map

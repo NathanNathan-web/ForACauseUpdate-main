@@ -584,3 +584,20 @@ a {
         border-radius: 20px;
         padding: 10px 15px;
       }
+
+      .badge-signed-up {
+        background-color: #ffd000; /* Yellow color */
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        display: inline-flex; /* Flexbox for perfect centering */
+        align-items: center; /* Vertically center the text */
+        justify-content: center; /* Horizontally center the text */
+        height: 40px; /* Set a fixed height to help center the text vertically */
+        margin-right: 10px; /* Space between the badge and button */
+        text-align: center;
+    }
+    
+    
+    
