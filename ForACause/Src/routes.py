@@ -1,7 +1,7 @@
 from datetime import date
 from flask import render_template, url_for, flash, redirect, request, session, jsonify,Response
 from Src.forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,Wishlist,db
+from Src.models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,VolunteerEvent,UserVolunteer,Wishlist,EventReview,db
 from Src import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
@@ -1346,3 +1346,38 @@ def remove_from_wishlist(event_id):
         db.session.commit()
     flash("Event removed from your wishlist!", "success")
     return redirect(url_for('volunteer'))
+
+@app.route('/submit_review/<int:event_id>', methods=['POST'])
+@login_required
+def submit_review(event_id):
+    event = VolunteerEvent.query.get_or_404(event_id)
+    rating = request.form.get('rating')
+    feedback = request.form.get('feedback')
+
+    if not rating or int(rating) < 1 or int(rating) > 5:
+        flash("Invalid rating. Please provide a rating between 1 and 5.", "danger")
+        return redirect(url_for('event_reviews', event_id=event_id))
+
+    # Check if the user has already submitted a review for this event
+    existing_review = EventReview.query.filter_by(event_id=event_id, user_id=current_user.id).first()
+    if existing_review:
+        flash("You have already reviewed this event.", "warning")
+        return redirect(url_for('event_reviews', event_id=event_id))
+
+    # Save the review
+    review = EventReview(event_id=event.id, user_id=current_user.id, rating=int(rating), feedback=feedback)
+    db.session.add(review)
+    db.session.commit()
+    flash("Your review has been submitted successfully!", "success")
+    return redirect(url_for('event_reviews', event_id=event_id))
+
+
+
+@app.route('/event_reviews/<int:event_id>')
+def event_reviews(event_id):
+    page = request.args.get('page', 1, type=int)
+    event = VolunteerEvent.query.get_or_404(event_id)
+    reviews = EventReview.query.filter_by(event_id=event_id).order_by(EventReview.created_at.desc()).paginate(page=page, per_page=5)
+    return render_template('event_reviews.html', event=event, reviews=reviews)
+
+

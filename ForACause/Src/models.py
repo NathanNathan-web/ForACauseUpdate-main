@@ -190,6 +190,7 @@ class VolunteerEvent(db.Model):
 
     # Add overlaps parameter to resolve conflicts
     user_volunteers = db.relationship('UserVolunteer', backref='event', lazy=True, overlaps="volunteer_event,volunteers")
+    reviews = db.relationship('EventReview', backref='reviewed_event', lazy=True, overlaps="event_reviews")
 
 
 
@@ -216,6 +217,25 @@ class Wishlist(db.Model):
         self.user_id = user_id
         self.event_id = event_id
 
+class EventReview(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # Rating out of 5
+    feedback = db.Column(db.Text, nullable=True)  # Optional feedback
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='event_reviews', lazy=True)
+    event = db.relationship('VolunteerEvent', backref='event_reviews', lazy=True)
+
+    def __init__(self, event_id, user_id, rating, feedback=None):
+        self.event_id = event_id
+        self.user_id = user_id
+        self.rating = rating
+        self.feedback = feedback
+
+
 
 
 db.create_all()
+

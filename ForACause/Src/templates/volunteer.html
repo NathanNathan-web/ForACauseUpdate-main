@@ -10,14 +10,14 @@
         </div>
     </div>
 
-<!-- Wishlist Button -->
-<div class="row mb-4">
-    <div class="col text-end">
-        <a href="{{ url_for('wishlist') }}" class="btn btn-outline-primary">
-            <i class="bi bi-heart-fill me-1"></i> View My Wishlist
-        </a>
+    <!-- Wishlist Button -->
+    <div class="row mb-4">
+        <div class="col text-end">
+            <a href="{{ url_for('wishlist') }}" class="btn btn-outline-primary">
+                <i class="bi bi-heart-fill me-1"></i> View My Wishlist
+            </a>
+        </div>
     </div>
-</div>
 
     <!-- Advanced Filter Section -->
     <div class="card border-0 shadow-lg mb-5">
@@ -92,6 +92,10 @@
                                     <span class="badge bg-success rounded-pill">
                                         <i class="bi bi-check-circle me-1"></i>Completed
                                     </span>
+                                    <!-- Add Review Button -->
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal-{{ event.id }}">
+                                        <i class="bi bi-star me-1"></i>Review
+                                    </button>
                                     {% else %}
                                     <span class="badge bg-warning rounded-pill">
                                         <i class="bi bi-clock me-1"></i>Signed Up
@@ -118,7 +122,45 @@
                             </button>
                         </form>
                         {% endif %}
+                        <!-- View Reviews Button -->
+                        <a href="{{ url_for('event_reviews', event_id=event.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-chat-left-text me-1"></i> View Reviews
+                        </a>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Modal -->
+        <div class="modal fade" id="reviewModal-{{ event.id }}" tabindex="-1" aria-labelledby="reviewModalLabel-{{ event.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="reviewModalLabel-{{ event.id }}">Review {{ event.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('submit_review', event_id=event.id) }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="rating-{{ event.id }}" class="form-label">Rating</label>
+                                <select name="rating" id="rating-{{ event.id }}" class="form-select" required>
+                                    <option value="" disabled selected>Choose a rating</option>
+                                    <option value="5">★★★★★</option>
+                                    <option value="4">★★★★☆</option>
+                                    <option value="3">★★★☆☆</option>
+                                    <option value="2">★★☆☆☆</option>
+                                    <option value="1">★☆☆☆☆</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feedback-{{ event.id }}" class="form-label">Feedback</label>
+                                <textarea name="feedback" id="feedback-{{ event.id }}" rows="4" class="form-control" placeholder="Write your feedback..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Event Details Section -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-4">
+            <img src="{{ url_for('static', filename='images/' + event.image_file) }}" alt="{{ event.name }}" class="img-fluid rounded">
+        </div>
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ event.name }}</h1>
+            <p class="text-muted">{{ event.description }}</p>
+            <p>
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ event.date.strftime('%d %b %Y') }}
+            </p>
+            <a href="{{ url_for('volunteer') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <h2 class="mb-4">Reviews</h2>
+    {% if reviews.items %}
+        <div class="row">
+            {% for review in reviews.items %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ review.user.username }}
+                                <span class="float-end text-warning">
+                                    {% for _ in range(review.rating) %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% endfor %}
+                                    {% for _ in range(5 - review.rating) %}
+                                        <i class="bi bi-star"></i>
+                                    {% endfor %}
+                                </span>
+                            </h5>
+                            <p class="card-text">{{ review.feedback }}</p>
+                            <small class="text-muted">Reviewed on {{ review.created_at.strftime('%d %b %Y') }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if reviews.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('event_reviews', event_id=event.id, page=reviews.prev_num) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+                {% for page_num in reviews.iter_pages(left_edge=2, right_edge=2, left_current=1, right_current=1) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == reviews.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('event_reviews', event_id=event.id, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if reviews.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('event_reviews', event_id=event.id, page=reviews.next_num) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-chat-left-text display-4 text-muted"></i>
+            <h3 class="text-muted">No Reviews Yet</h3>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
