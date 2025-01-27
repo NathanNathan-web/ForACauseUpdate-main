@@ -1195,27 +1195,27 @@ def dashboard():
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
-    if not current_user.isAdmin:
-        flash('Unauthorized access!', 'danger')
-        return redirect(url_for('home'))
+    user = User.query.get_or_404(user_id)
+    
+    # Debug: Check user and associated user_volunteer entries
+    print(f"Deleting user: {user.id}, {user.username}")
+    user_volunteer_entries = UserVolunteer.query.filter_by(user_id=user_id).all()
+    print(f"Associated UserVolunteer entries: {user_volunteer_entries}")
 
-    user = User.query.get(user_id)
-    if user:
-        try:
-            # Delete associated UserVolunteer records
-            UserVolunteer.query.filter_by(user_id=user_id).delete()
-
-            # Delete the user
-            db.session.delete(user)
-            db.session.commit()
-            flash(f'User {user.username} deleted successfully!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {str(e)}', 'danger')
-    else:
-        flash('User not found!', 'danger')
+    # Handle deletion logic
+    try:
+        UserVolunteer.query.filter_by(user_id=user_id).delete()
+        Wishlist.query.filter_by(user_id=user_id).delete()
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"User {user.username} and associated data deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error during deletion: {e}")
+        flash("An error occurred while deleting the user.", "danger")
 
     return redirect(url_for('accountadmin'))
+
 
 @app.route('/export_users', methods=['GET'])
 @login_required

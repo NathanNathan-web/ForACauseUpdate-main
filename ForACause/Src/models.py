@@ -207,7 +207,7 @@ class UserVolunteer(db.Model):
 
 class Wishlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
 
     user = db.relationship('User', backref='wishlist_items', lazy=True)
