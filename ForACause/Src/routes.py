@@ -1039,6 +1039,10 @@ def create_volunteer_event():
     # Fetch all user signups
     signups = UserVolunteer.query.all()
 
+    # Fetch event reviews with pagination (5 per page)
+    page = request.args.get('page', 1, type=int)
+    reviews = EventReview.query.order_by(EventReview.created_at.desc()).paginate(page=page, per_page=5)
+
     # Fetch the top volunteer (user with the most signups)
     top_volunteer_query = (
         db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
@@ -1080,6 +1084,7 @@ def create_volunteer_event():
         'create_volunteer_event.html',
         events=events,
         signups=signups,
+        reviews=reviews,  # ✅ Add this line
         top_volunteer=top_volunteer,
         top_volunteers=top_volunteers,
         event_data=event_data
