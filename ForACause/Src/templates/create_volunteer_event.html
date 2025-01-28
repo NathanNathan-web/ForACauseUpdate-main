@@ -88,84 +88,74 @@
         </div>
     </div>
 
-    <!-- Events Overview Section -->
-    <div class="accordion" id="mainAccordion">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="eventsOverviewHeading">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#eventsOverviewCollapse" aria-expanded="true" aria-controls="eventsOverviewCollapse">
-                    <i class="bi bi-list-check text-primary me-2"></i>Events Overview
-                </button>
-            </h2>
-            <div id="eventsOverviewCollapse" class="accordion-collapse collapse show" aria-labelledby="eventsOverviewHeading" data-bs-parent="#mainAccordion">
-                <div class="accordion-body">
-                    <div class="mb-3">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="eventSearch" class="form-control" placeholder="Filter by event name or category" onkeyup="filterEvents()">
-                        </div>
+     <!-- Events Overview Section -->
+     <div class="accordion-item shadow-lg rounded border-0">
+        <h2 class="accordion-header" id="eventsOverviewHeading">
+            <button class="accordion-button bg-light text-dark border-0 shadow-sm py-3" type="button" data-bs-toggle="collapse" data-bs-target="#eventsOverviewCollapse" aria-expanded="true" aria-controls="eventsOverviewCollapse">
+                <i class="bi bi-list-check me-2"></i>Events Overview
+            </button>
+        </h2>
+        <div id="eventsOverviewCollapse" class="accordion-collapse collapse show" aria-labelledby="eventsOverviewHeading" data-bs-parent="#mainAccordion">
+            <div class="accordion-body">
+                <div class="mb-3">
+                    <div class="input-group shadow rounded overflow-hidden">
+                        <span class="input-group-text bg-light border"><i class="bi bi-search"></i></span>
+                        <input type="text" id="eventSearch" class="form-control border" placeholder="Filter by event name or category" onkeyup="filterTable('eventSearch', 'eventsTable')">
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="eventsTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4 align-middle">Name & Category</th>
-                                    <th class="align-middle">Date</th>
-                                    <th class="align-middle">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for event in events %}
-                                <tr>
-                                    <td class="ps-4 align-middle">
-                                        <h6 class="mb-1 fw-bold">{{ event.name }}</h6>
-                                        <p class="text-muted mb-1 small">{{ event.description | truncate(50) }}</p>
-                                        <span class="badge bg-primary">{{ event.category }}</span>
-                                    </td>
-                                    <td class="align-middle">
-                                        <span class="badge bg-secondary text-white">
-                                            <i class="bi bi-calendar me-1"></i>{{ event.date }}
-                                        </span>
-                                    </td>
-                                    <td class="align-middle">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" class="btn btn-outline-warning">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <form method="POST" action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" style="display: inline;">
-                                                <button type="submit" class="btn btn-outline-danger">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="eventsTable" class="table table-hover table-striped table-bordered shadow-lg rounded">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name & Category</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>
+                                    <strong>{{ event.name }}</strong><br>
+                                    <small class="text-muted">{{ event.description | truncate(50) }}</small><br>
+                                    <span class="badge bg-primary text-white">{{ event.category }}</span>
+                                </td>
+                                <td><span class="badge bg-light text-dark">{{ event.date }}</span></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('edit_volunteer_event', event_id=event.id) }}" class="btn btn-outline-primary btn-sm shadow-sm">Edit</a>
+                                        <form method="POST" action="{{ url_for('delete_volunteer_event', event_id=event.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm shadow-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
+    </div>
 
     <!-- User Signups Section -->
-    <div class="accordion-item">
+    <div class="accordion-item shadow-lg rounded border-0">
         <h2 class="accordion-header" id="userSignupsHeading">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userSignupsCollapse" aria-expanded="false" aria-controls="userSignupsCollapse">
-                <i class="bi bi-people text-success me-2"></i>User Signups
+            <button class="accordion-button bg-light text-dark border-0 shadow-sm py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userSignupsCollapse" aria-expanded="false" aria-controls="userSignupsCollapse">
+                <i class="bi bi-people me-2"></i>User Signups
             </button>
         </h2>
         <div id="userSignupsCollapse" class="accordion-collapse collapse" aria-labelledby="userSignupsHeading" data-bs-parent="#mainAccordion">
             <div class="accordion-body">
                 <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="userSearch" class="form-control" placeholder="Filter by user name or email" onkeyup="filterUsers()">
+                    <div class="input-group shadow rounded overflow-hidden">
+                        <span class="input-group-text bg-light border"><i class="bi bi-search"></i></span>
+                        <input type="text" id="userSearch" class="form-control border" placeholder="Filter by user name or email" onkeyup="filterTable('userSearch', 'userSignupsTable')">
                     </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0" id="userSignupsTable">
-                        <thead class="table-light">
+                    <table id="userSignupsTable" class="table table-hover table-striped table-bordered shadow-lg rounded">
+                        <thead class="table-dark">
                             <tr>
                                 <th>User</th>
                                 <th>Contact</th>
@@ -184,10 +174,10 @@
                                 <td>
                                     {% if not signup.attended %}
                                     <form method="POST" action="{{ url_for('mark_attended', event_id=signup.event.id, user_id=signup.user.id) }}">
-                                        <button type="submit" class="btn btn-outline-success btn-sm">Mark as Attended</button>
+                                        <button type="submit" class="btn btn-success btn-sm shadow-sm">Mark as Attended</button>
                                     </form>
                                     {% else %}
-                                    <span class="badge bg-success">Attended</span>
+                                    <span class="badge bg-secondary text-white">Attended</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -198,54 +188,63 @@
             </div>
         </div>
     </div>
-</div>
-<!-- Event Reviews Section -->
-<div class="accordion-item">
-    <h2 class="accordion-header" id="eventReviewsHeading">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eventReviewsCollapse" aria-expanded="false" aria-controls="eventReviewsCollapse">
-            <i class="bi bi-chat-dots text-info me-2"></i>Event Reviews
-        </button>
-    </h2>
-    <div id="eventReviewsCollapse" class="accordion-collapse collapse" aria-labelledby="eventReviewsHeading" data-bs-parent="#mainAccordion">
-        <div class="accordion-body">
-            <div class="mb-3">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="reviewSearch" class="form-control" placeholder="Filter by reviewer, event, or comment" onkeyup="filterReviews()">
+
+    <!-- Event Reviews Section -->
+    <div class="accordion-item shadow-lg rounded border-0">
+        <h2 class="accordion-header" id="eventReviewsHeading">
+            <button class="accordion-button bg-light text-dark border-0 shadow-sm py-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eventReviewsCollapse" aria-expanded="false" aria-controls="eventReviewsCollapse">
+                <i class="bi bi-chat-dots me-2"></i>Event Reviews
+            </button>
+        </h2>
+        <div id="eventReviewsCollapse" class="accordion-collapse collapse" aria-labelledby="eventReviewsHeading" data-bs-parent="#mainAccordion">
+            <div class="accordion-body">
+                <div class="mb-3">
+                    <div class="input-group shadow rounded overflow-hidden">
+                        <span class="input-group-text bg-light border"><i class="bi bi-search"></i></span>
+                        <input type="text" id="reviewSearch" class="form-control border" placeholder="Filter by reviewer, event, or comment" onkeyup="filterTable('reviewSearch', 'reviewsTable')">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="reviewsTable" class="table table-hover table-striped table-bordered shadow-lg rounded">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Event</th>
+                                <th>Reviewer</th>
+                                <th>Comment</th>
+                                <th>Rating</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in reviews.items %}
+                            <tr>
+                                <td>{{ review.event.name }}</td>
+                                <td>{{ review.user.username }}</td>
+                                <td>{{ review.feedback }}</td>
+                                <td><span class="badge bg-warning text-dark">{{ review.rating }}/5</span></td>
+                                <td>{{ review.created_at.strftime('%d %b %Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+function filterTable(inputId, tableId) {
+let input = document.getElementById(inputId).value.toLowerCase();
+let rows = document.querySelectorAll(`#${tableId} tbody tr`);
+rows.forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+});
+}
+</script>
+</div>
 
-            <!-- Event Reviews Table -->
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0" id="eventReviewsTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Event</th>
-                            <th>Reviewer</th>
-                            <th>Comment</th>
-                            <th>Rating</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for review in reviews.items %}
-                        <tr>
-                            <td>{{ review.event.name }}</td>
-                            <td>{{ review.user.username }}</td>
-                            <td>{{ review.feedback }}</td>
-                            <td>
-                                <span class="badge bg-warning">
-                                    {{ review.rating }}/5
-                                </span>
-                            </td>
-                            <td>{{ review.created_at.strftime('%d %b %Y') }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
+            <!-- Pagination
             <nav aria-label="Review Pagination">
                 <ul class="pagination justify-content-center">
                     {% if reviews.has_prev %}
@@ -277,7 +276,7 @@
             </nav>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
     function filterReviews() {
@@ -538,4 +537,20 @@
         font-size: 1rem;
     }
 </style>
+<style>
+    .accordion-button {
+        font-size: 1.1rem;
+    }
+    .table thead th {
+        font-weight: bold;
+        text-align: center;
+    }
+    .table tbody td {
+        text-align: center;
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        margin-right: 5px;
+    }
+    </style>
 {% endblock %}
