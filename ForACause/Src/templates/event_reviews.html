@@ -20,8 +20,38 @@
         </div>
     </div>
 
-    <!-- Reviews Section -->
-    <h2 class="mb-4">Reviews</h2>
+    <!-- Most Useful Review Section -->
+    {% if most_useful_review %}
+        <h2 class="mb-4">Most Useful Review</h2>
+        <div class="card mb-4 shadow-sm" id="most-useful-review">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ most_useful_review.user.username }}
+                    <span class="float-end text-warning">
+                        {% for _ in range(most_useful_review.rating) %}
+                            <i class="bi bi-star-fill"></i>
+                        {% endfor %}
+                        {% for _ in range(5 - most_useful_review.rating) %}
+                            <i class="bi bi-star"></i>
+                        {% endfor %}
+                    </span>
+                </h5>
+                <p class="card-text">{{ most_useful_review.feedback }}</p>
+                <div>
+                    <button id="thumbs-up-btn-{{ most_useful_review.id }}" onclick="thumbsUp({{ most_useful_review.id }})">
+                        👍 <span id="thumbs-up-count-{{ most_useful_review.id }}">{{ most_useful_review.likes }}</span>
+                    </button>
+                    <button id="thumbs-down-btn-{{ most_useful_review.id }}" onclick="thumbsDown({{ most_useful_review.id }})">
+                        👎 <span id="thumbs-down-count-{{ most_useful_review.id }}">{{ most_useful_review.dislikes }}</span>
+                    </button>
+                </div>
+                <small class="text-muted">Reviewed on {{ most_useful_review.created_at.strftime('%d %b %Y') }}</small>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- All Reviews Section -->
+    <h2 class="mb-4">All Reviews</h2>
     {% if reviews.items %}
         <div class="row">
             {% for review in reviews.items %}
@@ -40,6 +70,14 @@
                                 </span>
                             </h5>
                             <p class="card-text">{{ review.feedback }}</p>
+                            <div>
+                                <button id="thumbs-up-btn-{{ review.id }}" onclick="thumbsUp({{ review.id }})">
+                                    👍 <span id="thumbs-up-count-{{ review.id }}">{{ review.likes }}</span>
+                                </button>
+                                <button id="thumbs-down-btn-{{ review.id }}" onclick="thumbsDown({{ review.id }})">
+                                    👎 <span id="thumbs-down-count-{{ review.id }}">{{ review.dislikes }}</span>
+                                </button>
+                            </div>
                             <small class="text-muted">Reviewed on {{ review.created_at.strftime('%d %b %Y') }}</small>
                         </div>
                     </div>
@@ -61,6 +99,7 @@
                         <span class="page-link">&laquo;</span>
                     </li>
                 {% endif %}
+
                 {% for page_num in reviews.iter_pages(left_edge=2, right_edge=2, left_current=1, right_current=1) %}
                     {% if page_num %}
                         <li class="page-item {% if page_num == reviews.page %}active{% endif %}">
@@ -70,6 +109,7 @@
                         <li class="page-item disabled"><span class="page-link">…</span></li>
                     {% endif %}
                 {% endfor %}
+
                 {% if reviews.has_next %}
                     <li class="page-item">
                         <a class="page-link" href="{{ url_for('event_reviews', event_id=event.id, page=reviews.next_num) }}" aria-label="Next">
@@ -90,4 +130,99 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+    function thumbsUp(reviewId) {
+        fetch(`/api/review/${reviewId}/thumbs-up`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const countElement = document.getElementById(`thumbs-up-count-${reviewId}`);
+                countElement.innerText = data.new_likes;
+
+                // Update the most useful review if necessary
+                if (data.update_most_useful) {
+                    updateMostUsefulReview();
+                }
+            } else {
+                alert('Failed to update likes. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again later.');
+        });
+    }
+
+    function thumbsDown(reviewId) {
+        fetch(`/api/review/${reviewId}/thumbs-down`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const countElement = document.getElementById(`thumbs-down-count-${reviewId}`);
+                countElement.innerText = data.new_dislikes;
+
+                // Update the most useful review if necessary
+                if (data.update_most_useful) {
+                    updateMostUsefulReview();
+                }
+            } else {
+                alert('Failed to update dislikes. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again later.');
+        });
+    }
+
+    function updateMostUsefulReview() {
+        fetch(`/api/get-most-useful-review`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.most_useful_review) {
+                const review = data.most_useful_review;
+                document.getElementById("most-useful-review").innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            ${review.user.username}
+                            <span class="float-end text-warning">
+                                ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                            </span>
+                        </h5>
+                        <p class="card-text">${review.feedback}</p>
+                        <div>
+                            <button id="thumbs-up-btn-${review.id}" onclick="thumbsUp(${review.id})">
+                                👍 <span id="thumbs-up-count-${review.id}">${review.likes}</span>
+                            </button>
+                            <button id="thumbs-down-btn-${review.id}" onclick="thumbsDown(${review.id})">
+                                👎 <span id="thumbs-down-count-${review.id}">${review.dislikes}</span>
+                            </button>
+                        </div>
+                        <small class="text-muted">Reviewed on ${review.created_at}</small>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
 {% endblock %}

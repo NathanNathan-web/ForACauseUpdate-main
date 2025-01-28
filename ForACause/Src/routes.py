@@ -1382,7 +1382,40 @@ def submit_review(event_id):
 def event_reviews(event_id):
     page = request.args.get('page', 1, type=int)
     event = VolunteerEvent.query.get_or_404(event_id)
-    reviews = EventReview.query.filter_by(event_id=event_id).order_by(EventReview.created_at.desc()).paginate(page=page, per_page=5)
-    return render_template('event_reviews.html', event=event, reviews=reviews)
+
+    # Fetch all reviews for the event
+    reviews = (
+        EventReview.query.filter_by(event_id=event_id)
+        .order_by(EventReview.created_at.desc())
+        .paginate(page=page, per_page=5)
+    )
+
+    # Fetch the most useful review (highest likes - dislikes)
+    most_useful_review = (
+        EventReview.query.filter_by(event_id=event_id)
+        .order_by((EventReview.likes - EventReview.dislikes).desc())
+        .first()
+    )
+
+    return render_template(
+        'event_reviews.html',
+        event=event,
+        reviews=reviews,
+        most_useful_review=most_useful_review,
+    )
+
+@app.route('/api/review/<int:review_id>/thumbs-up', methods=['POST'])
+def thumbs_up(review_id):
+    review = EventReview.query.get_or_404(review_id)
+    review.likes += 1
+    db.session.commit()
+    return jsonify({'success': True, 'new_likes': review.likes})
+
+@app.route('/api/review/<int:review_id>/thumbs-down', methods=['POST'])
+def thumbs_down(review_id):
+    review = EventReview.query.get_or_404(review_id)
+    review.dislikes += 1
+    db.session.commit()
+    return jsonify({'success': True, 'new_dislikes': review.dislikes})
 
 

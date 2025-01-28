@@ -224,6 +224,9 @@ class EventReview(db.Model):
     rating = db.Column(db.Integer, nullable=False)  # Rating out of 5
     feedback = db.Column(db.Text, nullable=True)  # Optional feedback
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # New columns
+    likes = db.Column(db.Integer, default=0)  # Add likes column
+    dislikes = db.Column(db.Integer, default=0)  # Add dislikes column
 
     user = db.relationship('User', backref='event_reviews', lazy=True)
     event = db.relationship('VolunteerEvent', backref='event_reviews', lazy=True)
