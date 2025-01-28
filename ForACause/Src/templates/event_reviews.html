@@ -5,43 +5,43 @@
     <!-- Event Details Section -->
     <div class="row align-items-center mb-4">
         <div class="col-md-4">
-            <img src="{{ url_for('static', filename='images/' + event.image_file) }}" alt="{{ event.name }}" class="img-fluid rounded">
+            <img src="{{ url_for('static', filename='images/' + event.image_file) }}" alt="{{ event.name }}" class="img-fluid rounded shadow-sm">
         </div>
         <div class="col-md-8">
-            <h1 class="mb-3">{{ event.name }}</h1>
-            <p class="text-muted">{{ event.description }}</p>
+            <h1 class="display-4 text-primary mb-3">{{ event.name }}</h1>
+            <p class="lead text-muted">{{ event.description }}</p>
             <p>
-                <i class="bi bi-calendar-event me-1"></i>
-                {{ event.date.strftime('%d %b %Y') }}
+                <i class="bi bi-calendar-event me-2 text-secondary"></i>
+                <strong>{{ event.date.strftime('%d %b %Y') }}</strong>
             </p>
-            <a href="{{ url_for('volunteer') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left me-1"></i> Back to Events
+            <a href="{{ url_for('volunteer') }}" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-arrow-left me-2"></i> Back to Events
             </a>
         </div>
     </div>
 
     <!-- Most Useful Review Section -->
     {% if most_useful_review %}
-        <h2 class="mb-4">Most Useful Review</h2>
-        <div class="card mb-4 shadow-sm" id="most-useful-review">
+        <h2 class="h3 text-dark mb-4">Most Useful Review</h2>
+        <div class="card mb-4 shadow-lg" id="most-useful-review">
             <div class="card-body">
-                <h5 class="card-title">
-                    {{ most_useful_review.user.username }}
-                    <span class="float-end text-warning">
+                <h5 class="card-title d-flex justify-content-between align-items-center">
+                    <span class="font-weight-bold">{{ most_useful_review.user.username }}</span>
+                    <div class="rating-stars text-warning">
                         {% for _ in range(most_useful_review.rating) %}
                             <i class="bi bi-star-fill"></i>
                         {% endfor %}
                         {% for _ in range(5 - most_useful_review.rating) %}
                             <i class="bi bi-star"></i>
                         {% endfor %}
-                    </span>
+                    </div>
                 </h5>
                 <p class="card-text">{{ most_useful_review.feedback }}</p>
-                <div>
-                    <button id="thumbs-up-btn-{{ most_useful_review.id }}" onclick="thumbsUp({{ most_useful_review.id }})">
+                <div class="d-flex align-items-center">
+                    <button id="thumbs-up-btn-{{ most_useful_review.id }}" class="btn btn-outline-success btn-sm me-3" onclick="thumbsUp({{ most_useful_review.id }})">
                         👍 <span id="thumbs-up-count-{{ most_useful_review.id }}">{{ most_useful_review.likes }}</span>
                     </button>
-                    <button id="thumbs-down-btn-{{ most_useful_review.id }}" onclick="thumbsDown({{ most_useful_review.id }})">
+                    <button id="thumbs-down-btn-{{ most_useful_review.id }}" class="btn btn-outline-danger btn-sm" onclick="thumbsDown({{ most_useful_review.id }})">
                         👎 <span id="thumbs-down-count-{{ most_useful_review.id }}">{{ most_useful_review.dislikes }}</span>
                     </button>
                 </div>
@@ -50,31 +50,39 @@
         </div>
     {% endif %}
 
-    <!-- All Reviews Section -->
-    <h2 class="mb-4">All Reviews</h2>
+    <!-- Filter by Rating Section -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <h2 class="h3 text-dark">All Reviews</h2>
+        <div class="btn-group" role="group" aria-label="Review Filters">
+            <button class="btn btn-outline-secondary" onclick="filterReviews('highest')">Highest Rated</button>
+            <button class="btn btn-outline-secondary" onclick="filterReviews('lowest')">Lowest Rated</button>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
     {% if reviews.items %}
-        <div class="row">
+        <div class="row" id="review-list">
             {% for review in reviews.items %}
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">
-                                {{ review.user.username }}
-                                <span class="float-end text-warning">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span class="font-weight-bold">{{ review.user.username }}</span>
+                                <div class="rating-stars text-warning">
                                     {% for _ in range(review.rating) %}
                                         <i class="bi bi-star-fill"></i>
                                     {% endfor %}
                                     {% for _ in range(5 - review.rating) %}
                                         <i class="bi bi-star"></i>
                                     {% endfor %}
-                                </span>
+                                </div>
                             </h5>
                             <p class="card-text">{{ review.feedback }}</p>
-                            <div>
-                                <button id="thumbs-up-btn-{{ review.id }}" onclick="thumbsUp({{ review.id }})">
+                            <div class="d-flex align-items-center">
+                                <button id="thumbs-up-btn-{{ review.id }}" class="btn btn-outline-success btn-sm me-3" onclick="thumbsUp({{ review.id }})">
                                     👍 <span id="thumbs-up-count-{{ review.id }}">{{ review.likes }}</span>
                                 </button>
-                                <button id="thumbs-down-btn-{{ review.id }}" onclick="thumbsDown({{ review.id }})">
+                                <button id="thumbs-down-btn-{{ review.id }}" class="btn btn-outline-danger btn-sm" onclick="thumbsDown({{ review.id }})">
                                     👎 <span id="thumbs-down-count-{{ review.id }}">{{ review.dislikes }}</span>
                                 </button>
                             </div>
@@ -186,6 +194,53 @@
         });
     }
 
+    function filterReviews(filterType) {
+    fetch(`/api/filter-reviews?filter=${filterType}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        const reviewsContainer = document.getElementById('review-list');
+        reviewsContainer.innerHTML = ''; // Clear the existing reviews
+        
+        // Populate the reviews based on the new data
+        data.reviews.forEach(review => {
+            reviewsContainer.innerHTML += `
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span class="font-weight-bold">${review.user}</span>
+                                <div class="rating-stars text-warning">
+                                    ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                                </div>
+                            </h5>
+                            <p class="card-text">${review.feedback}</p>
+                            <div class="d-flex align-items-center">
+                                <button id="thumbs-up-btn-${review.id}" class="btn btn-outline-success btn-sm me-3" onclick="thumbsUp(${review.id})">
+                                    👍 <span id="thumbs-up-count-${review.id}">${review.likes}</span>
+                                </button>
+                                <button id="thumbs-down-btn-${review.id}" class="btn btn-outline-danger btn-sm" onclick="thumbsDown(${review.id})">
+                                    👎 <span id="thumbs-down-count-${review.id}">${review.dislikes}</span>
+                                </button>
+                            </div>
+                            <small class="text-muted">Reviewed on ${review.created_at}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to load filtered reviews. Please try again.');
+    });
+}
+
+
     function updateMostUsefulReview() {
         fetch(`/api/get-most-useful-review`, {
             method: 'GET',
@@ -199,18 +254,18 @@
                 const review = data.most_useful_review;
                 document.getElementById("most-useful-review").innerHTML = `
                     <div class="card-body">
-                        <h5 class="card-title">
-                            ${review.user.username}
-                            <span class="float-end text-warning">
+                        <h5 class="card-title d-flex justify-content-between align-items-center">
+                            <span class="font-weight-bold">${review.user.username}</span>
+                            <div class="rating-stars text-warning">
                                 ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
-                            </span>
+                            </div>
                         </h5>
                         <p class="card-text">${review.feedback}</p>
-                        <div>
-                            <button id="thumbs-up-btn-${review.id}" onclick="thumbsUp(${review.id})">
+                        <div class="d-flex align-items-center">
+                            <button id="thumbs-up-btn-${review.id}" class="btn btn-outline-success btn-sm me-3" onclick="thumbsUp(${review.id})">
                                 👍 <span id="thumbs-up-count-${review.id}">${review.likes}</span>
                             </button>
-                            <button id="thumbs-down-btn-${review.id}" onclick="thumbsDown(${review.id})">
+                            <button id="thumbs-down-btn-${review.id}" class="btn btn-outline-danger btn-sm" onclick="thumbsDown(${review.id})">
                                 👎 <span id="thumbs-down-count-${review.id}">${review.dislikes}</span>
                             </button>
                         </div>

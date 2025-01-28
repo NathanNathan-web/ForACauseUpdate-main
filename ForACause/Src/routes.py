@@ -1419,3 +1419,27 @@ def thumbs_down(review_id):
     return jsonify({'success': True, 'new_dislikes': review.dislikes})
 
 
+@app.route('/api/filter-reviews', methods=['GET'])
+def filter_reviews():
+    filter_type = request.args.get('filter')  # Get filter type ('highest' or 'lowest')
+
+    # Handle the filtering
+    if filter_type == 'highest':
+        reviews = EventReview.query.order_by(EventReview.rating.desc()).all()
+    elif filter_type == 'lowest':
+        reviews = EventReview.query.order_by(EventReview.rating.asc()).all()
+    else:
+        reviews = EventReview.query.all()  # Default: return all reviews
+
+    # Prepare the reviews for the response
+    reviews_list = [{
+        'id': review.id,
+        'user': review.user.username,
+        'rating': review.rating,
+        'feedback': review.feedback,
+        'likes': review.likes,
+        'dislikes': review.dislikes,
+        'created_at': review.created_at.strftime('%d %b %Y')
+    } for review in reviews]
+
+    return jsonify({'reviews': reviews_list})
