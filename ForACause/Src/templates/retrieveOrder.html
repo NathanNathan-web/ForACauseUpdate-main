@@ -2,115 +2,152 @@
 {% block title %}ForACause - Admin Inventory{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
         {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
     {% endif %}
     {% endwith %}
 
-    <p></p>
-    <!-- Sorting Button with Improved Styling -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-        <h2 class="fw-bold text-primary mb-3">Order List</h2>
-        <form method="GET" action="/retrieveOrder" class="d-flex">
-            <!-- Search by Order ID -->
-            <input type="text" class="form-control" name="search_order_id" placeholder="Search Order ID" value="{{ search_order_id if search_order_id is not none else '' }}">
-         
-            <!-- Filter by Status -->
-            <select name="filter_status" class="form-select me-2">
-                <option value="">All Statuses</option>
-                <option value="0" {% if request.args.get('filter_status') == '0' %}selected{% endif %}>Rejected</option>
-                <option value="1" {% if request.args.get('filter_status') == '1' %}selected{% endif %}>Pending</option>
-                <option value="2" {% if request.args.get('filter_status') == '2' %}selected{% endif %}>Accepted</option>
-            </select>
-
-            <button type="submit" class="btn btn-outline-primary">Search</button>
-        </form>
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h2 class="card-title text-primary mb-0">Order List</h2>
+                </div>
+                <div class="col-md-8">
+                    <form method="GET" action="/retrieveOrder" class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" name="search_order_id" placeholder="Search Order ID" value="{{ search_order_id if search_order_id is not none else '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="filter_status" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="0" {% if request.args.get('filter_status') == '0' %}selected{% endif %}>Cancelled</option>
+                                <option value="1" {% if request.args.get('filter_status') == '1' %}selected{% endif %}>Pending</option>
+                                <option value="2" {% if request.args.get('filter_status') == '2' %}selected{% endif %}>Accepted</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-filter"></i> Apply Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <table class="table table-hover">
-        <thead class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="topleft">Order ID</th>
-                <th scope="col">Order Product Name</th>
-                <th scope="col">Order Stock</th>
-                <th scope="col">Status</th>
-                <th scope="col">Supplier ID</th>
-                <th scope="col">Product ID</th>
-                <th scope="col" colspan='2' class="topright">Action</th>
-            </tr>
-        </thead>
-        <tbody class="table-secondary">
-            {% for order in order_list %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.product.name }}</td>
-                <td>{{ order.orderstock }}</td>
-                {% if order.status == 0 %}
-                <td>Cancelled</td>
-                {% elif order.status == 1 %}
-                <td>Pending</td>
-                {% elif order.status == 2 %}
-                <td>Accepted</td>
-                {% endif %}
+    <!-- Table Section -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Order ID</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Supplier ID</th>
+                            <th scope="col">Product ID</th>
+                            <th scope="col" class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in order_list %}
+                        <tr>
+                            <td class="px-4 fw-bold">#{{ order.id }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.orderstock }}</td>
+                            <td>
+                                {% if order.status == 0 %}
+                                <span class="badge bg-danger">Cancelled</span>
+                                {% elif order.status == 1 %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif order.status == 2 %}
+                                <span class="badge bg-success">Accepted</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.supplier_id }}</td>
+                            <td>{{ order.product_id }}</td>
+                            <td class="text-end px-4">
+                                <a href="/updateOrder/{{order.id}}" class="btn btn-sm btn-outline-warning me-2">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{order.id}}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
 
-                <td>{{ order.supplier_id }}</td>
-                <td>{{ order.product_id }}</td>
-
-
-                <td><a href="/updateOrder/{{order.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
-                </td>
-                <td>
-                    <form action="{{url_for('deleteorders', id=order.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{order.id}}"><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{order.id}}">
-                            <div class="modal-dialog">
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal_{{order.id}}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
-                                    <!-- Modal Header -->
                                     <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
+                                        <h5 class="modal-title">Confirm Deletion</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{order.id}}?
+                                    <div class="modal-body">
+                                        <p class="mb-0">Are you sure you want to delete order #{{order.id}}? This action cannot be undone.</p>
                                     </div>
-                                    <!-- Modal footer -->
                                     <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{{url_for('deleteorders', id=order.id)}}" method="POST">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="bottomleft"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col" colspan="3" class='bottomright'></th>
-            </tr>
-        </tfoot>
-    </table>
-    <a href="/inventoryAdmin"><button class="btn btn-outline-info"> Back to inventory</button></a>
-    <p></p>
-</br>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="/inventoryAdmin" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
 </div>
 
+<style>
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+</style>
 {% endblock %}

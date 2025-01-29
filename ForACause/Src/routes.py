@@ -353,26 +353,6 @@ def donateItem():
     # If form isn't submitted or valid, just render the form
     return render_template('donateItem.html', form=form)
 
-@app.route('/check_donations')
-def check_donations():
-    donations = DonateItem.query.filter(DonateItem.preferred_drop_off_method == 'pickup').all()
-
-    for donation in donations:
-        # Combine preferred_date and preferred_time into a single datetime object
-        preferred_datetime = datetime.combine(donation.preferred_date, donation.preferred_time)
-        
-        # Calculate 12 hours before preferred_time
-        reminder_time = preferred_datetime - timedelta(hours=12)
-        
-        # Get the current time
-        current_time = datetime.now()
-
-        # If the current time is 12 hours before the preferred_time, send the reminder
-        if current_time >= reminder_time and current_time < preferred_datetime:
-            send_reminder_email(donation)
-
-    return redirect(url_for('some_route'))  # or some other view
-
 @app.route('/edit_donation_item/<int:item_id>', methods=['GET', 'POST'])
 @login_required
 def edit_donation_item(item_id):
@@ -443,7 +423,12 @@ def deletedonationitem(id):
     item = DonateItem.query.get_or_404(id)
     db.session.delete(item)
     db.session.commit()
-    return redirect(url_for('donateitemadmin'))
+    
+    if current_user.isAdmin:
+        return redirect(url_for('donateitemadmin'))
+    else:
+        return redirect(url_for('account'))
+
 
 @app.route('/topup', methods=['GET', 'POST'])
 @login_required
@@ -1096,9 +1081,21 @@ def acceptorder(id):
     else:
         return redirect(url_for('login'))
     
-
-
-
+@app.route('/rejectOrder/<int:id>')
+def rejectorder(id):
+    if current_user.is_authenticated:
+        try:
+            order = Order.query.filter_by(id=id).first()
+            
+            if order:
+                order.status = 0
+                db.session.commit()
+            
+            return redirect(url_for('supplierhome')) 
+        except:
+            return redirect(url_for('supplierhome'))  
+    else:
+        return redirect(url_for('login'))  
 
 
 

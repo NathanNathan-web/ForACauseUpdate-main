@@ -24,61 +24,98 @@
     </button>
 
     <!-- Flex container for map and event list -->
-    <div class="d-flex justify-content-between" style="gap: 20px;">
+    <div class="d-flex" style="gap: 20px; align-items: stretch;">
         <!-- Map Container -->
-        <div id="map" style="height: 600px; flex: 0 0 75%;" class="shadow-sm mt-4 rounded"></div>
+        <div id="map" style="height: 600px; flex: 0 0 67%;" class="shadow-sm mt-4 rounded"></div>
 
         <!-- Scrollable Event List -->
-        <div class="event-list mt-4"
-            style="flex: 0 0 23%; max-height: 600px; overflow-y: auto; border-left: 1px solid #ddd; padding-left: 15px;">
-            <ul style="list-style: none; padding: 0;">
-                {% if events %}
-                {% for event in events %}
-                <li style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                    <h5 style="margin: 0;">{{ event.name }}</h5>
-                    <p style="margin: 0;">
-                        <strong>Date:</strong> {{ event.date }}<br>
-                        <strong>Category:</strong> {{ event.category }}<br>
-                        <strong>Address:</strong> {{ event.address }}
-                    </p>
-
-                    <!-- Conditionally render button or label based on 'is_signed_up' -->
-                    <div class="d-flex justify-content-between mt-2">
-                        {% if event.is_signed_up %}
-                        <!-- Show "Signed Up" label if user is signed up -->
-                        <span class="badge-signed-up">Signed Up</span>
-                        {% else %}
-                        <!-- Show "Volunteer Now" button if user is not signed up -->
-                        <a href="/confirm_volunteer/{{ event.id }}"
-                        target="_blank"
-                        style="display: inline-block; padding: 8px 16px; background-color: #0059ff; color: #ffffff; 
-                            text-decoration: none; border-radius: 5px; font-size: 14px; text-align: center; 
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        Volunteer Now
-                        </a>
-                        {% endif %}
-
-                        <!-- Get Directions Button -->
-                        <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
-                        target="_blank"
-                        style="display: inline-block; padding: 8px 16px; background-color: #28A745; color: #ffffff; 
-                            text-decoration: none; border-radius: 5px; font-size: 14px; text-align: center; 
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                        Directions
-                        </a>
+        <div class="col-lg-4">
+            <div class="events-container rounded-4 shadow-sm h-100">
+                <div class="events-header p-3 bg-light rounded-top-4 border-bottom">
+                    <h4 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Available Events</h4>
+                </div>
+                <div class="events-list p-3" style="max-height: 550px; overflow-y: auto;">
+                    {% if events %}
+                    <!-- Sort and render signed-up events first -->
+                    {% for event in events if event.is_signed_up %}
+                    <div class="event-card mb-3">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary mb-2">{{ event.name }}</h5>
+                                <div class="event-details mb-3">
+                                    <div class="detail-item">
+                                        <i class="bi bi-calendar3 text-muted me-2"></i>
+                                        <span>{{ event.date }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-tag text-muted me-2"></i>
+                                        <span>{{ event.category }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                        <span>{{ event.address }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-warning text-dark px-3 py-2">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Signed Up
+                                    </span>
+                                    
+                                    <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
+                                        target="_blank" class="btn btn-outline-success">
+                                        <i class="bi bi-map me-1"></i>Directions
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </li>
-                {% endfor %}
-                {% else %}
-                <p>No volunteer opportunities available.</p>
-                {% endif %}
-            </ul>
+                    {% endfor %}
+                    <!-- Render the rest of the events -->
+                    {% for event in events if not event.is_signed_up %}
+                    <div class="event-card mb-3">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary mb-2">{{ event.name }}</h5>
+                                <div class="event-details mb-3">
+                                    <div class="detail-item">
+                                        <i class="bi bi-calendar3 text-muted me-2"></i>
+                                        <span>{{ event.date }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-tag text-muted me-2"></i>
+                                        <span>{{ event.category }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="bi bi-geo-alt text-muted me-2"></i>
+                                        <span>{{ event.address }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-primary">
+                                        Volunteer Now
+                                    </a>
+                                    <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
+                                        target="_blank" class="btn btn-outline-success">
+                                        <i class="bi bi-map me-1"></i>Directions
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                        <p class="text-muted">No volunteer opportunities available at the moment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Search Box -->
-<input id="search-box" type="text" placeholder="Search for a city, district, or location..." style="
+    <!-- Search Box -->
+    <input id="search-box" type="text" placeholder="Search for a city, district, or location..." style="
         width: 300px;
         padding: 10px;
         margin: 10px auto;
@@ -87,69 +124,69 @@
         border-radius: 4px;
         " />
 
-<script>
-    document.getElementById('reset-btn').addEventListener('mouseover', function () {
-        this.style.backgroundColor = '#0056b3';
-        this.style.transform = 'scale(1.05)';
-    });
+    <script>
+        document.getElementById('reset-btn').addEventListener('mouseover', function () {
+            this.style.backgroundColor = '#0056b3';
+            this.style.transform = 'scale(1.05)';
+        });
 
-    document.getElementById('reset-btn').addEventListener('mouseout', function () {
-        this.style.backgroundColor = '#007BFF';
-        this.style.transform = 'scale(1)';
-    });
+        document.getElementById('reset-btn').addEventListener('mouseout', function () {
+            this.style.backgroundColor = '#007BFF';
+            this.style.transform = 'scale(1)';
+        });
 
-    // Reset button functionality
-    document.getElementById('reset-btn').addEventListener('click', () => {
-        markers.forEach(marker => marker.setMap(map)); // Show all markers
-        map.setCenter(mapOptions.center); // Reset map center
-        map.setZoom(mapOptions.zoom); // Reset zoom
-    });
-</script>
+        // Reset button functionality
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            markers.forEach(marker => marker.setMap(map)); // Show all markers
+            map.setCenter(mapOptions.center); // Reset map center
+            map.setZoom(mapOptions.zoom); // Reset zoom
+        });
+    </script>
 
-<script>
-    const eventsData = JSON.parse('{{ events_data|safe }}');
-    const mapOptions = {
-        center: { lat: 1.3521, lng: 103.8198 },
-        zoom: 12
-    };
-
-    function initMap() {
-        const map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
-        // Category icons for non-signed-up events
-        const categoryIcons = {
-            'Community': '{{ url_for("static", filename="images/community.png") }}',
-            'Cleanup': '{{ url_for("static", filename="images/cleanup.png") }}',
-            'Education': '{{ url_for("static", filename="images/education.png") }}',
-            'Fundraising': '{{ url_for("static", filename="images/fundraising.png") }}',
-            'Healthcare': '{{ url_for("static", filename="images/healthcare.png") }}',
+    <script>
+        const eventsData = JSON.parse('{{ events_data|safe }}');
+        const mapOptions = {
+            center: { lat: 1.3521, lng: 103.8198 },
+            zoom: 12
         };
 
-        // Custom marker for signed-up events
-        const signedUpMarker = '{{ url_for("static", filename="images/signed-up-event.png") }}'; // Replace with your image path
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-        const infoWindow = new google.maps.InfoWindow();
+            // Category icons for non-signed-up events
+            const categoryIcons = {
+                'Community': '{{ url_for("static", filename="images/community.png") }}',
+                'Cleanup': '{{ url_for("static", filename="images/cleanup.png") }}',
+                'Education': '{{ url_for("static", filename="images/education.png") }}',
+                'Fundraising': '{{ url_for("static", filename="images/fundraising.png") }}',
+                'Healthcare': '{{ url_for("static", filename="images/healthcare.png") }}',
+            };
 
-        // Add markers and store references
-        const markers = eventsData.map(event => {
-            const isSignedUp = event.is_signed_up; // Assuming you pass a `is_signed_up` flag in your data
-            const markerIcon = isSignedUp
-                ? signedUpMarker
-                : (categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}');
+            // Custom marker for signed-up events
+            const signedUpMarker = '{{ url_for("static", filename="images/signed-up-event.png") }}'; // Replace with your image path
 
-            const marker = new google.maps.Marker({
-                position: { lat: event.latitude, lng: event.longitude },
-                map: map,
-                title: event.name,
-                icon: {
-                    url: markerIcon,
-                    scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
-                },
-            });
+            const infoWindow = new google.maps.InfoWindow();
 
-            // Attach InfoWindow content
-            marker.addListener('click', () => {
-                const infoWindowContent = `
+            // Add markers and store references
+            const markers = eventsData.map(event => {
+                const isSignedUp = event.is_signed_up; // Assuming you pass a `is_signed_up` flag in your data
+                const markerIcon = isSignedUp
+                    ? signedUpMarker
+                    : (categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}');
+
+                const marker = new google.maps.Marker({
+                    position: { lat: event.latitude, lng: event.longitude },
+                    map: map,
+                    title: event.name,
+                    icon: {
+                        url: markerIcon,
+                        scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
+                    },
+                });
+
+                // Attach InfoWindow content
+                marker.addListener('click', () => {
+                    const infoWindowContent = `
                 <div style="
                     max-width: 300px;
                     padding: 10px;
@@ -180,7 +217,7 @@
                     ">${event.description}</p>
                     <div style="margin-top: 10px; display: flex; gap: 10px;">
                         ${isSignedUp
-                        ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
+                            ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.address)}" target="_blank" style="
                                     display: inline-block;
                                     padding: 8px 16px;
                                     background-color: #28A745;
@@ -191,7 +228,7 @@
                                     text-align: center;
                                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                                 ">Directions</a>`
-                        : `
+                            : `
                                 <a href="/confirm_volunteer/${event.id}" style="
                                     display: inline-block;
                                     padding: 8px 16px;
@@ -214,98 +251,104 @@
                                     text-align: center;
                                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                                 ">Directions</a>`
-                    }
+                        }
                     </div>
                 </div>
             `;
 
-                infoWindow.setContent(infoWindowContent);
-                infoWindow.open(map, marker);
+                    infoWindow.setContent(infoWindowContent);
+                    infoWindow.open(map, marker);
+                });
+
+                return marker;
             });
 
-            return marker;
-        });
-
-        // Reset functionality
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            markers.forEach(marker => marker.setMap(map));
-            map.setCenter(mapOptions.center);
-            map.setZoom(mapOptions.zoom);
-        });
-
-        const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
-        map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
-
-        // Add listener for search box
-        searchBox.addListener('places_changed', () => {
-            const places = searchBox.getPlaces();
-            if (places.length === 0) return;
-
-            const bounds = new google.maps.LatLngBounds();
-            places.forEach(place => {
-                if (!place.geometry || !place.geometry.location) return;
-                bounds.extend(place.geometry.location);
+            // Reset functionality
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                markers.forEach(marker => marker.setMap(map));
+                map.setCenter(mapOptions.center);
+                map.setZoom(mapOptions.zoom);
             });
-            map.fitBounds(bounds);
 
-            // Show only markers within the bounds
-            let visibleMarkerFound = false;
-            markers.forEach(marker => {
-                if (bounds.contains(marker.getPosition())) {
-                    marker.setMap(map); // Show marker
-                    visibleMarkerFound = true;
-                } else {
-                    marker.setMap(null); // Hide marker
+            const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
+
+            // Add listener for search box
+            searchBox.addListener('places_changed', () => {
+                const places = searchBox.getPlaces();
+                if (places.length === 0) return;
+
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach(place => {
+                    if (!place.geometry || !place.geometry.location) return;
+                    bounds.extend(place.geometry.location);
+                });
+
+                const extendFactor = 0.01; 
+                const center = bounds.getCenter();
+                bounds.extend(new google.maps.LatLng(center.lat() + extendFactor, center.lng() + extendFactor));
+                bounds.extend(new google.maps.LatLng(center.lat() - extendFactor, center.lng() - extendFactor));
+
+                map.fitBounds(bounds);
+
+                // Show only markers within the bounds
+                let visibleMarkerFound = false;
+                markers.forEach(marker => {
+                    if (bounds.contains(marker.getPosition())) {
+                        marker.setMap(map); // Show marker
+                        visibleMarkerFound = true;
+                    } else {
+                        marker.setMap(null); // Hide marker
+                    }
+                });
+
+                // Display a message if no visible markers remain
+                if (!visibleMarkerFound) {
+                    alert('No events found in this area!');
                 }
             });
 
-            // Display a message if no visible markers remain
-            if (!visibleMarkerFound) {
-                alert('No events found in this area!');
+            // Get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+
+                        // Center the map on the user's current location
+                        map.setCenter(new google.maps.LatLng(userLat, userLng));
+                        map.setZoom(14); // Optionally set a zoom level
+
+                        // Add a marker for the user's current location
+                        const userMarker = new google.maps.Marker({
+                            position: { lat: userLat, lng: userLng },
+                            map: map,
+                            title: 'You are here',
+                            icon: {
+                                url: '{{ url_for("static", filename="images/current-location.png") }}',
+                                scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
+                            },
+                        });
+
+                        // Optionally, add an info window
+                        userMarker.addListener('click', () => {
+                            infoWindow.setContent('You are here');
+                            infoWindow.open(map, userMarker);
+                        });
+                    },
+                    () => {
+                        alert('Error: The Geolocation service failed. Defaulting to Singapore.');
+                    }
+                );
+            } else {
+                alert('Error: Your browser does not support geolocation.');
             }
-        });
 
-        // Get user's current location
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    // Center the map on the user's current location
-                    map.setCenter(new google.maps.LatLng(userLat, userLng));
-                    map.setZoom(14); // Optionally set a zoom level
-
-                    // Add a marker for the user's current location
-                    const userMarker = new google.maps.Marker({
-                        position: { lat: userLat, lng: userLng },
-                        map: map,
-                        title: 'You are here',
-                        icon: {
-                            url: '{{ url_for("static", filename="images/current-location.png") }}',
-                            scaledSize: new google.maps.Size(40, 40), // Resize icon to 40x40 pixels
-                        },
-                    });
-
-                    // Optionally, add an info window
-                    userMarker.addListener('click', () => {
-                        infoWindow.setContent('You are here');
-                        infoWindow.open(map, userMarker);
-                    });
-                },
-                () => {
-                    alert('Error: The Geolocation service failed. Defaulting to Singapore.');
-                }
-            );
-        } else {
-            alert('Error: Your browser does not support geolocation.');
         }
+    </script>
 
-    }
-</script>
-
-<!-- Load Google Maps API -->
-<script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo&libraries=places&callback=initMap"
-    async defer></script>
-{% endblock %}
+    <!-- Load Google Maps API -->
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcL6Ot97Y8Gtk0-heploLjEebJOUgEJoo&libraries=places&callback=initMap"
+        async defer></script>
+    {% endblock %}

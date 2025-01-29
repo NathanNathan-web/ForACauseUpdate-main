@@ -2,149 +2,165 @@
 {% block title %}ForACause - Admin Inventory{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
         {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <p></p>
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-        <h2 class="fw-bold text-primary mb-3">Supplier List</h2>
+
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="card-title text-primary mb-0">Supplier List</h2>
+                <div>
+                    <a href="/createSupplier" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-lg"></i> Add Supplier
+                    </a>
+                    <a href="/retrieveOrder" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul"></i> View Orders
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <table class="table table-hover">
-        <thead class="table-light-blue">
-            <tr>
-                <th scope="col" class="topleft">Logo</th>
-                <th scope="col">Supplier ID</th>
-                <th scope="col">Supplier Name</th>
-                <th scope="col">Email</th>
-                <th scope="col">Password</th>
-                <th scope="col">Phone</th>
-                <th scope="col">Company</th>
-                <th scope="col">Address</th>
-                <th scope="col">Country</th>
-                <th scope="col">Status</th>  
-                <th scope="col" colspan="3" class="topright">Action</th>
-            </tr>
-        </thead>
-        <tbody class="table-secondary">
-            {% for supplier in supplier_list %}
-            <tr>
-                <td><img src="{{ url_for('static', filename='images/' + supplier.image_file )}}" alt="Logo"
-                        style="height:5vh; width: 3vw;"></td>
-                <td>{{ supplier.id }}</td>
-                <td>{{ supplier.name }}</td>
-                <td>{{ supplier.email }}</td>
-                <td>{{ supplier.password }}</td>
-                <td>{{ supplier.phone }}</td>
-                <td>{{ supplier.company }}</td>
-                <td>{{ supplier.address }}</td>
-                <td>{{ supplier.country }}</td>
-                {% if supplier.isValid == True %}
-                <form action="{{url_for('inventoryvalidity', id=supplier.id)}}" method="POST">
-                    <td><button class='valid'>Valid</button></td>
-                </form>
-                {% else %}
-                <form action="{{url_for('inventoryvalidity', id=supplier.id)}}" method="POST">
-                    <td><button class='nonvalid'>Non-valid</button></td>
-                </form>
-                {% endif %}
+    <!-- Table Section -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Logo</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Contact</th>
+                            <th scope="col">Company Details</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in supplier_list %}
+                        <tr>
+                            <td class="px-4">
+                                <img src="{{ url_for('static', filename='images/' + supplier.image_file )}}" 
+                                     alt="{{ supplier.name }}'s Logo"
+                                     class="rounded-circle"
+                                     style="height: 40px; width: 40px; object-fit: cover;">
+                            </td>
+                            <td class="fw-bold">#{{ supplier.id }}</td>
+                            <td>
+                                <div>{{ supplier.name }}</div>
+                                <small class="text-muted">{{ supplier.email }}</small>
+                            </td>
+                            <td>
+                                <div>{{ supplier.phone }}</div>
+                                <small class="text-muted">{{ supplier.country }}</small>
+                            </td>
+                            <td>
+                                <div>{{ supplier.company }}</div>
+                                <small class="text-muted">{{ supplier.address }}</small>
+                            </td>
+                            <td>
+                                <form action="{{url_for('inventoryvalidity', id=supplier.id)}}" method="POST">
+                                    {% if supplier.isValid == True %}
+                                    <button type="submit" class="badge bg-success border-0 px-3 py-2">Valid</button>
+                                    {% else %}
+                                    <button type="submit" class="badge bg-danger border-0 px-3 py-2">Non-valid</button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                            <td class="text-end px-4">
+                                <div class="btn-group">
+                                    {% if supplier.isValid == True %}
+                                    <a href="/updateSupplier/{{supplier.id}}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{supplier.id}}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <a href="/createOrder/{{supplier.id}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-plus-lg"></i> Order
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-outline-warning" disabled>
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" disabled>
+                                        <i class="bi bi-plus-lg"></i> Order
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
 
-                {% if supplier.isValid == True %}
-                <td><a href="/updateSupplier/{{supplier.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a></td>
-                <td>
-                    <form action="{{url_for('deletesupplier', id=supplier.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{supplier.id}}"><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{supplier.id}}">
-                            <div class="modal-dialog">
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal_{{supplier.id}}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
-                                    <!-- Modal Header -->
                                     <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
+                                        <h5 class="modal-title">Confirm Deletion</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{supplier.name}}?
+                                    <div class="modal-body">
+                                        <p class="mb-0">Are you sure you want to delete supplier <strong>{{supplier.name}}</strong>? This action cannot be undone.</p>
                                     </div>
-                                    <!-- Modal footer -->
                                     <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{{url_for('deletesupplier', id=supplier.id)}}" method="POST">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                    <td><a href="/createOrder/{{supplier.id}}" class="btn btn-secondary">New Order</i></a></td>
-                </td>
-                {% else %}
-                <td><a role="link" aria-disabled="true" class="btn btn-warning"
-                        style="background: rgb(255, 232, 29); color:rgb(102, 102, 102); cursor:default;"><i class="bi bi-pencil-square"></i></a></td>
-                <td>
-                    <form action="{{url_for('deletesupplier', id=supplier.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{supplier.id}}" disabled><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{supplier.id}}">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <!-- Modal Header -->
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{supplier.name}}?
-                                    </div>
-                                    <!-- Modal footer -->
-                                    <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    <td></td>
-                  
-                </td>
-                {% endif %}
-                {% endfor %}
-        </tbody>
-        <tfoot class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="bottomleft"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col" colspan="3" class='bottomright'></th>
-            </tr>
-        </tfoot>
-    </table>
-    <a href="/createSupplier"><button class="btn btn-outline-info"> Add Supplier</button></a>
-    <a href="/retrieveOrder"><button class="btn btn-outline-info"> View All Orders</button></a>
-    <p></p>
-</br>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
+<style>
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .btn-group > .btn {
+        margin: 0 2px;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+</style>
 {% endblock %}

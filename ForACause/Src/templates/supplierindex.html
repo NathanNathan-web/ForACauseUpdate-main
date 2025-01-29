@@ -2,117 +2,168 @@
 {% block navbar %}
   {% include 'includes/_suppliernavbar.html' %}
 {% endblock %}
-{% block title %}ForACause - Create Order{% endblock %}
+{% block title %}ForACause - Order Management{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
         {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <table class="table table-hover">
-        <thead class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="topleft">Order ID</th>
-                <th scope="col">Order Product Name</th>
-                <th scope="col">Order Stock</th>
-                <th scope="col">Status</th>
-                <th scope="col">Supplier ID</th>
-                <th scope="col" class="topright">Product ID</th>
-            </tr>
-        </thead>
-        <tbody class="table-secondary">
-            {% for order in orders_list %}
-            {% if order.status != 1 %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.product.name }}</td>
-                <td>{{ order.orderstock }}</td>
-                {% if order.status == 0 %}
-                <td>Cancelled</td>
-                {% elif order.status == 1 %}
-                <td>Pending</td>
-                {% elif order.status == 2 %}
-                <td>Accepted</td>
-                {% endif %}
 
-                <td>{{ order.supplier_id }}</td>
-                <td>{{ order.product_id }}</td>
+    <!-- Pending Orders Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary bg-opacity-10 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-clock-history text-primary me-2"></i>
+                    Pending Orders
+                </h3>
+                <span class="badge bg-primary">
+                    {{ orders_list | selectattr('status', 'eq', 1) | list | length }} Orders
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Order ID</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Supplier ID</th>
+                            <th scope="col">Product ID</th>
+                            <th scope="col" class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders_list %}
+                        {% if order.status == 1 %}
+                        <tr>
+                            <td class="px-4 fw-bold">#{{ order.id }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.orderstock }}</td>
+                            <td>
+                                <span class="badge bg-warning">Pending</span>
+                            </td>
+                            <td>{{ order.supplier_id }}</td>
+                            <td>{{ order.product_id }}</td>
+                            <td class="text-end px-4">
+                                <div class="btn-group">
+                                    <a href="/acceptOrder/{{order.id}}" class="btn btn-sm btn-success" title="Accept Order">
+                                        <i class="bi bi-check-lg"></i>
+                                    </a>
+                                    <a href="/rejectOrder/{{order.id}}" class="btn btn-sm btn-danger" title="Reject Order">
+                                        <i class="bi bi-x-lg"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-        <tfoot class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="bottomleft"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col" class='bottomright'></th>
-            </tr>
-        </tfoot>
-    </table>
-
-
-    <table class="table table-hover">
-        <thead class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="topleft">Order ID</th>
-                <th scope="col">Order Product Name</th>
-                <th scope="col">Order Stock</th>
-                <th scope="col">Status</th>
-                <th scope="col">Supplier ID</th>
-                <th scope="col">Product ID</th>
-                <th scope="col" colspan='2' class="topright">Action</th>
-            </tr>
-        </thead>
-        <tbody class="table-secondary">
-            {% for order in orders_list %}
-            {% if order.status == 1%}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.product.name }}</td>
-                <td>{{ order.orderstock }}</td>
-                {% if order.status == 0 %}
-                <td>Cancelled</td>
-                {% elif order.status == 1 %}
-                <td>Pending</td>
-                {% elif order.status == 2 %}
-                <td>Accepted</td>
-                {% endif %}
-
-                <td>{{ order.supplier_id }}</td>
-                <td>{{ order.product_id }}</td>
-
-
-                <td><a href="/acceptOrder/{{order.id}}" class="btn btn-success"><i class="bi bi-check-lg"></i></a>
-                </td>
-                <td>
-                    <a href="/rejectOrder/{{order.id}}" class="btn btn-danger"><i class="bi bi-x-lg"></i></a>
-                </td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-        <tfoot class="table-light-blue">
-            <tr border:1px solid black;>
-                <th scope="col" class="bottomleft"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col" colspan="3" class='bottomright'></th>
-            </tr>
-        </tfoot>
-    </table>
+    <!-- Order History Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary bg-opacity-10 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-clock-history text-secondary me-2"></i>
+                    Order History
+                </h3>
+                <span class="badge bg-secondary">
+                    {{ orders_list | selectattr('status', 'ne', 1) | list | length }} Orders
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Order ID</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Supplier ID</th>
+                            <th scope="col">Product ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders_list %}
+                        {% if order.status != 1 %}
+                        <tr>
+                            <td class="px-4 fw-bold">#{{ order.id }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.orderstock }}</td>
+                            <td>
+                                {% if order.status == 0 %}
+                                <span class="badge bg-danger">Cancelled</span>
+                                {% elif order.status == 2 %}
+                                <span class="badge bg-success">Accepted</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.supplier_id }}</td>
+                            <td>{{ order.product_id }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
+<style>
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        color: #333;
+    }
+    
+    .btn-group > .btn {
+        margin: 0 2px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+</style>
 {% endblock %}

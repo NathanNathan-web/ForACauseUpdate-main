@@ -128,7 +128,8 @@
 
                         <!-- Preferred Drop Off Method -->
                         <div class="mb-4">
-                            <label for="{{ form.preferred_drop_off_method.id }}" class="form-label fw-bold">Preferred Drop Off Method</label>
+                            <label for="{{ form.preferred_drop_off_method.id }}" class="form-label fw-bold">Preferred
+                                Drop Off Method</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-truck"></i></span>
                                 {% if form.preferred_drop_off_method.errors %}
@@ -226,5 +227,44 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropOffMethod = document.getElementById("{{ form.preferred_drop_off_method.id }}");
+        const addressField = document.getElementById("{{ form.address.id }}");
+        const dateField = document.getElementById("{{ form.preferred_date.id }}");
+        const timeField = document.getElementById("{{ form.preferred_time.id }}");
+
+        // Get the form group divs to hide/show the entire row
+        const addressGroup = addressField.closest(".mb-4");
+        const dateGroup = dateField.closest(".mb-4");
+        const timeGroup = timeField.closest(".mb-4");
+
+        function toggleFields() {
+            if (dropOffMethod.value === "drop_off") {
+                // Clear fields
+                addressField.value = "";
+                dateField.value = "";
+                timeField.value = "";
+
+                // Hide fields
+                addressGroup.style.display = "none";
+                dateGroup.style.display = "none";
+                timeGroup.style.display = "none";
+            } else {
+                // Show fields
+                addressGroup.style.display = "";
+                dateGroup.style.display = "";
+                timeGroup.style.display = "";
+            }
+        }
+
+        // Run on page load (in case of pre-filled data)
+        toggleFields();
+
+        // Run on drop-off method change
+        dropOffMethod.addEventListener("change", toggleFields);
+    });
+</script>
 
 {% endblock %}
