@@ -1,95 +1,117 @@
 {% extends "base.html" %}
-{% block title %}ForACause Complete Your Donation{% endblock %}
+{% block title %}ForACause - Complete Your Donation{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <h2 class="text-center mb-4">Complete Your Donation</h2>
+
     <div class="card mx-auto" style="max-width: 600px;">
         <div class="card-body text-center">
             <h5>You're Donating To</h5>
             <h2 class="text-primary">{{ organization_name }}</h2>
-            <p>Amount: <strong>${{ donation_amount }}</strong></p>
+
+            <p class="text-muted mt-2"><strong>Original Amount:</strong> ${{ donation_amount }}</p>
+
+            <!-- 🎟 Voucher Selection Dropdown -->
+            {% if redeemed_vouchers %}
+                <div class="redeemed-vouchers my-3 p-3">
+                    <h5 class="text-success"><i class="fas fa-ticket-alt"></i> Apply a Voucher</h5>
+                    <select id="voucherSelect" name="voucher_id" class="form-select" onchange="updateAmount()">
+                        <option value="0" data-discount="0">-- No Voucher Applied --</option>
+                        {% for voucher in redeemed_vouchers %}
+                            {% if voucher.voucher %}
+                                <option value="{{ voucher.voucher.id }}" 
+                                        data-discount="{{ voucher.voucher.value }}">
+                                    {{ voucher.voucher.name }} (-${{ voucher.voucher.value }})
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+
+            <!-- 💰 Final Amount Display -->
+            <p class="final-amount">
+                <strong>Final Amount:</strong> 
+                <span id="finalAmount" class="text-success">${{ final_amount }}</span>
+            </p>
 
             <h5 class="mt-4">Choose Your Payment Method</h5>
 
             <!-- Payment Options -->
             <form method="POST">
-                <div class="mb-3">
-                    <input type="radio" id="paynow" name="payment_method" value="paynow" required>
-                    <label for="paynow">PayNow (Scan QR Code)</label>
-                </div>
-                <div class="mb-3">
-                    <input type="radio" id="stripe" name="payment_method" value="stripe" required>
-                    <label for="stripe">Credit/Debit Card (Stripe)</label>
+                <div class="payment-options">
+                    <div class="mb-3">
+                        <input type="radio" id="paynow" name="payment_method" value="paynow" required>
+                        <label for="paynow">PayNow (Scan QR Code)</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="radio" id="stripe" name="payment_method" value="stripe" required>
+                        <label for="stripe">Credit/Debit Card (Stripe)</label>
+                    </div>
                 </div>
 
                 <!-- PayNow QR Code -->
                 <div id="paynow-container" class="my-4" style="display: none;">
                     <h5>Scan the QR Code</h5>
-                    <img src="{{ url_for('generate_qr', amount=donation_amount, reference=reference) }}"
+                    <img id="qrCodeImage" 
+                         src="{{ url_for('generate_qr', amount=final_amount, reference=reference) }}"
                          alt="PayNow QR Code"
                          class="img-fluid my-3"
-                         style="max-width: 300px;">
+                         style="max-width: 250px;">
                     <p class="text-muted">Use your PayNow app to complete the payment.</p>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn btn-success btn-lg">Proceed</button>
+                <button type="submit" class="btn btn-success btn-lg w-100">Proceed</button>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Toggle visibility of payment options
+    function updateAmount() {
+        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");
+        const voucherSelect = document.getElementById("voucherSelect");
+        const discount = parseFloat(voucherSelect.options[voucherSelect.selectedIndex].getAttribute("data-discount")) || 0;
+        const finalAmount = Math.max(0, originalAmount - discount);
+
+        document.getElementById("finalAmount").innerText = `$${finalAmount.toFixed(2)}`;
+
+        // Update QR code dynamically
+        const qrCodeImage = document.getElementById("qrCodeImage");
+        qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount}`;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const paynowOption = document.getElementById('paynow');
         const stripeOption = document.getElementById('stripe');
         const paynowContainer = document.getElementById('paynow-container');
 
-        // Show QR code when PayNow is selected
-        paynowOption.addEventListener('change', function () {
-            if (this.checked) {
-                paynowContainer.style.display = 'block';
-            }
-        });
+        function togglePayNow() {
+            paynowContainer.style.display = paynowOption.checked ? 'block' : 'none';
+        }
 
-        // Hide QR code when Stripe is selected
-        stripeOption.addEventListener('change', function () {
-            if (this.checked) {
-                paynowContainer.style.display = 'none';
-            }
-        });
+        paynowOption.addEventListener('change', togglePayNow);
+        stripeOption.addEventListener('change', togglePayNow);
+        togglePayNow();
     });
 </script>
 
 <style>
-    /* General Body Styling */
+    /* General Styling */
     body {
         background: linear-gradient(135deg, #e9f6ff 0%, #f3f8fd 100%);
         font-family: 'Poppins', sans-serif;
     }
 
-    /* Card Styling */
     .card {
         border: none;
         border-radius: 20px;
         box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
         background: #ffffff;
     }
 
-    .card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-body {
-        padding: 40px;
-    }
-
-    /* Header Styling */
     h2 {
         color: #0d6efd;
         font-weight: 700;
@@ -97,64 +119,32 @@
         font-size: 2.5rem;
     }
 
-    h5 {
-        color: #495057;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        font-size: 1.2rem;
-    }
-
-    .text-primary {
-        color: #0d6efd !important;
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
-
-    .text-muted {
-        color: #6c757d !important;
-    }
-
-    /* Donation Amount */
-    p strong {
+    .final-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
         color: #198754;
-        font-size: 1.4rem;
-        font-weight: 700;
     }
 
-    /* Button Styling */
     .btn-success {
         background: linear-gradient(90deg, #00c851, #007e33);
         border: none;
         padding: 15px 40px;
         font-size: 1.2rem;
-        font-weight: 600;
         border-radius: 50px;
         color: white;
         transition: all 0.3s ease;
     }
 
     .btn-success:hover {
-        background: linear-gradient(90deg, #007e33, #00c851);
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-    /* Payment Options */
-    input[type="radio"] {
-        accent-color: #0d6efd;
-        transform: scale(1.4);
-        margin-right: 15px;
-    }
-
-    label {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #495057;
-        transition: color 0.3s ease;
-    }
-
-    label:hover {
-        color: #0d6efd;
+    /* Voucher Dropdown */
+    .form-select {
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 1rem;
     }
 
     /* QR Code Section */
@@ -168,13 +158,6 @@
         display: none;
     }
 
-    #paynow-container h5 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #0d6efd;
-        margin-bottom: 1rem;
-    }
-
     #paynow-container img {
         border-radius: 15px;
         max-width: 250px;
@@ -182,9 +165,17 @@
         margin-bottom: 1rem;
     }
 
-    #paynow-container p {
-        font-size: 0.95rem;
-        color: #6c757d;
+    /* Redeemed Vouchers */
+    .redeemed-vouchers {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .redeemed-vouchers h5 {
+        font-size: 1.3rem;
+        color: #0d6efd;
     }
 
     /* Responsive Design */

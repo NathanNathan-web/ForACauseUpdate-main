@@ -10,6 +10,7 @@ from flask_babel import Babel
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+
 secretKey = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
@@ -42,6 +43,7 @@ def get_locale():
     """
     return session.get('lang', request.accept_languages.best_match(app.config['LANGUAGES'].keys()))
 
+
 # Initialize Babel with the locale selector
 babel.init_app(app, locale_selector=get_locale)
 
@@ -49,7 +51,3 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 app.app_context().push()
 from Src import routes
-
-
-
-

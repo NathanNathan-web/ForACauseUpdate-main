@@ -3,6 +3,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy import ARRAY
+from datetime import date
 
 
 @login_manager.user_loader
@@ -166,16 +167,23 @@ class RedeemedVouchers(db.Model):
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Link to User table
     rating = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(255), nullable=False)
-    issue = db.Column(db.Integer, nullable=False)
-    feedback_date = db.Column(db.Date, nullable=False)
+    issue = db.Column(db.String(255), nullable=True)  # Issue should be string, not Integer
+    feedback_date = db.Column(db.Date, nullable=False, default=date.today)
+    email = db.Column(db.String(255), nullable=True)  # Store user's email
 
-    def __init__(self, rating, description, issue , feedback_date):
+    user = db.relationship('User', backref='feedbacks')  # Establish relationship with User table
+
+    def __init__(self, user_id=None, email=None, rating=0, description="", issue="", feedback_date=None):
+        self.user_id = user_id
         self.rating = rating
         self.description = description
         self.issue = issue
-        self.feedback_date = feedback_date
+        self.feedback_date = feedback_date if feedback_date else date.today()
+        self.email = email
+
 
 class Donation(db.Model):
     __tablename__ = 'donations'  # Explicit table name for clarity
@@ -207,4 +215,5 @@ class Organization(db.Model):
 
     def __repr__(self):
         return f'<Organization {self.name}>'
-
+    
+   

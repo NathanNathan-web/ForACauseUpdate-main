@@ -404,25 +404,47 @@ def voucher():
 
 
 
-@app.route('/redeemVoucher/<int:id>', methods= ['GET', 'POST'])
+@app.route('/redeemVoucher/<int:id>', methods=['GET', 'POST'])
+@login_required
 def redeemvoucher(id):
     if current_user.is_authenticated:
-        current_user.credit += 500
-        db.session.commit()
-        vouchers = Voucher.query.filter_by(id=id).first()
-        print(current_user.credit)
-        print(vouchers.credit)
-        if current_user.credit >= vouchers.credit:
-            redeem = RedeemedVouchers(status=1, user_id=current_user.id, voucher_id=vouchers.id)
-            current_user.credit -= vouchers.credit
-            db.session.add(redeem)
-            db.session.commit()
-            return redirect(url_for('account'))
-        else:
-            flash('Not enough credit to redeem', 'warning')
+        voucher = Voucher.query.get(id)
+
+        if not voucher:
+            flash('Voucher not found!', 'danger')
             return redirect(url_for('voucher'))
-    else:
-        return redirect(url_for('login'))
+
+        # 🚀 **Check if user already redeemed this voucher**
+        existing_redeemed = RedeemedVouchers.query.filter_by(user_id=current_user.id, voucher_id=voucher.id).first()
+        if existing_redeemed:
+            flash('You have already redeemed this voucher.', 'warning')
+            return redirect(url_for('voucher'))
+
+        # ✅ **Check if user has enough credits**
+        if current_user.credit >= voucher.credit:
+            redeemed_voucher = RedeemedVouchers(
+                user_id=current_user.id,
+                voucher_id=voucher.id,
+                status='redeemed',
+                redeem_date=datetime.utcnow()
+            )
+            current_user.credit -= voucher.credit  # Deduct credits
+            db.session.add(redeemed_voucher)
+            db.session.commit()
+
+            flash('Voucher successfully redeemed!', 'success')
+
+            # Preserve organization and amount when redirecting
+            organization = request.args.get('organization')
+            amount = request.args.get('amount', type=float)
+
+            return redirect(url_for('donation_payment', organization=organization, amount=amount))
+        else:
+            flash('Not enough credits to redeem this voucher.', 'warning')
+            return redirect(url_for('voucher'))
+
+    return redirect(url_for('login'))
+
 # =================================  Service ==================================
 @app.route('/service', methods=['GET', 'POST'])
 @login_required
@@ -1047,48 +1069,36 @@ def generate_qr():
 def donation_payment():
     from Src.organization import organizations
 
-    # Retrieve donation details from query parameters
-    donation_amount = request.args.get('amount', type=float)
-    selected_org = request.args.get('organization')
+    donation_amount = request.args.get('amount', type=float, default=10.0)  # Default donation amount
+    selected_org = request.args.get('organization', '')
 
-    # Validate the organization
+    # 🚀 Ensure the organization is valid, fallback if missing
     if selected_org not in organizations:
-        flash('Invalid organization selected. Please try again.', 'danger')
-        return redirect(url_for('donate'))
+        selected_org = list(organizations.keys())[0]  # Default to the first available organization
 
-    # Organization details
-    organization_name = organizations[selected_org]['name']
-    reference = "Donation"  # Payment reference
+    # **Retrieve only unique redeemed vouchers**
+    redeemed_vouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+    unique_vouchers = {}
+    for v in redeemed_vouchers:
+        if v.voucher and v.voucher.value:
+            unique_vouchers[v.voucher.id] = v  # Prevent duplicates
 
-    if request.method == 'POST':
-        # Handle payment method selection
-        payment_method = request.form.get('payment_method')
-
-        if payment_method == 'stripe':
-            # Redirect to Stripe Checkout
-            return redirect(url_for(
-                'create_checkout_session',
-                amount=donation_amount,
-                organization=selected_org,
-            ))
-
-        elif payment_method == 'paynow':
-            # Simulate PayNow payment success
-            flash("Your PayNow donation has been successfully processed!", "success")
-            return redirect(url_for(
-                'donation_success',
-                amount=donation_amount,
-                organization=selected_org
-            ))
-
-        flash('Invalid payment method selected. Please try again.', 'danger')
+    total_discount = sum(v.voucher.value for v in unique_vouchers.values())
+    final_amount = max(0, donation_amount - total_discount)
 
     return render_template(
         'payment.html',
-        organization_name=organization_name,
+        organization_name=organizations[selected_org]['name'],
         donation_amount=donation_amount,
-        reference=reference
+        redeemed_vouchers=list(unique_vouchers.values()),  # Only unique vouchers
+        total_discount=total_discount,
+        final_amount=final_amount,
     )
+
+
+
+
+
 @app.route('/donation/success', methods=['GET'])
 @login_required
 def donation_success():
