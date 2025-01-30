@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5 bg-light">
+    <!-- Header Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold text-primary mb-3">My Volunteer Calendar</h1>
+            <p class="lead text-muted mb-4">Track your volunteer events schedule</p>
+        </div>
+    </div>
+
+    <!-- Calendar Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button id="exportButton" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-download me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Enhanced calendar styles */
+    .fc {
+        --fc-border-color: #e5e7eb;
+        --fc-page-bg-color: #fff;
+        --fc-neutral-bg-color: #fff;
+        --fc-today-bg-color: #f8faff;
+    }
+
+    /* Calendar header styling */
+    .fc-toolbar-title {
+        font-size: 1.4rem !important;
+        font-weight: 600 !important;
+        color: #1a1a1a;
+    }
+
+    /* Calendar navigation buttons */
+    .fc-button-primary {
+        background-color: #fff !important;
+        border-color: #e5e7eb !important;
+        color: #374151 !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        padding: 0.5rem 1rem !important;
+    }
+
+    .fc-button-primary:hover {
+        background-color: #f9fafb !important;
+        border-color: #d1d5db !important;
+    }
+
+    .fc-button-primary:not(:disabled).fc-button-active,
+    .fc-button-primary:not(:disabled):active {
+        background-color: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+        color: #fff !important;
+    }
+
+    /* Calendar grid styling */
+    .fc-daygrid-day {
+        transition: background-color 0.2s;
+    }
+
+    .fc-daygrid-day:hover {
+        background-color: #f8faff;
+    }
+
+    .fc-day-today {
+        background-color: #f0f7ff !important;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 0.95rem;
+        color: #4b5563;
+        padding: 0.5rem !important;
+    }
+
+    /* Event styling */
+    .fc-event {
+        border: none !important;
+        background-color: #4f46e5 !important;
+        padding: 0.25rem 0.5rem !important;
+        margin: 2px 4px !important;
+        border-radius: 6px !important;
+        font-size: 0.875rem !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .fc-event:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .fc-event-title {
+        font-weight: 500;
+    }
+
+    .fc-event-time {
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    /* More events popover */
+    .fc-more-popover {
+        border: none !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 8px !important;
+    }
+
+    .fc-more-popover .fc-popover-header {
+        background-color: #f8fafc !important;
+        padding: 0.75rem !important;
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    /* Calendar card styling */
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    }
+
+    /* Button group styling */
+    .btn-group .btn {
+        border-radius: 6px !important;
+        margin: 0 2px;
+        font-weight: 500;
+    }
+
+    .btn-outline-primary {
+        border-color: #e5e7eb;
+        color: #4b5563;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary.active {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+        color: white;
+    }
+
+    /* Header buttons */
+    .btn-outline-secondary {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        border-color: #e5e7eb;
+        color: #4b5563;
+        transition: all 0.2s;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f8fafc;
+        border-color: #d1d5db;
+    }
+</style>
+
+<script>
+    var calendar;
+    document.addEventListener("DOMContentLoaded", function () {
+        if (typeof FullCalendar === "undefined") {
+            console.error("FullCalendar is NOT loaded. Check script order.");
+            return;
+        }
+
+        var calendarEl = document.getElementById("calendar");
+
+        try {
+            var events = JSON.parse('{{ events|tojson|safe }}');
+        } catch (error) {
+            console.error("Error parsing events:", error);
+            var events = [];
+        }
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            height: 800,
+            headerToolbar: {
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay"
+            },
+            events: events,
+            eventColor: "#4f46e5",
+            eventDisplay: 'block',
+            displayEventTime: true,
+            eventClick: function (info) {
+                window.location.href = "/event/" + info.event.id;
+            },
+            dayMaxEvents: true,
+            views: {
+                dayGrid: {
+                    dayMaxEventRows: 4
+                }
+            },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00'
+        });
+
+        calendar.render();
+    });
+
+    document.getElementById('exportButton').addEventListener('click', function () {
+        let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Volunteer Calendar//EN\n";
+
+        if (calendar) {
+            var events = calendar.getEvents();
+
+            events.forEach(event => {
+                let startDate = event.start.toISOString().split('T')[0]; 
+                let dateFormatted = startDate.replace(/-/g, '') + "T120000Z";  
+
+                icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title}\nDTSTART:${dateFormatted}\nDTEND:${dateFormatted}\nEND:VEVENT\n`;
+            });
+
+            icsContent += "END:VCALENDAR";
+
+            // Create the .ics file and trigger the download
+            const blob = new Blob([icsContent], { type: "text/calendar" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "volunteer_calendar.ics";
+            document.body.appendChild(link);
+            link.click();
+        } else {
+            console.error('Calendar is not initialized');
+        }
+    });
+
+</script>
+
+
+{% endblock %}

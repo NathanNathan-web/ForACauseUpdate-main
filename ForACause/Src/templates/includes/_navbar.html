@@ -62,7 +62,7 @@
             aria-expanded="false">Donation</a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="{{ url_for('donateItem') }}">Item Donation</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('donateItem') }}">Monetary Donation</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('donate') }}">Monetary Donation</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -98,8 +98,14 @@
             <li><a class="dropdown-item" href="{{ url_for('donate') }}">Monetary Donation</a></li>
           </ul>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('volunteer') }}">Volunteer</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">Volunteer</a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('volunteer') }}">List View</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('map_view') }}">Map View</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('calendar_view') }}">Calendar View</a></li>
+          </ul>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('service') }}">Services</a>

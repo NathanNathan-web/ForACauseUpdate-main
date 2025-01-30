@@ -94,7 +94,7 @@ def send_reminder_email(donation):
             We truly appreciate your support in helping those in need!
 
             Warm regards,
-            ForACause
+            ForACause Team
             """
 
             mail.send(msg)
@@ -131,6 +131,43 @@ def schedule_pickup_reminder(donation):
         else:
             print(f"Preferred time is too close to the current time for {donation.user.email}, skipping reminder.")
 
+def send_collection_email(donation):
+    if not isinstance(donation, DonateItem):
+        raise ValueError("send_status_update_email only handles item donations.")
+    
+    try:
+        print(f"Preparing to send status update email to {donation.user.email}")
+        if not donation.user.email:
+            print("No email address found for donation user.")
+            return
+
+        with app.app_context():
+            msg = Message(
+                'Update: Our Team is Out for Collection',
+                recipients=[donation.user.email]
+            )
+            msg.body = f"""
+            Dear {donation.user.username},
+
+            We are happy to inform you that our team is now out to collect your donation items.
+
+            Here are the details of your donation:
+
+            Donation Name: {donation.name}
+            Description: {donation.description}
+            Pickup Date: {donation.preferred_date}
+            Pickup Time: {donation.preferred_time}
+
+            Thank you for your generosity and support. If you have any questions, please feel free to reach out.
+
+            Warm regards,
+            ForACause Team
+            """
+
+            mail.send(msg)
+            print(f"Status update email sent to {donation.user.email}")
+    except Exception as e:
+        print(f"Error during email sending: {e}")
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -415,6 +452,10 @@ def update_status(id, new_status):
     # Update the status
     item.status = new_status
     db.session.commit()
+
+    # Send email if status is "Out for Collection"
+    if new_status == "Out for Collection":
+        send_collection_email(item)
 
     return redirect(url_for('donateitemadmin'))
 
@@ -1581,6 +1622,32 @@ def map_view():
         events=events_data,  # This will be used for the list view
         api_key=app.config['GOOGLE_MAPS_API_KEY']
     )
+
+@app.route("/calendar")
+@login_required
+def calendar_view():
+    user_events = (
+        db.session.query(VolunteerEvent.id, VolunteerEvent.name, VolunteerEvent.date)
+        .join(UserVolunteer, UserVolunteer.event_id == VolunteerEvent.id)
+        .filter(UserVolunteer.user_id == current_user.id)
+        .all()
+    )
+
+    events = [
+        {"id": event.id, "title": event.name, "start": event.date.isoformat()} 
+        for event in user_events
+    ]
+
+    return render_template("calendar.html", events=events)
+
+@app.route("/event/<int:event_id>")
+@login_required
+def event_detail(event_id):
+    # Fetch the event details from the database using the event ID
+    event = VolunteerEvent.query.get_or_404(event_id)
+
+    # Render the event detail page and pass the event data
+    return render_template("event_detail.html", event=event)
 
 @app.route('/create_volunteer_event', methods=['GET', 'POST'])
 @login_required
