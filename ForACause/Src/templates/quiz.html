@@ -46,6 +46,14 @@
 
     <!-- Game Canvas -->
     <canvas id="volunteerGame" width="400" height="600"></canvas>
+    <!-- Leaderboard Section -->
+    <div class="leaderboard-container">
+        <h3>🏆 Top 5 Players</h3>
+        <ul id="leaderboard-list">
+            <!-- Leaderboard items will be dynamically added here -->
+        </ul>
+    </div>
+</div>
 </div>
 
 
@@ -475,40 +483,87 @@ canvas {
             }
         }
 
-        function endGame() {
-    isGameOver = true;
-    gameRunning = false;
-    cancelAnimationFrame(gameLoop);
+    function saveScore(score) {
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // Dark overlay matching the road
-    ctx.fillRect(50, 200, 300, 180);
+        // Add the new score to the leaderboard
+        leaderboard.push(score);
 
-    ctx.fillStyle = "white";
-    ctx.font = "28px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Game Over!", canvas.width / 2, 260);
+        // Sort the leaderboard in descending order based on score
+        leaderboard.sort((a, b) => b.score - a.score);
 
-    ctx.font = "20px Arial";
-    ctx.fillText(`Score: ${score}`, canvas.width / 2, 290);
+        // Keep only the top 5 scores
+        leaderboard = leaderboard.slice(0, 5);
 
-    ctx.fillStyle = "#FFD700"; // Golden restart button
-    ctx.fillRect(120, 320, 160, 50);
+        // Save the updated leaderboard back to localStorage
+        localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
 
-    ctx.fillStyle = "black";
-    ctx.font = "22px Arial";
-    ctx.fillText("Restart", canvas.width / 2, 352);
+        // Update leaderboard display immediately
+        displayLeaderboard();
+    }
+    // Function to display the leaderboard
+    function displayLeaderboard() {
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+        const leaderboardList = document.getElementById("leaderboard-list");
+        
+        leaderboardList.innerHTML = ""; // Clear the existing list
 
-    canvas.addEventListener("click", function restartHandler(event) {
-        let rect = canvas.getBoundingClientRect();
-        let mouseX = event.clientX - rect.left;
-        let mouseY = event.clientY - rect.top;
+        // Display the top 5 players
+        leaderboard.forEach((entry, index) => {
+            const leaderboardItem = document.createElement("li");
+            leaderboardItem.classList.add("leaderboard-item");
+            leaderboardItem.innerHTML = `<span>Rank ${index + 1}:</span> ${entry.username} - ${entry.score} points`;
+            leaderboardList.appendChild(leaderboardItem);
+        });
+    }
 
-        if (mouseX >= 120 && mouseX <= 280 && mouseY >= 320 && mouseY <= 370) {
-            canvas.removeEventListener("click", restartHandler);
-            startGame();
-        }
+    function endGame() {
+        isGameOver = true;
+        gameRunning = false;
+        cancelAnimationFrame(gameLoop);
+
+        // Display the game over screen with the score
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // Dark overlay matching the road
+        ctx.fillRect(50, 200, 300, 180);
+
+        ctx.fillStyle = "white";
+        ctx.font = "28px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over!", canvas.width / 2, 260);
+
+        ctx.font = "20px Arial";
+        ctx.fillText(`Score: ${score}`, canvas.width / 2, 290);
+
+        ctx.fillStyle = "#FFD700"; // Golden restart button
+        ctx.fillRect(120, 320, 160, 50);
+
+        ctx.fillStyle = "black";
+        ctx.font = "22px Arial";
+        ctx.fillText("Restart", canvas.width / 2, 352);
+
+        // Prompt user for their name to save the score
+        const username = prompt("Enter your name:");
+
+        // Save the score with the player's name
+        saveScore({ username: username, score: score });
+
+        // Add click event to restart game
+        canvas.addEventListener("click", function restartHandler(event) {
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = event.clientX - rect.left;
+            let mouseY = event.clientY - rect.top;
+
+            if (mouseX >= 120 && mouseX <= 280 && mouseY >= 320 && mouseY <= 370) {
+                canvas.removeEventListener("click", restartHandler);
+                startGame();
+            }
+        });
+    }
+
+    // Initialize the leaderboard when the page loads
+    document.addEventListener("DOMContentLoaded", () => {
+        displayLeaderboard(); // Show the top 5 leaderboard on page load
     });
-}
 
         function drawStartButton() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // Dark overlay matching road
