@@ -34,8 +34,8 @@
 
 <!-- GAME SECTION -->
 <div class="game-container">
-    <h2>🏃 Volunteer Recycle Run ♻️</h2>
-    <p>Move Left & Right to Collect Recycling and Avoid Trash!</p>
+    <h2>🏃 Recycle Hero ♻️</h2>
+    <p>Start Reycling , Stop !</p>
 
     <!-- Difficulty Slider -->
     <div class="difficulty-container">
@@ -48,7 +48,7 @@
     <canvas id="volunteerGame" width="400" height="600"></canvas>
     <!-- Leaderboard Section -->
     <div class="leaderboard-container">
-        <h3>🏆 Top 5 Players</h3>
+        <h3>🏆 Leaderboard</h3>
         <ul id="leaderboard-list">
             <!-- Leaderboard items will be dynamically added here -->
         </ul>
@@ -62,15 +62,16 @@
 
 <style>
     /* Game Card Style */
+    /* Game Container */
 .game-container {
-    background: white;
+    background: #ffffff;
     max-width: 600px;
     margin: 50px auto;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px #ccc;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     text-align: center;
-    margin-top: 5px; /* Reduce space from 50px to 10px */
+    margin-top: 5px;
 }
 
 /* Difficulty Slider Style */
@@ -91,7 +92,7 @@
     cursor: pointer;
 }
 
-/* Canvas Styling (Better UI) */
+/* Game Canvas Styling */
 canvas {
     display: block;
     border-radius: 10px;
@@ -99,6 +100,92 @@ canvas {
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
     margin: 10px auto;
 }
+
+/* Leaderboard Section */
+.leaderboard-container {
+    background: linear-gradient(135deg, #6c5ce7, #00cec9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    color: white;
+}
+
+.leaderboard-container h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+#leaderboard-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#leaderboard-list li {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+#leaderboard-list li:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+#leaderboard-list li span {
+    font-size: 16px;
+    color: #fffae5;
+}
+
+/* Style for each player's rank */
+#leaderboard-list li:nth-child(1) {
+    background: rgba(255, 223, 0, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(2) {
+    background: rgba(192, 192, 192, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(3) {
+    background: rgba(205, 127, 50, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(n+4) {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* General Styling for Leaderboard Items */
+#leaderboard-list li span {
+    color: #fffae5;
+}
+
+/* Animation for Leaderboard */
+@keyframes leaderboardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#leaderboard-list li {
+    animation: leaderboardFadeIn 0.5s ease-out forwards;
+}
+
 
     body {
         font-family: Arial, sans-serif;
