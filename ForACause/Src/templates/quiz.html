@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="quiz-container" id="quiz">
+        <h2>Volunteer Quiz</h2>
+        <p>Find out which volunteering role suits you best!</p>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="question-container">
+            <p class="question fade-in" id="question-text"></p>
+            <div id="options"></div>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <p class="question">You are a...</p>
+            <p id="result-text" class="result"></p>
+
+            <!-- Volunteer Recommendations -->
+            <div class="recommendations">
+                <h3>Recommended Volunteer Roles for You:</h3>
+                <ul id="recommendation-list"></ul>
+            </div>
+
+            <!-- Button to explore volunteer events -->
+            <a href="{{ url_for('volunteer') }}" class="btn btn-primary mt-3">Explore Volunteer Events</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #f4f4f4;
+        overflow-x: hidden;
+    }
+
+    .quiz-container {
+        background: white;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px #ccc;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .question {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    button {
+        display: block;
+        border: none;
+        padding: 12px;
+        margin: 10px auto;
+        cursor: pointer;
+        border-radius: 5px;
+        width: 90%;
+        font-size: 18px;
+        transition: 0.3s;
+    }
+
+    .option {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .option:hover {
+        background-color: #0056b3;
+    }
+
+    .progress-container {
+        width: 100%;
+        background-color: #ddd;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .progress-bar {
+        width: 0%;
+        height: 10px;
+        background-color: #28a745;
+        border-radius: 5px;
+        transition: width 0.5s ease-in-out;
+    }
+
+    .result {
+        font-size: 20px;
+        font-weight: bold;
+        color: green;
+        padding: 20px;
+        background: #e9f7ef;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+
+    /* Volunteer Recommendations */
+    .recommendations {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .recommendations h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .recommendations ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .recommendations li {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px #ccc;
+    }
+
+    /* Fade-in animation */
+    .fade-in {
+        opacity: 0;
+        animation: fadeIn 0.5s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    // Quiz Data
+    const questions = [
+        {
+            question: "What excites you the most?",
+            options: ["Helping people in need", "Teaching & mentoring", "Saving the planet", "Caring for others"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        },
+        {
+            question: "Where do you feel happiest?",
+            options: ["Community work", "Teaching & speaking", "Being in nature", "Helping the sick"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        },
+        {
+            question: "What motivates you?",
+            options: ["Making people happy", "Sharing knowledge", "Saving nature", "Caring for people"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        }
+    ];
+
+    // Volunteer recommendations data
+    const volunteerRecommendations = {
+        "Community Hero": ["🏠 Homeless shelter assistance", "📦 Food bank volunteering", "🛠 Community event planning"],
+        "Educator": ["📚 Tutoring children", "🎤 Public speaking workshops", "📝 Helping in literacy programs"],
+        "Eco Warrior": ["🌱 Tree planting programs", "♻️ Beach clean-ups", "🌿 Sustainability projects"],
+        "Compassionate Carer": ["🏥 Hospital volunteering", "🐾 Animal shelter work", "💜 Elderly care programs"]
+    };
+
+    let currentQuestionIndex = 0;
+    let score = { "Community Hero": 0, "Educator": 0, "Eco Warrior": 0, "Compassionate Carer": 0 };
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = { "Community Hero": 0, "Educator": 0, "Eco Warrior": 0, "Compassionate Carer": 0 };
+        questions.sort(() => Math.random() - 0.5); // Randomize question order
+        document.getElementById("question-container").classList.remove("hidden");
+        document.getElementById("result-container").classList.add("hidden");
+        showQuestion();
+        updateProgressBar();
+    }
+
+    function showQuestion() {
+        if (currentQuestionIndex < questions.length) {
+            const questionData = questions[currentQuestionIndex];
+            const questionText = document.getElementById("question-text");
+            questionText.textContent = questionData.question;
+            questionText.classList.add("fade-in");
+
+            const optionsContainer = document.getElementById("options");
+            optionsContainer.innerHTML = "";
+
+            questionData.options.forEach((option, index) => {
+                let button = document.createElement("button");
+                button.className = "option";
+                button.style.backgroundColor = ["#ff5733", "#3498db", "#2ecc71", "#f1c40f"][index]; // Different colors
+                button.textContent = option;
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+
+            setTimeout(() => {
+                questionText.classList.remove("fade-in");
+            }, 500);
+        } else {
+            showResult();
+        }
+    }
+
+    function selectOption(index) {
+        let category = questions[currentQuestionIndex].category[index];
+        score[category]++;
+
+        currentQuestionIndex++;
+        updateProgressBar();
+        showQuestion();
+    }
+
+    function updateProgressBar() {
+        const totalSteps = questions.length + 1; // Includes final result screen
+        const progress = ((currentQuestionIndex + 1) / totalSteps) * 100;
+        document.getElementById("progressBar").style.width = `${progress}%`;
+    }
+
+    function showResult() {
+        document.getElementById("question-container").classList.add("hidden");
+        document.getElementById("result-container").classList.remove("hidden");
+
+        let topCategory = Object.keys(score).reduce((a, b) => score[a] > score[b] ? a : b);
+        document.getElementById("result-text").textContent = `${topCategory} - You're great at volunteering in this area!`;
+
+        // Show Recommendations
+        const recommendationList = document.getElementById("recommendation-list");
+        recommendationList.innerHTML = volunteerRecommendations[topCategory].map(role => `<li>${role}</li>`).join("");
+    }
+
+    startQuiz();
+</script>
+
+{% endblock %}

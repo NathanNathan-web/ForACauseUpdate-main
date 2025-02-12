@@ -1443,3 +1443,8 @@ def filter_reviews():
     } for review in reviews]
 
     return jsonify({'reviews': reviews_list})
+
+
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
