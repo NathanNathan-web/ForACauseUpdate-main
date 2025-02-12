@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Redemption History{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Your Redemption History</h2>
+    
+    {% if user_history %}
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Voucher Name</th>
+                            <th>Redemption Date and Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for redemption in user_history %}
+                            <tr>
+                                <td>{{ redemption.voucher_name }}</td>
+                                <td>{{ redemption.redemption_date | datetimeformat }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>You have not redeemed any vouchers yet.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+:root {
+    /* Color System */
+    --primary-color: #4299e1;
+    --secondary-color: #667eea;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --border-color: #edf2f7;
+    --background-light: #f7fafc;
+    --white: #ffffff;
+    
+    /* Elevation */
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 12px 20px rgba(0, 0, 0, 0.05);
+    
+    /* Layout */
+    --container-width: 1000px;
+    --radius: 12px;
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 3rem;
+    
+    /* Typography */
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 2.25rem;
+    
+    /* Animation */
+    --transition-duration: 0.2s;
+    --transition-timing: ease;
+}
+
+/* Layout */
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: var(--spacing-md);
+    width: 100%;
+}
+
+/* Typography */
+h2 {
+    font-size: var(--font-size-xl);
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
+    position: relative;
+    padding-bottom: var(--spacing-sm);
+    text-align: center;
+}
+
+h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+}
+
+/* Table Styles */
+.table-container {
+    margin: var(--spacing-md) 0;
+}
+
+.table-responsive {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    margin: 0;
+    background: var(--white);
+    border-collapse: collapse;
+}
+
+/* Table Header */
+.table thead {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.table th {
+    color: var(--white);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: calc(var(--spacing-sm) * 1.25) calc(var(--spacing-sm) * 1.5);
+    font-size: var(--font-size-sm);
+    border: none;
+}
+
+/* Table Body */
+.table td {
+    padding: calc(var(--spacing-sm) * 1.25) calc(var(--spacing-sm) * 1.5);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: transform var(--transition-duration) var(--transition-timing),
+                background-color var(--transition-duration) var(--transition-timing);
+}
+
+.table tbody tr:hover {
+    background-color: var(--background-light);
+    transform: translateY(-1px);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-lg) var(--spacing-sm);
+    background: var(--background-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin: var(--spacing-md) 0;
+}
+
+.empty-state-icon {
+    font-size: calc(var(--font-size-xl) * 1.33);
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.7;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-lg);
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    :root {
+        --font-size-xl: 1.75rem;
+    }
+
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .table th,
+    .table td {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    .empty-state {
+        padding: var(--spacing-md) var(--spacing-sm);
+    }
+    
+    .empty-state-icon {
+        font-size: calc(var(--font-size-xl) * 1.1);
+    }
+    
+    .empty-state p {
+        font-size: var(--font-size-base);
+    }
+}
+
+@media (max-width: 480px) {
+    .table th,
+    .table td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .empty-state {
+        padding: var(--spacing-md) var(--spacing-xs);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .table {
+        box-shadow: none;
+    }
+    
+    .table th {
+        background: var(--background-light);
+        color: var(--text-primary);
+    }
+    
+    .empty-state {
+        box-shadow: none;
+        border: 1px solid var(--border-color);
+    }
+}
+</style>
+{% endblock %}

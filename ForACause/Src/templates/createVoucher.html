@@ -110,10 +110,24 @@
 <style>
 :root {
   --primary-color: #4a90e2;
+  --primary-dark: #357abd;
   --secondary-color: #50c878;
+  --secondary-dark: #3ea861;
   --background-color: #f4f7f9;
   --text-color: #2c3e50;
-  --border-radius: 12px;
+  --error-color: #dc3545;
+  --error-bg: #fff5f5;
+  --border-color: #e9ecef;
+  --focus-ring: rgba(74, 144, 226, 0.25);
+  --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
 }
 
 .voucher-background {
@@ -122,92 +136,139 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding: var(--spacing-xl);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text-color);
 }
 
 .voucher-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.08),
-    0 5px 15px rgba(0, 0, 0, 0.04);
-  padding: 40px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: var(--spacing-xl);
   width: 100%;
-  max-width: 550px;
-  transition: all 0.3s ease;
+  max-width: 600px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .voucher-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 8px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+legend {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--border-color);
+  width: 100%;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .form-label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
   color: var(--text-color);
-  transition: color 0.2s ease;
+  font-size: 0.95rem;
 }
 
 .form-control {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid transparent;
-  border-radius: var(--border-radius);
-  background-color: #f9fafb;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  padding: var(--spacing-md);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background-color: white;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:hover {
+  border-color: var(--primary-color);
 }
 
 .form-control:focus {
   border-color: var(--primary-color);
-  background-color: white;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px var(--focus-ring);
   outline: none;
 }
 
 .form-control.is-invalid {
-  border-color: #f56565;
-  background-color: #fff5f5;
+  border-color: var(--error-color);
+  background-color: var(--error-bg);
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
 }
 
 .invalid-feedback {
-  color: #f56565;
-  font-size: 0.9rem;
-  margin-top: 6px;
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 .btn-submit {
   width: 100%;
-  padding: 14px;
+  padding: var(--spacing-md) var(--spacing-lg);
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-md);
   font-weight: 600;
+  font-size: 1rem;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(74, 144, 226, 0.2);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-submit:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px rgba(74, 144, 226, 0.25);
+  background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+  transform: translateY(-2px);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+.btn-submit:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .form-footer {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 640px) {
+  .voucher-background {
+    padding: var(--spacing-md);
+  }
+  
+  .voucher-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .form-control {
+    font-size: 16px; /* Prevents zoom on mobile */
+  }
 }
 </style>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}ForACause - Complete Your Donation{% endblock %}
 
 {% block content %}
@@ -14,20 +15,20 @@
 
             <!-- 🎟 Voucher Selection Dropdown -->
             {% if redeemed_vouchers %}
-                <div class="redeemed-vouchers my-3 p-3">
-                    <h5 class="text-success"><i class="fas fa-ticket-alt"></i> Apply a Voucher</h5>
-                    <select id="voucherSelect" name="voucher_id" class="form-select" onchange="updateAmount()">
-                        <option value="0" data-discount="0">-- No Voucher Applied --</option>
-                        {% for voucher in redeemed_vouchers %}
-                            {% if voucher.voucher %}
-                                <option value="{{ voucher.voucher.id }}" 
-                                        data-discount="{{ voucher.voucher.value }}">
-                                    {{ voucher.voucher.name }} (-${{ voucher.voucher.value }})
-                                </option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="redeemed-vouchers my-3 p-3">
+                <h5 class="text-success"><i class="fas fa-ticket-alt"></i> Apply a Voucher</h5>
+                <select id="voucherSelect" name="voucher_id" class="form-select" onchange="updateAmount()">
+                    <option value="0" data-discount="0">-- No Voucher Applied --</option>
+                    {% for voucher in redeemed_vouchers %}
+                        {% if voucher.voucher %}
+                            <option value="{{ voucher.voucher.id }}" 
+                                    data-discount="{{ voucher.voucher.value }}">
+                                {{ voucher.voucher.name }} (-${{ voucher.voucher.value }})
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
             {% endif %}
 
             <!-- 💰 Final Amount Display -->
@@ -71,16 +72,21 @@
 
 <script>
     function updateAmount() {
-        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");
+        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");  // Donation amount passed from Flask
         const voucherSelect = document.getElementById("voucherSelect");
+
+        // Get the discount of the selected voucher (if any)
         const discount = parseFloat(voucherSelect.options[voucherSelect.selectedIndex].getAttribute("data-discount")) || 0;
+
+        // Calculate the final amount after discount
         const finalAmount = Math.max(0, originalAmount - discount);
 
+        // Update the displayed final amount
         document.getElementById("finalAmount").innerText = `$${finalAmount.toFixed(2)}`;
 
-        // Update QR code dynamically
+        // Dynamically update the PayNow QR code with the final amount
         const qrCodeImage = document.getElementById("qrCodeImage");
-        qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount}`;
+        qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount.toFixed(2)}`;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -198,4 +204,5 @@
         }
     }
 </style>
+
 {% endblock %}

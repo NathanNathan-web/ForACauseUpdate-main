@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Voucher Redemption History - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">User's Redemption History</h2>
+    <p class="text-center text-muted mb-4">View and manage voucher redemptions made by users.</p>
+
+    <!-- Back Button -->
+    <a href="{{ url_for('retrievevoucher') }}" class="btn btn-secondary mb-4">Back to Vouchers</a>
+
+    {% if redemption_data %}
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Voucher Name</th>
+                        <th>Voucher ID</th>
+                        <th>Username</th>
+                        <th>Redemption Date and Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for redemption in redemption_data %}
+                        <tr>
+                            <td>{{ redemption.voucher_name }}</td>
+                            <td>{{ redemption.voucher_id }}</td>
+                            <td>{{ redemption.user_username }}</td>
+                            <td>{{ redemption.redemption_date | datetimeformat }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <p>No voucher redemption history available.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    :root {
+        --primary-color: #4299e1;
+        --secondary-color: #667eea;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --border-color: #edf2f7;
+        --background-light: #f7fafc;
+        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.07);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 12px 20px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --transition: all 0.2s ease;
+    }
+
+    /* Container */
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    /* Heading */
+    h2 {
+        font-size: 2.25rem;
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-bottom: 2rem;
+        position: relative;
+        padding-bottom: 1rem;
+    }
+
+    h2:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        border-radius: 2px;
+    }
+
+    /* Table Container */
+    .table-container {
+        margin: 2rem 0;
+    }
+
+    .table-responsive {
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    /* Table */
+    .table {
+        width: 100%;
+        margin: 0;
+        background: white;
+        border-collapse: collapse;
+    }
+
+    /* Table Header */
+    .table thead {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .table th {
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1.25rem 1.5rem;
+        font-size: 0.875rem;
+        border: none;
+    }
+
+    /* Table Body */
+    .table td {
+        padding: 1.25rem 1.5rem;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .table tbody tr {
+        transition: var(--transition);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--background-light);
+        transform: translateY(-1px);
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: var(--background-light);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        margin: 2rem 0;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.7;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    /* Back Button Styling */
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        padding: 8px 20px;
+        font-size: 1rem;
+        border-radius: 5px;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
+
+{% endblock %}

@@ -20,6 +20,45 @@ import stripe
 from datetime import datetime
 stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
 import timedelta
+from Src.models import Feedback
+from flask_mail import Mail, Message
+from flask_mail import Message
+from flask import flash, redirect, url_for
+from datetime import datetime
+from flask import flash, redirect, url_for
+from flask_login import login_required
+from flask_login import current_user
+import pytz
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Or use your SMTP service
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'nn4590@gmail.com'  # Your email address
+app.config['MAIL_PASSWORD'] = 'T0045045B'  # Your email password
+app.config['MAIL_DEFAULT_SENDER'] = 'nn4590@gmail.com'
+
+mail = Mail(app)
+
+
+# Set up logging for debugging
+logging.basicConfig(level=logging.DEBUG)
+
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    if isinstance(value, str):  # Ensure it's a string before formatting
+        try:
+            # Convert the string to a datetime object
+            local_tz = pytz.timezone('Asia/Singapore')  # Singapore Time Zone
+            dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            dt = pytz.utc.localize(dt)  # Localize UTC time if not already
+            dt_sg = dt.astimezone(local_tz)  # Convert to Singapore Time
+            return dt_sg.strftime("%d-%m-%Y %H:%M")  # Return in desired format
+        except ValueError:
+            return value  # If parsing fails, return the original value
+    return value
+
+
 def Vegetable():
     return "Vegetable"
 def Fruits():
@@ -403,13 +442,14 @@ def voucher():
     return render_template('voucher.html', vouchers_list=vouchers_list, search_query=search_query)
 
 
-
 @app.route('/redeemVoucher/<int:id>', methods=['GET', 'POST'])
 @login_required
 def redeemvoucher(id):
     if current_user.is_authenticated:
+        # Retrieve the voucher by ID
         voucher = Voucher.query.get(id)
 
+        # If voucher is not found, redirect back with a flash message
         if not voucher:
             flash('Voucher not found!', 'danger')
             return redirect(url_for('voucher'))
@@ -422,28 +462,82 @@ def redeemvoucher(id):
 
         # ✅ **Check if user has enough credits**
         if current_user.credit >= voucher.credit:
+            # Create a new RedeemedVouchers object without redeem_date, assuming it's not part of the model
             redeemed_voucher = RedeemedVouchers(
                 user_id=current_user.id,
                 voucher_id=voucher.id,
-                status='redeemed',
-                redeem_date=datetime.utcnow()
+                status=1  # Assuming '1' means redeemed. Adjust if necessary.
             )
-            current_user.credit -= voucher.credit  # Deduct credits
+
+            # Deduct the voucher's credit from the user's balance
+            current_user.credit -= voucher.credit
             db.session.add(redeemed_voucher)
             db.session.commit()
 
+            # Add the redemption to the redemption history file
+            add_redemption(current_user.id, voucher.id, voucher.name)
+
             flash('Voucher successfully redeemed!', 'success')
 
-            # Preserve organization and amount when redirecting
-            organization = request.args.get('organization')
-            amount = request.args.get('amount', type=float)
+            # Redirect to a confirmation page or stay on the same page
+            return redirect(url_for('voucher'))  # Redirect back to the voucher page
 
-            return redirect(url_for('donation_payment', organization=organization, amount=amount))
         else:
             flash('Not enough credits to redeem this voucher.', 'warning')
             return redirect(url_for('voucher'))
 
+    # If the user is not authenticated, redirect to login
     return redirect(url_for('login'))
+
+
+# Function to load voucher redemption history from JSON
+def load_redemption_history():
+    try:
+        with open('voucher_history.json', 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}  # Return an empty dictionary if file doesn't exist
+    
+@app.route('/redemption_history', methods=['GET'])
+@login_required
+def redemption_history():
+    # Load the redemption history from the JSON file
+    history = load_redemption_history()
+
+    # Get the user's redemption history (if any)
+    user_history = history.get(str(current_user.id), [])  # Ensure user_id is string for matching
+
+    return render_template('redemption_history.html', user_history=user_history)
+
+
+# Function to save redemption history to the JSON file
+def save_redemption_history(history):
+    with open('voucher_history.json', 'w') as file:
+        json.dump(history, file, indent=4)
+
+def add_redemption(user_id, voucher_id, voucher_name):
+    # Load the current history
+    history = load_redemption_history()
+
+    # Add new redemption data to the history
+    if str(user_id) not in history:
+        history[str(user_id)] = []
+
+     # Set Singapore Timezone
+    sg_tz = pytz.timezone('Asia/Singapore')
+    sg_time = datetime.now(sg_tz)  # Get the current time in Singapore
+
+    redemption_data = {
+        "voucher_id": voucher_id,
+        "voucher_name": voucher_name,
+        "redemption_date": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    history[str(user_id)].append(redemption_data)
+
+    # Save the updated history back to the file
+    save_redemption_history(history)
+
 
 # =================================  Service ==================================
 @app.route('/service', methods=['GET', 'POST'])
@@ -844,6 +938,29 @@ def toggle_voucher_status(id):
 
     return jsonify({"success": True, "new_status": voucher.status})
 
+@app.route('/admin_redemption_history')
+@login_required
+def admin_redemption_history():
+    if not current_user.isAdmin:
+        flash("Access denied!", "danger")
+        return redirect(url_for('home'))
+
+    # Load the redemption history from JSON or database
+    redemption_history = load_redemption_history()  # If using JSON, ensure this function loads correctly
+
+    redemption_data = []
+    for user_id, redemptions in redemption_history.items():
+        user = User.query.filter_by(id=user_id).first()  # Retrieve the user by ID
+        for redemption in redemptions:
+            redemption_data.append({
+                "voucher_name": redemption["voucher_name"],
+                "voucher_id": redemption["voucher_id"],
+                "user_username": user.username if user else "Unknown",  # Replace user_id with username
+                "redemption_date": redemption["redemption_date"]
+            })
+
+    return render_template("admin_redemption_history.html", redemption_data=redemption_data)
+
 
 @app.route('/createVoucher', methods=['GET', 'POST'])
 @login_required
@@ -902,19 +1019,12 @@ def deletevoucher(id):
         flash('Voucher not found.', 'danger')
     return redirect(url_for('retrievevoucher'))
 
-
-# ============ SERVICE ===============
-
-
 @app.route('/serviceAdmin')
 @login_required
 def serviceadmin():
-    if current_user.isAdmin:  # Ensure only admins can access this route
-        feedback_list = Feedback.query.all()  # Retrieve all feedbacks from the database
-        return render_template('serviceAdmin.html', feedback_list=feedback_list, adminStat=True)
-    else:
-        flash('You do not have permission to view this page.', 'danger')
-        return redirect(url_for('home'))
+    feedbacks = Feedback.query.all()  # Fetch all feedbacks directly
+    return render_template('serviceAdmin.html', feedback_list=feedbacks, adminStat=True)
+
 
 
 
@@ -1011,12 +1121,12 @@ def donate():
     return render_template('donate.html', form=form, organizations=organizations)
 
 @app.route('/generate_qr', methods=['GET'])
-@login_required
 def generate_qr():
-    from io import BytesIO
-    import qrcode
+    """
+    Generate a PayNow QR Code based on the given amount.
+    """
 
-    # Your PayNow mobile number and other details
+    # PayNow details
     uen_or_mobile = "88185649"  # Your PayNow mobile number
     merchant_name = "ForACause"  # Merchant name
     merchant_city = "Singapore"  # Merchant city
@@ -1024,25 +1134,28 @@ def generate_qr():
     reference = "Donation"  # Fixed payment reference
 
     # Validate input
-    if not uen_or_mobile or not amount:
+    if not uen_or_mobile or amount is None:
         return "Invalid QR code parameters", 400
+
+    # Format amount correctly
+    formatted_amount = f"{amount:.2f}"
 
     # Construct SGQR payload
     payload = (
         "000201"  # Payload format indicator
         "010211"  # Static QR code
         "26440014SG.PAYNOW"  # PayNow identifier
-        f"01012021{len(uen_or_mobile):02}{uen_or_mobile}"  # Mobile number proxy
+        f"010120{len(uen_or_mobile):02}{uen_or_mobile}"  # Mobile number proxy
         "5303702"  # Currency (SGD = 702)
-        f"54{len(f'{amount:.2f}'):02}{amount:.2f}"  # Amount
-        "5802SG"  # Country
+        f"54{len(formatted_amount):02}{formatted_amount}"  # Amount
+        "5802SG"  # Country code
         f"59{len(merchant_name):02}{merchant_name}"  # Merchant name
         f"60{len(merchant_city):02}{merchant_city}"  # Merchant city
         f"62{len(reference)+4:02}01{len(reference):02}{reference}"  # Reference
         "6304"  # CRC checksum placeholder
     )
 
-    # Calculate CRC checksum
+     # Calculate CRC checksum
     crc = calculate_crc(payload)
     payload += crc
 
@@ -1069,7 +1182,7 @@ def generate_qr():
 def donation_payment():
     from Src.organization import organizations
 
-    donation_amount = request.args.get('amount', type=float, default=10.0)  # Default donation amount
+    donation_amount = request.args.get('amount', type=float, default=0.0)  # Default donation amount
     selected_org = request.args.get('organization', '')
 
     # 🚀 Ensure the organization is valid, fallback if missing
@@ -1083,8 +1196,21 @@ def donation_payment():
         if v.voucher and v.voucher.value:
             unique_vouchers[v.voucher.id] = v  # Prevent duplicates
 
+    # Calculate the total discount based on vouchers
     total_discount = sum(v.voucher.value for v in unique_vouchers.values())
-    final_amount = max(0, donation_amount - total_discount)
+    final_amount = max(0, donation_amount - total_discount)  # Ensure non-negative final amount
+
+    if request.method == "POST":
+        payment_method = request.form.get("payment_method")
+        if not payment_method:
+            flash("Please select a payment method.", "error")
+            return redirect(url_for("donation_payment"))
+
+        # ✅ Process payment and redirect to success page
+        flash(f"Donation of SGD {final_amount:.2f} processed successfully!", "success")
+        
+        # Pass the donation_amount and organization_name to donation_success page
+        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]['name']))
 
     return render_template(
         'payment.html',
@@ -1096,15 +1222,14 @@ def donation_payment():
     )
 
 
-
-
-
 @app.route('/donation/success', methods=['GET'])
 @login_required
 def donation_success():
-    donation_amount = request.args.get('amount', type=float)
+    # Retrieve donation amount and organization name from query parameters
+    donation_amount = request.args.get('amount', type=float)  # Ensure correct amount is fetched
     organization_name = request.args.get('organization')
 
+    # Render success page
     return render_template(
         'donation.success.html',
         donation_amount=donation_amount,
@@ -1113,21 +1238,22 @@ def donation_success():
 
 
 
-def calculate_crc(payload: str) -> str:
-    """Calculate CRC16-CCITT checksum for SGQR."""
-    crc = 0xFFFF
-    polynomial = 0x1021
 
-    for byte in payload.encode("utf-8"):
+def calculate_crc(payload):
+    """
+    Calculate CRC16-CCITT checksum required for SGQR format.
+    """
+    poly = 0x1021
+    crc = 0xFFFF
+    for byte in bytearray(payload.encode('utf-8')):
         crc ^= (byte << 8)
         for _ in range(8):
-            if crc & 0x8000:
-                crc = (crc << 1) ^ polynomial
+            if (crc & 0x8000) != 0:
+                crc = (crc << 1) ^ poly
             else:
                 crc <<= 1
-        crc &= 0xFFFF  # Ensure 16-bit
-
-    return f"{crc:04X}"  # Return checksum in uppercase hex
+    crc &= 0xFFFF
+    return f"{crc:04X}"  # Convert to uppercase hex
 
 
 @app.route('/create-checkout-session', methods=['GET'])

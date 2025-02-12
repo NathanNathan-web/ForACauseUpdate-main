@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %} ForACause Feedback Management{% endblock %}
 
 {% block content %}
@@ -20,6 +21,7 @@
                             <th scope="col" class="text-center">Description</th>
                             <th scope="col" class="text-center">Issue</th>
                             <th scope="col" class="text-center">Date</th>
+                      
                         </tr>
                     </thead>
                     <tbody>
@@ -36,6 +38,7 @@
                             <td>{{ feedback.description }}</td>
                             <td class="text-center">{{ feedback.issue }}</td>
                             <td class="text-center">{{ feedback.feedback_date }}</td>
+                           
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -123,6 +126,22 @@
     background: #fff3cd;
     border: 1px solid #ffeeba;
     color: #856404;
+}
+
+/* Button styling */
+.btn-warning {
+    background-color: #f0ad4e;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 5px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.btn-warning:hover {
+    background-color: #ec971f;
 }
 </style>
 {% endblock %}

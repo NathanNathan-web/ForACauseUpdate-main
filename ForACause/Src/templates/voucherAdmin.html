@@ -173,16 +173,25 @@
         flatpickr("#endDate", { dateFormat: "Y-m-d", onChange: filterByDate });
     });
 </script>
-
 <style>
-.voucher-container {
+    /* General Page Styling */
+body {
     background: linear-gradient(135deg, #f6f9fc, #e9f0f7);
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Voucher Container */
+.voucher-container {
     min-height: 100vh;
     display: flex;
     justify-content: center;
     padding: 30px;
 }
 
+/* Voucher Card */
 .voucher-card {
     background: white;
     border-radius: 20px;
@@ -192,31 +201,212 @@
     padding: 30px;
 }
 
+/* Table Styles */
 .table {
-    border-radius: 10px;
     width: 100%;
+    border-radius: 10px;
     overflow: hidden;
+    margin-bottom: 20px;
 }
 
 .table th, .table td {
     text-align: center;
     padding: 10px;
     vertical-align: middle;
+    font-size: 0.95rem;
 }
 
+.table th {
+    background-color: #007bff;
+    color: white;
+}
+
+.table td {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Voucher Logo */
 .voucher-logo {
     height: 50px;
     border-radius: 5px;
 }
 
+/* Search and Filter Section */
+.search-filter-container {
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-input {
+    width: 75%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Date Filter Section */
+.date-filter {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.date-input {
+    width: 45%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background-color: #218838;
+}
+
+/* Add Voucher Button */
+.add-voucher {
+    margin-top: 30px;
+    text-align: center;
+}
+
 .add-btn {
     font-weight: bold;
     font-size: 1.1rem;
+    padding: 10px 30px;
+    border: 2px solid #007bff;
+    background-color: transparent;
+    color: #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Action Buttons */
+.action-btn {
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-right: 5px;
 }
 
 .status-btn {
     font-weight: bold;
     padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.status-btn.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-btn.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-btn:hover {
+    opacity: 0.8;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-body {
+    font-size: 1rem;
+    color: #333;
+}
+
+.modal-footer {
+    justify-content: flex-start;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+}
+
+.modal-footer .btn-danger {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-input,
+    .date-input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .voucher-card {
+        padding: 20px;
+    }
+
+    .table th, .table td {
+        padding: 8px;
+    }
+
+    .voucher-logo {
+        height: 40px;
+    }
+
+    .add-btn {
+        font-size: 1rem;
+        padding: 8px 20px;
+    }
+
+    .action-btn {
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
 }
 </style>
 {% endblock %}

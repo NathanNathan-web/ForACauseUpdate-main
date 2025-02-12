@@ -3,6 +3,7 @@ from Src.models import User  # Change Src to src and specify the correct module
 
 import pycountry 
 
+
 if __name__ == '__main__':
     admin = User(
         username="admin",
@@ -21,6 +22,12 @@ if __name__ == '__main__':
             db.session.commit()
     except Exception as e:  # Capture the exception for debugging
         print("Account exists:", e)
+
+
+
+
+
+
 
 app.run(debug=True, port=000)
 

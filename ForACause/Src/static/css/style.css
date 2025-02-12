@@ -1,3 +1,4 @@
+/* Reset default styling */
 * {
     padding: 0;
     margin: 0;
@@ -14,54 +15,67 @@ footer {
     margin-top: auto;
 }
 
+/* ========================== Table ============================= */
 table {
-    margin-top:50px;
+    margin-top: 50px;
     border-collapse: separate;
-    border-spacing: 0 2px;;
+    border-spacing: 0 2px;
     width: 100%;
 }
-th, td{
+
+th, td {
     text-align: center;
     word-wrap: break-word;
 }
+
 th {
-    height:5vh;
+    height: 5vh;
 }
+
 .topleft {
     border-top-left-radius: 15px;
 }
+
 .topright {
     border-top-right-radius: 15px;
 }
+
 .bottomleft {
     border-bottom-left-radius: 15px;
 }
+
 .bottomright {
     border-bottom-right-radius: 15px;
 }
+
 thead {
     background-color: rgb(185, 255, 189);
 }
+
 tbody {
     background-color: rgb(242, 242, 242);
 }
 
+/* ========================== Card Styles ========================== */
 .card .card-body img {
-    height:25vh;
-    width:100%;
-    padding:3px;
+    height: 25vh;
+    width: 100%;
+    object-fit: cover; /* Ensure images don't stretch */
+    padding: 3px;
     border: 1px solid grey;
 }
-.card .card-body p{
-    font-size:1.2rem;
+
+.card .card-body p {
+    font-size: 1.2rem;
 }
 
-.addtocart button{
-    display:flex;
-    margin:0 auto;
+.addtocart button {
+    display: flex;
+    margin: 0 auto;
 }
 
-/* ===================NAVBAR=================== */
+/* ========================== Navbar ============================= */
+
 p {
     font-size: 1.3rem;
     font-family: 'Alegreya Sans SC', sans-serif;
@@ -74,7 +88,8 @@ h1 {
 h2 {
     font-family: 'Amaranth', sans-serif;
 }
-.navbar, footer{
+
+.navbar, footer {
     background-color: #000080;
 }
 
@@ -85,7 +100,6 @@ h2 {
     text-transform: uppercase;
     margin-right: 15px;
     font-family: 'Alegreya Sans SC', sans-serif;
-
 }
 
 .nav-item a:hover {
@@ -99,12 +113,12 @@ h2 {
 }
 
 .navbar-brand {
-    color:white
+    color: white;
 }
 
 .footer-bg {
-    background-color: #000080; /* Set the background to white */
-    color: white; /* Adjust text color for visibility */
+    background-color: #000080;
+    color: white;
 }
 
 .search {
@@ -163,7 +177,6 @@ h2 {
     color: white;
 }
 
-
 button.navbar-toggler {
     border: 0px;
 }
@@ -174,7 +187,7 @@ button.navbar-toggler {
     outline: none;
     background-color: transparent;
     color: white;
-    font-weight:bold;
+    font-weight: bold;
     border: none;
     transition: all;
     font-size: 0.9vw;
@@ -195,21 +208,18 @@ button.navbar-toggler {
     transition: all;
 }
 
-
-/* ====================== Content ========================= */
+/* ========================== Content ============================ */
 
 .main {
-    background: url(../images/m1.jpg)no-repeat;
+    background: url(../images/m1.jpg) no-repeat;
     background-size: cover;
     height: 100vh;
     width: 100%;
-
 }
 
 .main h1 {
     font-size: 4vw;
 }
-
 
 .mbtn1 {
     height: 50px;
@@ -235,11 +245,10 @@ button.navbar-toggler {
     display: inline-block;
 }
 
-
-/* ====================== Voucher Home Banner ========================= */
+/* ========================== Voucher ============================ */
 
 .voucher {
-    background: url(../images/voucherHome.png)no-repeat;
+    background: url(../images/voucherHome.png) no-repeat;
     background-size: cover;
     height: 100vh;
     width: 100%;
@@ -249,7 +258,7 @@ button.navbar-toggler {
     font-size: 4vw;
 }
 
-/* ====================== Welcome ========================= */
+/* ========================== Welcome ============================ */
 
 .welcome {
     background: #000080;
@@ -277,9 +286,7 @@ button.navbar-toggler {
     color: #000080
 }
 
-
-
-/* =================== FORM=================== */
+/* ========================== Form ============================= */
 
 #loginForm {
     background-color: rgba(186, 255, 197, 0.685);
@@ -290,128 +297,15 @@ button.navbar-toggler {
     border-radius: 20px;
 }
 
-
-
-@media only screen and (max-width: 990px) {
-
-    .main,
-    .voucher {
-        background: #f4f9f3;
-        height: 600px;
-    }
-
-    .main h1,
-    .voucher h1 {
-        font-size: 4vw;
-    }
-
-    .mbtn1 {
-        font-size: 2vw;
-    }
-
-    .acc {
-        border: 1px solid #000080;
-        border-radius: 50px;
-        font-size: 2vw;
-        width:16vw;
-    }
-
-}
-td {
-    vertical-align: middle;
-}
-.nonvalid {
-    
-    display:flex;
-    border:1px solid red;
-    color:red;
-    font-size:0.6vw;
-    border-radius: 10px;
-    width:80px;
-    background-color: rgb(255, 162, 162);
-    padding:10px;
-    justify-content: center;
-    align-items: center;
-    margin:0 auto; 
-
-}
-.nonvalid:hover {
-    display:flex;
-    border:1px solid rgb(0, 0, 0);
-    color:rgb(112, 2, 2);
-    font-size:0.5vw;
-    border-radius: 10px;
-    width:80px;
-    background-color: rgb(253, 105, 105);
-    padding:10px;
-    justify-content: center;
-}
-
-.valid {
-    display:flex;
-    border:1px solid green;
-    color:green;
-    font-size:0.5vw;
-    border-radius: 10px;
-    width:80px;
-    background-color: rgb(162, 255, 167);
-    padding:10px;
-    justify-content: center;  
-    margin:0 auto; 
-}
-
-
-.valid:hover {
-    display:flex;
-    border:1px solid rgb(255, 255, 255);
-    color:rgb(6, 112, 2);
-    font-size:0.5vw;
-    width:80px;
-    border-radius: 10px;
-    background-color: rgb(105, 253, 105);
-    padding:10px;
-    justify-content: center;
-}
-
-a {
-    text-decoration: none;
-}
-
-
-
-/* Product Customer view */
-
-.column {
-    float: left;
-    width:100%;
-    max-width:100%;
-    padding:30px;
-  }
-
-.row {
-    width:100%;
-    max-width:100%;
-}
-  
-.left {
-    width: 20%;
-  }
-  
-.right {
-    width: 80%;
-  }
-
-/* Updated CSS specifically for the voucher table and its container */
-
-/* Scope styles to only affect the table container */
+/* ========================== Table Styles ===================== */
 .table-container {
     margin: 20px auto;
     padding: 20px;
     max-width: 1200px;
-    background-color: #f9fafb; /* Slightly lighter gray background */
-    border: 1px solid #dee2e6; /* Subtle border */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+    background-color: #f9fafb;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .table-container .search-bar button {
@@ -444,128 +338,45 @@ a {
     outline: none;
 }
 
-.table-container .search-bar button {
-    margin-left: 10px;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.table-container .search-bar button:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-}
-
-/* Table styling */
-.table {
-    margin-top: 20px;
-    background-color: white; /* Ensure table has a clean background */
-    border-radius: 10px; /* Rounded corners for table */
-    overflow: hidden; /* Prevent overflow of content */
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table-hover tbody tr:hover {
-    background-color: #f5f7fa; /* Subtle hover effect */
-    transition: background-color 0.3s ease;
+.table-container .btn:hover {
+    transform: scale(1.05); /* Slight zoom effect */
 }
 
 .table thead {
-    background-color: #20c997; /* Green header */
-    color: white; /* White text for header */
-    font-size: 1rem; /* Slightly larger text */
-    font-weight: bold; /* Bold header text */
+    background-color: #20c997;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
     text-transform: uppercase;
 }
 
-.table thead th {
-    border-bottom: 2px solid #dee2e6; /* Divider between header and body */
-    padding: 15px;
+.table tbody tr:hover {
+    background-color: #f5f7fa;
+    transition: background-color 0.3s ease;
 }
 
-.table tbody tr {
-    font-size: 0.95rem; /* Slightly smaller text for readability */
-    line-height: 1.5; /* Improved spacing */
-    border-bottom: 1px solid #dee2e6; /* Subtle row divider */
+/* Footer for table */
+.table tfoot {
+    background-color: #e9ecef;
+    font-weight: bold;
 }
 
-.table td, .table th {
-    vertical-align: middle; /* Align content vertically */
-    text-align: center; /* Center text */
-    padding: 12px; /* Add some spacing */
-}
-
-.table img {
-    border-radius: 5px; /* Rounded corners for images */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Add shadow to images */
-    max-height: 50px;
-    width: auto;
-}
-
-/* Button styles scoped to table */
 .table-container .valid {
-    background-color: #28a745; /* Green background for valid */
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.table-container .valid:hover {
-    background-color: #218838; /* Darker green on hover */
-    transform: scale(1.05); /* Slight zoom on hover */
 }
 
 .table-container .nonvalid {
-    background-color: #dc3545; /* Red background for non-valid */
+    background-color: #dc3545;
     color: white;
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.table-container .nonvalid:hover {
-    background-color: #c82333; /* Darker red on hover */
-    transform: scale(1.05); /* Slight zoom on hover */
-}
-
-.table-container .btn {
-    padding: 8px 12px; /* Uniform padding */
-    font-size: 0.9rem; /* Consistent font size */
-    border-radius: 4px; /* Rounded corners */
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.table-container .btn-warning {
-    background-color: #ffc107; /* Yellow for warning */
-    color: #212529; /* Dark text */
-    border: none;
-}
-
-.table-container .btn-warning:hover {
-    background-color: #e0a800; /* Darker yellow on hover */
-    transform: scale(1.05); /* Slight zoom on hover */
-}
-
-.table-container .btn-danger {
-    background-color: #dc3545; /* Red for danger */
-    color: white;
-    border: none;
-}
-
-.table-container .btn-danger:hover {
-    background-color: #c82333; /* Darker red on hover */
-    transform: scale(1.05); /* Slight zoom on hover */
 }
 
 .table-container .btn-outline-info {
@@ -577,44 +388,35 @@ a {
 .table-container .btn-outline-info:hover {
     background-color: #17a2b8;
     color: white;
-    transform: scale(1.05); /* Slight zoom on hover */
+    transform: scale(1.05); 
 }
 
+/* Modal and Buttons */
+.table-container .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    border: none;
+}
+
+.table-container .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+/* ========================== Footer ============================ */
 .table-container .modal-header {
-    background-color: #343a40; /* Dark header for modal */
+    background-color: #343a40;
     color: white;
     border-bottom: none;
 }
 
 .table-container .modal-body {
-    font-size: 1rem; /* Slightly larger text */
-    color: #212529; /* Dark text */
+    font-size: 1rem;
+    color: #212529;
+    padding: 20px;
 }
 
 .table-container .modal-footer {
     border-top: none;
-}
-
-.table-container .modal .btn-secondary {
-    background-color: #6c757d;
-    border: none;
-}
-
-.table-container .modal .btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-/* Footer for table */
-.table tfoot {
-    background-color: #e9ecef;
-    font-weight: bold;
-}
-
-.date-filter {
-    display: flex;
-    justify-content: flex-start;
-    gap: 10px;
-}
-.date-filter input {
-    max-width: 200px;
 }
