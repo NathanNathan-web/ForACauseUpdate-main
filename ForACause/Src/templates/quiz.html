@@ -137,8 +137,23 @@
     /* Fade-in animation */
     .fade-in {
         opacity: 0;
+        
         animation: fadeIn 0.5s ease-in-out forwards;
     }
+    .confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: fallAnimation linear infinite;
+}
+
+@keyframes fallAnimation {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
 
     @keyframes fadeIn {
         from {
@@ -182,6 +197,25 @@
 
     let currentQuestionIndex = 0;
     let score = { "Community Hero": 0, "Educator": 0, "Eco Warrior": 0, "Compassionate Carer": 0 };
+
+    function launchConfetti() {
+    const confettiContainer = document.createElement("div");
+    confettiContainer.classList.add("confetti-container");
+    document.body.appendChild(confettiContainer);
+
+    for (let i = 0; i < 100; i++) {
+        let confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.backgroundColor = ["#ff4757", "#1e90ff", "#2ed573", "#ffa502", "#eccc68"][Math.floor(Math.random() * 5)];
+        confetti.style.animationDuration = (Math.random() * 3 + 2) + "s"; // 2s - 5s duration
+        confettiContainer.appendChild(confetti);
+    }
+
+    // Remove confetti after 3 seconds
+    setTimeout(() => confettiContainer.remove(), 3000);
+}
+
 
     function startQuiz() {
         currentQuestionIndex = 0;
@@ -236,16 +270,18 @@
     }
 
     function showResult() {
-        document.getElementById("question-container").classList.add("hidden");
-        document.getElementById("result-container").classList.remove("hidden");
+    document.getElementById("question-container").classList.add("hidden");
+    document.getElementById("result-container").classList.remove("hidden");
 
-        let topCategory = Object.keys(score).reduce((a, b) => score[a] > score[b] ? a : b);
-        document.getElementById("result-text").textContent = `${topCategory} - You're great at volunteering in this area!`;
+    let topCategory = Object.keys(score).reduce((a, b) => score[a] > score[b] ? a : b);
+    document.getElementById("result-text").textContent = `${topCategory} - You're great at volunteering in this area!`;
 
-        // Show Recommendations
-        const recommendationList = document.getElementById("recommendation-list");
-        recommendationList.innerHTML = volunteerRecommendations[topCategory].map(role => `<li>${role}</li>`).join("");
-    }
+    const recommendationList = document.getElementById("recommendation-list");
+    recommendationList.innerHTML = volunteerRecommendations[topCategory].map(role => `<li>${role}</li>`).join("");
+
+    launchConfetti(); // 🎉 Trigger confetti when results are shown
+}
+
 
     startQuiz();
 </script>
