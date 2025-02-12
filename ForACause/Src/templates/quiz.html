@@ -32,30 +32,65 @@
     </div>
 </div>
 
-<!-- GAME SECTION  -->
-<h2 style="text-align: center; margin-top: 20px; font-family: Arial, sans-serif; font-size: 28px;">🏃 Volunteer Temple Run ♻️</h2>
-<p style="text-align: center; font-size: 16px; color: #555;">Move Left & Right to Collect Recycling and Avoid Trash!</p>
+<!-- GAME SECTION -->
+<div class="game-container">
+    <h2>🏃 Volunteer Recycle Run ♻️</h2>
+    <p>Move Left & Right to Collect Recycling and Avoid Trash!</p>
 
-<!-- Difficulty Slider -->
-<div style="text-align: center; margin-bottom: 10px;">
-    <label for="difficulty" style="font-size: 18px;">Difficulty: </label>
-    <input type="range" id="difficulty" min="1" max="2" value="1" step="1" style="width: 200px; cursor: pointer;">
-    <span id="difficulty-label" style="font-size: 18px; font-weight: bold; color: #333;">Easy</span>
+    <!-- Difficulty Slider -->
+    <div class="difficulty-container">
+        <label for="difficulty">Difficulty:</label>
+        <input type="range" id="difficulty" min="1" max="2" value="1" step="1">
+        <span id="difficulty-label">Easy</span>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="volunteerGame" width="400" height="600"></canvas>
 </div>
 
-<!-- Game Container (Improved UI) -->
-<div style="display: flex; justify-content: center;">
-    <canvas id="volunteerGame" width="400" height="600" style="border-radius: 20px; background: linear-gradient(to bottom, #87CEEB, #4CAF50); box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);"></canvas>
-</div>
 
 
 
 
 <style>
-    canvas {
-        border: 2px solid #000;
-        border-radius: 10px;
-    }
+    /* Game Card Style */
+.game-container {
+    background: white;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px #ccc;
+    text-align: center;
+}
+
+/* Difficulty Slider Style */
+.difficulty-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.difficulty-container label {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+#difficulty {
+    width: 150px;
+    cursor: pointer;
+}
+
+/* Canvas Styling (Better UI) */
+canvas {
+    display: block;
+    border-radius: 10px;
+    background: #333;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    margin: 10px auto;
+}
+
     body {
         font-family: Arial, sans-serif;
         text-align: center;
@@ -479,7 +514,7 @@
     ctx.fillStyle = "white";
     ctx.font = "28px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("🏃 Temple Run!", canvas.width / 2, 260);
+    ctx.fillText("🏃 Recyle Run!", canvas.width / 2, 260);
 
     ctx.fillStyle = "#FFD700"; // Golden button color
     ctx.fillRect(120, 320, 160, 50);
