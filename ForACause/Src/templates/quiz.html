@@ -32,7 +32,29 @@
     </div>
 </div>
 
+<!-- GAME SECTION  -->
+<h2 style="text-align: center; margin-top: 50px;">♻️ Recycle  Run ♻️</h2>
+<p style="text-align: center;">Move Left & Right to Collect Recycling and Avoid Trash!</p>
+
+<!-- Difficulty Slider -->
+<div style="text-align: center; margin-bottom: 10px;">
+    <label for="difficulty">Difficulty: </label>
+    <input type="range" id="difficulty" min="1" max="2" value="1" step="1">
+    <span id="difficulty-label">Easy</span>
+</div>
+
+<!-- Game Container (Fixes White Space) -->
+<div style="display: flex; justify-content: center; align-items: center;">
+    <canvas id="volunteerGame" width="400" height="600" style="border-radius: 10px; background-color: #cce7ff;"></canvas>
+</div>
+
+
+
 <style>
+    canvas {
+        border: 2px solid #000;
+        border-radius: 10px;
+    }
     body {
         font-family: Arial, sans-serif;
         text-align: center;
@@ -284,6 +306,179 @@
 
 
     startQuiz();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById("volunteerGame");
+        const ctx = canvas.getContext("2d");
+        const difficultySlider = document.getElementById("difficulty");
+        const difficultyLabel = document.getElementById("difficulty-label");
+
+        let player, obstacles, collectibles, score, isGameOver, gameRunning;
+        let gameLoop, gameSpeed = 5, obstacleFrequency = 2000;
+        let lanes = [80, 160, 240, 320]; 
+
+        // Game Assets (Emojis)
+        const PLAYER = "👨‍🦰";
+        const OBSTACLE = "🗑️";
+        const COLLECTIBLE = "♻️";
+        const GROUND_Y = 500;
+
+        function updateDifficulty() {
+            const difficulty = parseInt(difficultySlider.value);
+            if (difficulty === 1) { // Easy Mode
+                gameSpeed = 5;
+                obstacleFrequency = 2000;
+                difficultyLabel.textContent = "Easy"; 
+            } else if (difficulty === 2) { // Hard Mode
+                gameSpeed = 7;
+                obstacleFrequency = 1500;
+                difficultyLabel.textContent = "Hard";
+            }
+        }
+
+        function drawEmoji(text, x, y, size) {
+            ctx.font = `${size}px Arial`;
+            ctx.fillText(text, x, y);
+        }
+
+        function startGame() {
+            isGameOver = false;
+            gameRunning = true;
+            score = 0;
+            player = { x: 160, y: 500, width: 50, height: 50 }; // Player starts in middle lane
+            obstacles = [];
+            collectibles = [];
+            requestAnimationFrame(update);
+            spawnObstacle();
+            spawnCollectible();
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Road Lanes
+            ctx.fillStyle = "#4CAF50";
+            ctx.fillRect(0, GROUND_Y + 20, canvas.width, 50);
+
+            // Move obstacles down
+            obstacles.forEach(obstacle => obstacle.y += gameSpeed);
+            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height);
+
+            // Move collectibles down
+            collectibles.forEach(collectible => collectible.y += gameSpeed);
+            collectibles = collectibles.filter(collectible => collectible.y < canvas.height);
+
+            // Check collisions
+            obstacles.forEach(obstacle => {
+                if (player.x === obstacle.x && player.y < obstacle.y + 40 && player.y + 40 > obstacle.y) {
+                    endGame();
+                }
+            });
+
+            collectibles.forEach((collectible, index) => {
+                if (player.x === collectible.x && player.y < collectible.y + 40 && player.y + 40 > collectible.y) {
+                    score += 10;
+                    collectibles.splice(index, 1);
+                }
+            });
+
+            // Draw elements
+            drawEmoji(PLAYER, player.x, player.y, 40);
+            obstacles.forEach(obstacle => drawEmoji(OBSTACLE, obstacle.x, obstacle.y, 40));
+            collectibles.forEach(collectible => drawEmoji(COLLECTIBLE, collectible.x, collectible.y, 40));
+
+            // Display Score
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + score, 20, 30);
+
+            // Keep game running
+            if (!isGameOver) {
+                gameLoop = requestAnimationFrame(update);
+            }
+        }
+
+        function spawnObstacle() {
+            if (gameRunning) {
+                let lane = lanes[Math.floor(Math.random() * lanes.length)];
+                obstacles.push({ x: lane, y: -40 });
+                setTimeout(spawnObstacle, Math.random() * obstacleFrequency + 1000);
+            }
+        }
+
+        function spawnCollectible() {
+            if (gameRunning) {
+                let lane = lanes[Math.floor(Math.random() * lanes.length)];
+                collectibles.push({ x: lane, y: -40 });
+                setTimeout(spawnCollectible, Math.random() * 3000 + 1500);
+            }
+        }
+
+        function endGame() {
+            isGameOver = true;
+            gameRunning = false;
+            cancelAnimationFrame(gameLoop);
+
+            // Show Restart Button inside Canvas
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(50, 200, 300, 200);
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.fillText("Game Over!", 110, 250);
+            ctx.font = "20px Arial";
+            ctx.fillText(`Score: ${score}`, 150, 290);
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(100, 320, 200, 40);
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Restart", 170, 345);
+
+            // Restart Button Click Detection
+            canvas.addEventListener("click", function restartHandler(event) {
+                let rect = canvas.getBoundingClientRect();
+                let mouseX = event.clientX - rect.left;
+                let mouseY = event.clientY - rect.top;
+
+                if (mouseX >= 100 && mouseX <= 300 && mouseY >= 320 && mouseY <= 360) {
+                    canvas.removeEventListener("click", restartHandler);
+                    startGame();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "ArrowLeft" && player.x > 80) {
+                player.x -= 80; // Move left by 1 lane
+            } else if (e.code === "ArrowRight" && player.x < 320) {
+                player.x += 80; // Move right by 1 lane
+            }
+        });
+
+        difficultySlider.addEventListener("input", updateDifficulty);
+        updateDifficulty();
+
+        function drawStartButton() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(50, 200, 300, 200);
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.fillText("Recycle Run!", 100, 250);
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(100, 320, 200, 40);
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Start Game", 130, 345);
+
+            canvas.addEventListener("click", function startHandler() {
+                canvas.removeEventListener("click", startHandler);
+                startGame();
+            });
+        }
+
+        drawStartButton();
+    });
 </script>
 
 {% endblock %}
