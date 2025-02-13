@@ -15,8 +15,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 
 secretKey = secrets.token_hex(16)
-app.config['SQLALCHEMY_DATABASE_URI'] =\
-        'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
 app.config['SECRET_KEY'] = secretKey
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
@@ -60,6 +59,9 @@ def get_locale():
 # Initialize Babel with the locale selector
 babel.init_app(app, locale_selector=get_locale)
 
+
+
+# Initialize SQLAlchemy, Bcrypt, and Migrate
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
 bcrypt = Bcrypt(app)

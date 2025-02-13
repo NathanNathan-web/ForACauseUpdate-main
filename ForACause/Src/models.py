@@ -31,12 +31,12 @@ class User(db.Model, UserMixin):
     balance = db.Column(db.Integer(), nullable=False, default=0)
     credit = db.Column(db.Integer(), nullable=False, default=0)
 
-    # Establish relationships
+     # Establish relationships
     carts = db.relationship('Cart', backref='user', lazy=True)
     redeemedvouchers = db.relationship('RedeemedVouchers', backref='user', lazy=True)
     volunteer_events = db.relationship('UserVolunteer', back_populates='user', lazy=True)
+    reviews = db.relationship('EventReview', back_populates='user', lazy=True, overlaps="user")
 
-    
     def add_to_cart(self, product, quantity):
         existing_cart = Cart.query.filter_by(user_id=self.id, product_id=product.id).first()
         if existing_cart:
@@ -206,7 +206,41 @@ class VolunteerEvent(db.Model):
     address = db.Column(db.String(255), nullable=True) 
     image_file = db.Column(db.String(100), nullable=True)
 
+    # Add overlaps parameter to resolve conflicts
     volunteers = db.relationship('UserVolunteer', back_populates='event', lazy=True)
+    reviews = db.relationship('EventReview', back_populates='event', lazy=True, overlaps="event")
+
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
+
+    user = db.relationship('User', backref='wishlist_items', lazy=True)
+    event = db.relationship('VolunteerEvent', backref='wishlist_users', lazy=True)
+
+    def __init__(self, user_id, event_id):
+        self.user_id = user_id
+        self.event_id = event_id
+
+class EventReview(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('volunteer_event.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # Rating out of 5
+    feedback = db.Column(db.Text, nullable=True)  # Optional feedback
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # New columns
+    likes = db.Column(db.Integer, default=0)  # Add likes column
+    dislikes = db.Column(db.Integer, default=0)  # Add dislikes column
+
+    user = db.relationship('User', back_populates='reviews', lazy=True)
+    event = db.relationship('VolunteerEvent', back_populates='reviews', lazy=True)
+
+    def __init__(self, event_id, user_id, rating, feedback=None):
+        self.event_id = event_id
+        self.user_id = user_id
+        self.rating = rating
+        self.feedback = feedback
 
 class UserVolunteer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -248,4 +282,3 @@ class Organization(db.Model):
     def __repr__(self):
         return f'<Organization {self.name}>'
     
-   

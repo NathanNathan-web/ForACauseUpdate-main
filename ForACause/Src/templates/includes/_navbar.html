@@ -30,7 +30,10 @@
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('donateitemadmin') }}">Donate Item</a>
+          <a class="nav-link" href="{{ url_for('donateitemadmin') }}">Donation</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('create_volunteer_event') }}">Volunteer</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('serviceadmin') }}">Services</a>
@@ -74,6 +77,12 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('service') }}">Services</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('volunteer') }}">Volunteer</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
+        </li>
       </ul>
 
       {% else %}
@@ -111,6 +120,9 @@
             <li><a class="dropdown-item" href="{{ url_for('map_view') }}">Map View</a></li>
             <li><a class="dropdown-item" href="{{ url_for('calendar_view') }}">Calendar View</a></li>
           </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('service') }}">Services</a>

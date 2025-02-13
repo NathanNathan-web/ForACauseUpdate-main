@@ -1,14 +1,13 @@
 from ast import Return
 from datetime import date, datetime
 import random
-from flask import jsonify, render_template, url_for, flash, redirect, send_file, abort, request, session
+from flask import jsonify, render_template, url_for, flash, redirect, send_file, abort, request, session, Response
 from sqlalchemy import func
-from . import app, db, bcrypt
+from . import app, db, bcrypt, mail
 from collections import Counter
 from datetime import date
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm, DonateForm
-from .models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
-from . import app, db, bcrypt, mail
+from .models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,EventReview, Wishlist,db
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 import os
@@ -27,6 +26,8 @@ from flask_mail import Message
 import pytz
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from sqlalchemy.sql import desc
+import csv
 
 # Set up logging for debugging
 logging.basicConfig(level=logging.DEBUG)
@@ -326,40 +327,27 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
-        # Redeem vouchers and other user info (unchanged)
         redeemvoucher_list = []
-        donateitem_list = []
-        
         image_file = url_for('static', filename='images/' + current_user.image_file)
-        
         user = User.query.filter_by(id=current_user.id).first()
         redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
-        donateitems=DonateItem.query.filter_by(user_id=current_user.id).all()
-        
+        user_volunteer_events = UserVolunteer.query.filter_by(user_id=current_user.id).all()
         for redeemvoucher in redeemvouchers:
             redeemvoucher_list.append(redeemvoucher)
+        volunteering_history = [
+            {
+                "date": volunteer.sign_up_date.strftime('%Y-%m-%d'),
+                "type": "Volunteering",
+                "details": volunteer.event.name,
+                "status": "Completed" if volunteer.attended else "Pending",
+            }
+            for volunteer in user_volunteer_events
+        ]
         # Pass app or app.config['LANGUAGES'] to the template
-        
-        for donateitem in donateitems:
-            if donateitem.image_file:
-                donateitem.image_path = url_for('static', filename='uploads/' + donateitem.image_file)
-            else:
-                donateitem.image_path = None
-            donateitem_list.append(donateitem)
-        
-        # Get order history from session (or temporary storage)
-        order_history = session.get('order_history', [])
-        
-        return render_template(
-            'account.html',
-            image_file=image_file,
-            user=user,
-            redeemvoucher_list=redeemvoucher_list,
-            donateitems=donateitem_list,
-            order_history=order_history)
-        
+        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'], volunteering_history=volunteering_history)
     else:
-        return render_template('login.html')
+        return redirect(url_for('login'))
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -497,7 +485,6 @@ def deletedonationitem(id):
         return redirect(url_for('donateitemadmin'))
     else:
         return redirect(url_for('account'))
-
 
 @app.route('/topup', methods=['GET', 'POST'])
 @login_required
@@ -1133,26 +1120,57 @@ def service():
 
 # ===================================== Admin =====================================
 
-@app.route('/accountAdmin')
+@app.route('/accountadmin', methods=['GET'])
 @login_required
 def accountadmin():
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        user_list = []
-        users = User.query.all()
-        for user in users:
-            user_list.append(user)
-        return render_template('accountAdmin.html', adminStat=True, user_list=user_list)
+    if current_user.is_authenticated and current_user.isAdmin:
+        search_filter = request.args.get('search_filter', '').strip()
+
+        # Start with all users
+        query = User.query
+
+        # Apply filter if provided
+        if search_filter:
+            query = query.filter(
+                (User.username.ilike(f"%{search_filter}%")) |
+                (User.email.ilike(f"%{search_filter}%"))
+            )
+
+        # Fetch the filtered users
+        user_list = query.all()
+
+        # Get the list of hidden users' IDs from the session
+        hidden_users = session.get('hidden_users', [])
+
+        # Filter out the hidden users
+        visible_users = [user for user in user_list if user.id not in hidden_users]
+
+        return render_template('accountAdmin.html', adminStat=True, user_list=visible_users)
     else:
         return redirect(url_for('login'))
+
+
+
+
+
 
 
 @app.route('/deleteUser/<int:id>', methods=['POST'])
 @login_required
 def deleteuser(id):
+    # We need to retrieve the user by ID, which is stored in the session
     user = User.query.filter_by(id=id).first()
-    db.session.delete(user)
-    db.session.commit()
-    return redirect(url_for('accountadmin', idsite=True))
+
+    if user:
+        # Add the user ID to the "hidden" list in the session
+        if 'hidden_users' not in session:
+            session['hidden_users'] = []
+
+        session['hidden_users'].append(id)  # Add this user to the hidden list
+        session.modified = True  # Mark session as modified
+
+    return redirect(url_for('accountadmin'))
+
 
 
 # ============================= PRODUCT =============================
@@ -2147,6 +2165,9 @@ def volunteer():
     # Fetch signed-up event IDs for the current user
     signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
 
+    # Fetch wishlist event IDs for the current user
+    wishlisted_event_ids = {item.event_id for item in current_user.wishlist_items}
+
     # Get filter parameters from the request
     search_name = request.args.get('search_name', '')
     filter_date = request.args.get('filter_date', '')
@@ -2166,8 +2187,12 @@ def volunteer():
     if show_signed_up:
         events = [event for event in events if event.id in signed_up_event_ids]
 
-    return render_template('volunteer.html', events=events, signed_up_event_ids=signed_up_event_ids)
-
+    return render_template(
+        'volunteer.html',
+        events=events,
+        signed_up_event_ids=signed_up_event_ids,
+        wishlisted_event_ids=wishlisted_event_ids
+        )
 
 @app.route('/volunteer/<int:event_id>', methods=['GET', 'POST'])
 @login_required
@@ -2288,9 +2313,9 @@ def create_volunteer_event():
         image_file = None
 
         if 'image_file' in request.files and request.files['image_file'].filename != '':
-            file = request.files['image_file']
-            image_file = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
+                file = request.files['image_file']
+                image_file = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_file))
 
         # Get the address from the latitude and longitude
         address = get_address_from_coordinates(latitude, longitude)
@@ -2311,16 +2336,63 @@ def create_volunteer_event():
         flash('Event created successfully!', 'success')
         return redirect(url_for('create_volunteer_event'))
 
+    # Fetch all events
     events = VolunteerEvent.query.all()
+
+    # Fetch all user signups
     signups = UserVolunteer.query.all()
+
+    # Fetch event reviews with pagination (5 per page)
+    page = request.args.get('page', 1, type=int)
+    reviews = EventReview.query.order_by(EventReview.created_at.desc()).paginate(page=page, per_page=5)
+
+    # Fetch the top volunteer (user with the most signups)
+    top_volunteer_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .first()
+    )
+
+    top_volunteer = {
+        'username': top_volunteer_query[0].username if top_volunteer_query else 'No Volunteers',
+        'signup_count': top_volunteer_query[1] if top_volunteer_query else 0
+    }
+
+    # Fetch the top 5 volunteers
+    top_volunteers_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .limit(5)
+    )
+
+    top_volunteers = [
+        {'username': volunteer[0].username, 'signup_count': volunteer[1]} for volunteer in top_volunteers_query
+    ]
+
+    # Prepare event signup data for the pie chart
+    event_data_query = (
+        db.session.query(VolunteerEvent.name, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, VolunteerEvent.id == UserVolunteer.event_id)
+        .group_by(VolunteerEvent.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+    )
+
+    event_data = {event[0]: event[1] for event in event_data_query}
 
     return render_template(
         'create_volunteer_event.html',
         adminStat=True,
         events=events,
-        signups=signups
+        signups=signups,
+        reviews=reviews,  # ✅ Add this line
+        top_volunteer=top_volunteer,
+        top_volunteers=top_volunteers,
+        event_data=event_data
     )
-
 
 @app.route('/manage_volunteer_event')
 @login_required
@@ -2429,3 +2501,265 @@ def mark_attended(event_id, user_id):
     flash(f'User {signup.user.username} marked as attended for {signup.event.name}.', 'success')
     return redirect(url_for('create_volunteer_event'))
 
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Debug: Check user and associated user_volunteer entries
+    print(f"Deleting user: {user.id}, {user.username}")
+    user_volunteer_entries = UserVolunteer.query.filter_by(user_id=user_id).all()
+    print(f"Associated UserVolunteer entries: {user_volunteer_entries}")
+
+    # Handle deletion logic
+    try:
+        UserVolunteer.query.filter_by(user_id=user_id).delete()
+        Wishlist.query.filter_by(user_id=user_id).delete()
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"User {user.username} and associated data deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error during deletion: {e}")
+        flash("An error occurred while deleting the user.", "danger")
+
+    return redirect(url_for('accountadmin'))
+
+
+@app.route('/export_users', methods=['GET'])
+@login_required
+def export_users():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch all user data
+    users = User.query.all()
+
+    # Prepare CSV data
+    def generate_csv():
+        data = [
+            ['User ID', 'Username', 'Email', 'Password', 'Phone', 'Address', 'Secret Question', 'Balance', 'Credit']
+        ]
+        for user in users:
+            data.append([
+                user.id, 
+                user.username, 
+                user.email, 
+                user.password, 
+                user.phone, 
+                user.address, 
+                user.secretQn, 
+                user.balance, 
+                user.credit
+            ])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    # Create and return CSV response
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=users_data.csv'}
+    )
+
+@app.route('/export_events', methods=['GET'])
+@login_required
+def export_events():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    events = VolunteerEvent.query.all()
+
+    def generate_csv():
+        data = [['Name', 'Category', 'Description', 'Date']]
+        for event in events:
+            data.append([event.name, event.category, event.description, event.date])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=events.csv'}
+    )
+
+@app.route('/export_user_signups', methods=['GET'])
+@login_required
+def export_user_signups():
+    if not current_user.isAdmin:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('home'))
+
+    # Fetch all user signups
+    signups = UserVolunteer.query.all()
+
+    # Debugging: Print the results to see if there are signups
+    for signup in signups:
+        print(f"User: {signup.user.username}, Event: {signup.event.name}, Date: {signup.sign_up_date}, Attended: {signup.attended}")
+
+    def generate_csv():
+        data = [['User', 'Email', 'Event', 'Sign-Up Date', 'Attended']]
+        for signup in signups:
+            data.append([
+                signup.user.username,
+                signup.user.email,
+                signup.event.name,
+                signup.sign_up_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'Yes' if signup.attended else 'No',
+            ])
+        for row in data:
+            yield ','.join(map(str, row)) + '\n'
+
+    return Response(
+        generate_csv(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=user_signups.csv'}
+    )
+
+@app.route('/add_to_wishlist/<int:event_id>', methods=['POST'])
+@login_required
+def add_to_wishlist(event_id):
+    existing_wishlist_item = Wishlist.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+    if not existing_wishlist_item:
+        wishlist_item = Wishlist(user_id=current_user.id, event_id=event_id)
+        db.session.add(wishlist_item)
+        db.session.commit()
+    flash("Event added to your wishlist!", "success")
+    return redirect(url_for('volunteer'))
+
+
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    wishlisted_items = Wishlist.query.filter_by(user_id=current_user.id).all()
+    wishlisted_events = [item.event for item in wishlisted_items] if wishlisted_items else []
+
+    # Debugging
+    print("Wishlisted Events:", wishlisted_events)
+    
+    return render_template('wishlist.html', wishlisted_events=wishlisted_events)
+
+@app.route('/remove_from_wishlist/<int:event_id>', methods=['POST'])
+@login_required
+def remove_from_wishlist(event_id):
+    wishlist_item = Wishlist.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+    if wishlist_item:
+        db.session.delete(wishlist_item)
+        db.session.commit()
+    flash("Event removed from your wishlist!", "success")
+    return redirect(url_for('volunteer'))
+
+@app.route('/submit_review/<int:event_id>', methods=['POST'])
+@login_required
+def submit_review(event_id):
+    event = VolunteerEvent.query.get_or_404(event_id)
+    rating = request.form.get('rating')
+    feedback = request.form.get('feedback')
+
+    if not rating or int(rating) < 1 or int(rating) > 5:
+        flash("Invalid rating. Please provide a rating between 1 and 5.", "danger")
+        return redirect(url_for('event_reviews', event_id=event_id))
+
+    # Check if the user has already submitted a review for this event
+    existing_review = EventReview.query.filter_by(event_id=event_id, user_id=current_user.id).first()
+    if existing_review:
+        flash("You have already reviewed this event.", "warning")
+        return redirect(url_for('event_reviews', event_id=event_id))
+
+    # Save the review
+    review = EventReview(event_id=event.id, user_id=current_user.id, rating=int(rating), feedback=feedback)
+    db.session.add(review)
+    db.session.commit()
+    flash("Your review has been submitted successfully!", "success")
+    return redirect(url_for('event_reviews', event_id=event_id))
+
+
+
+@app.route('/event_reviews/<int:event_id>')
+def event_reviews(event_id):
+    page = request.args.get('page', 1, type=int)
+    event = VolunteerEvent.query.get_or_404(event_id)
+
+    # Fetch all reviews for the event
+    reviews = (
+        EventReview.query.filter_by(event_id=event_id)
+        .order_by(EventReview.created_at.desc())
+        .paginate(page=page, per_page=5)
+    )
+
+    # Fetch the most useful review (highest likes - dislikes)
+    most_useful_review = (
+        EventReview.query.filter_by(event_id=event_id)
+        .order_by((EventReview.likes - EventReview.dislikes).desc())
+        .first()
+    )
+
+    return render_template(
+        'event_reviews.html',
+        event=event,
+        reviews=reviews,
+        most_useful_review=most_useful_review,
+    )
+
+@app.route('/api/review/<int:review_id>/thumbs-up', methods=['POST'])
+def thumbs_up(review_id):
+    review = EventReview.query.get_or_404(review_id)
+    review.likes += 1
+    db.session.commit()
+    return jsonify({'success': True, 'new_likes': review.likes})
+
+@app.route('/api/review/<int:review_id>/thumbs-down', methods=['POST'])
+def thumbs_down(review_id):
+    review = EventReview.query.get_or_404(review_id)
+    review.dislikes += 1
+    db.session.commit()
+    return jsonify({'success': True, 'new_dislikes': review.dislikes})
+
+
+@app.route('/api/filter-reviews', methods=['GET'])
+def filter_reviews():
+    filter_type = request.args.get('filter')  # Get filter type ('highest' or 'lowest')
+
+    # Handle the filtering
+    if filter_type == 'highest':
+        reviews = EventReview.query.order_by(EventReview.rating.desc()).all()
+    elif filter_type == 'lowest':
+        reviews = EventReview.query.order_by(EventReview.rating.asc()).all()
+    else:
+        reviews = EventReview.query.all()  # Default: return all reviews
+
+    # Prepare the reviews for the response
+    reviews_list = [{
+        'id': review.id,
+        'user': review.user.username,
+        'rating': review.rating,
+        'feedback': review.feedback,
+        'likes': review.likes,
+        'dislikes': review.dislikes,
+        'created_at': review.created_at.strftime('%d %b %Y')
+    } for review in reviews]
+
+    return jsonify({'reviews': reviews_list})
+
+
+@app.route('/quiz')
+def quiz():
+    return render_template('quiz.html')
+
+
+from flask import session, redirect, url_for
+
+@app.route('/hideUser/<int:user_id>', methods=['POST'])
+@login_required
+def hideuser(user_id):
+    # Initialize the hidden_users list in session if it doesn't exist
+    if 'hidden_users' not in session:
+        session['hidden_users'] = []
+
+    # Add the user's ID to the hidden_users list in the session
+    session['hidden_users'].append(user_id)
+    session.modified = True  # Mark session as modified to save
+
+    return redirect(url_for('accountadmin'))

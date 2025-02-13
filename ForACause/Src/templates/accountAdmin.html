@@ -2,11 +2,30 @@
 {% block title %}ForACause - Account Management{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Add a wrapper around the table with scroll -->
+<div class="container-fluid">
+     <!-- Filter Section -->
+    <form method="GET" action="{{ url_for('accountadmin') }}" class="mb-3">
+        <div class="input-group">
+            <span class="input-group-text" id="search-icon">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" name="search_filter" class="form-control" placeholder="Filter by username or email"
+                value="{{ request.args.get('search_filter', '') }}">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{{ url_for('accountadmin') }}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+
+    <!-- Export Button -->
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ url_for('export_users') }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-arrow-down"></i> Export Users
+        </a>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover">
-            <thead class="table-light-blue">
+            <thead class="table-success">
                 <tr>
                     <th scope="col" class="topleft">Profile Image</th>
                     <th scope="col">User ID</th>
@@ -25,9 +44,10 @@
             <tbody>
                 {% for user in user_list %}
                 <tr>
-                    <td><img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="Logo"
-                            style="height:5vh; width: 3vw;"></td>
-
+                    <td>
+                        <img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="Logo"
+                            class="img-fluid" style="height: 5vh; width: 3vw;">
+                    </td>
                     <td>{{ user.id }}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
@@ -41,34 +61,24 @@
                     <td></td>
                     <td></td>
                     {% else %}
-                    <td><a href="/updateUser/{{user.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a></td>
                     <td>
-                        <form action="{{url_for('deleteuser', id=user.id)}}" method="POST">
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                                data-bs-target="#myModal_{{user.id}}"><i class="bi bi-trash"></i></button>
-                            <div class="modal" id="myModal_{{user.id}}">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Delete Confirmation</h4>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body"> Are you sure you want to delete {{user.username}}?</div>
-                                        <div class="modal-footer">
-                                            <input type="submit" value="Delete" class="btn btn-danger">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-bs-dismiss="modal">Cancel</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <a href="/updateUser/{{user.id}}" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('hideuser', user_id=user.id) }}" method="POST">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-eye-slash"></i> Delete
+                            </button>
                         </form>
                     </td>
                     {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
-            <tfoot class="table-light-blue">
+
+            <tfoot class="table-success">
                 <tr>
                     <th class="bottomleft"></th>
                     <th></th>

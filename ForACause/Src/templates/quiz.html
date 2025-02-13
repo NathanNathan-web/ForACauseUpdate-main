@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5">
+    <div class="quiz-container" id="quiz">
+        <h2>Volunteer Quiz</h2>
+        <p>Find out which volunteering role suits you best!</p>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="question-container">
+            <p class="question fade-in" id="question-text"></p>
+            <div id="options"></div>
+        </div>
+
+        <div id="result-container" class="hidden">
+            <p class="question">You are a...</p>
+            <p id="result-text" class="result"></p>
+
+            <!-- Volunteer Recommendations -->
+            <div class="recommendations">
+                <h3>Recommended Volunteer Roles for You:</h3>
+                <ul id="recommendation-list"></ul>
+            </div>
+
+            <!-- Button to explore volunteer events -->
+            <a href="{{ url_for('volunteer') }}" class="btn btn-primary mt-3">Explore Volunteer Events</a>
+        </div>
+    </div>
+</div>
+
+<!-- GAME SECTION -->
+<div class="game-container">
+    <h2>🏃 Recycle Hero ♻️</h2>
+    <p>Start Reycling , Stop !</p>
+
+    <!-- Difficulty Slider -->
+    <div class="difficulty-container">
+        <label for="difficulty">Difficulty:</label>
+        <input type="range" id="difficulty" min="1" max="2" value="1" step="1">
+        <span id="difficulty-label">Easy</span>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="volunteerGame" width="400" height="600"></canvas>
+    <!-- Leaderboard Section -->
+    <div class="leaderboard-container">
+        <h3>🏆 Leaderboard</h3>
+        <ul id="leaderboard-list">
+            <!-- Leaderboard items will be dynamically added here -->
+        </ul>
+    </div>
+</div>
+</div>
+
+
+
+
+
+<style>
+    /* Game Card Style */
+    /* Game Container */
+.game-container {
+    background: #ffffff;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* Difficulty Slider Style */
+.difficulty-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.difficulty-container label {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+#difficulty {
+    width: 150px;
+    cursor: pointer;
+}
+
+/* Game Canvas Styling */
+canvas {
+    display: block;
+    border-radius: 10px;
+    background: #333;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    margin: 10px auto;
+}
+
+/* Leaderboard Section */
+.leaderboard-container {
+    background: linear-gradient(135deg, #6c5ce7, #00cec9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    color: white;
+}
+
+.leaderboard-container h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+#leaderboard-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#leaderboard-list li {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+#leaderboard-list li:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+#leaderboard-list li span {
+    font-size: 16px;
+    color: #fffae5;
+}
+
+/* Style for each player's rank */
+#leaderboard-list li:nth-child(1) {
+    background: rgba(255, 223, 0, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(2) {
+    background: rgba(192, 192, 192, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(3) {
+    background: rgba(205, 127, 50, 0.7);
+    font-weight: bold;
+}
+
+#leaderboard-list li:nth-child(n+4) {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* General Styling for Leaderboard Items */
+#leaderboard-list li span {
+    color: #fffae5;
+}
+
+/* Animation for Leaderboard */
+@keyframes leaderboardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#leaderboard-list li {
+    animation: leaderboardFadeIn 0.5s ease-out forwards;
+}
+
+
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #f4f4f4;
+        overflow-x: hidden;
+    }
+
+    .quiz-container {
+        background: white;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px #ccc;
+        transition: transform 0.3s ease-in-out;
+        margin-bottom: 10px; /* Previously 50px, now closer */
+
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .question {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    button {
+        display: block;
+        border: none;
+        padding: 12px;
+        margin: 10px auto;
+        cursor: pointer;
+        border-radius: 5px;
+        width: 90%;
+        font-size: 18px;
+        transition: 0.3s;
+    }
+
+    .option {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .option:hover {
+        background-color: #0056b3;
+    }
+
+    .progress-container {
+        width: 100%;
+        background-color: #ddd;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .progress-bar {
+        width: 0%;
+        height: 10px;
+        background-color: #28a745;
+        border-radius: 5px;
+        transition: width 0.5s ease-in-out;
+    }
+
+    .result {
+        font-size: 20px;
+        font-weight: bold;
+        color: green;
+        padding: 20px;
+        background: #e9f7ef;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+
+    /* Volunteer Recommendations */
+    .recommendations {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .recommendations h3 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .recommendations ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .recommendations li {
+        background: #fff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px #ccc;
+    }
+
+    /* Fade-in animation */
+    .fade-in {
+        opacity: 0;
+        
+        animation: fadeIn 0.5s ease-in-out forwards;
+    }
+    .confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    opacity: 0.8;
+    animation: fallAnimation linear infinite;
+}
+
+@keyframes fallAnimation {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    // Quiz Data
+    const questions = [
+        {
+            question: "What excites you the most?",
+            options: ["Helping people in need", "Teaching & mentoring", "Saving the planet", "Caring for others"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        },
+        {
+            question: "Where do you feel happiest?",
+            options: ["Community work", "Teaching & speaking", "Being in nature", "Helping the sick"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        },
+        {
+            question: "What motivates you?",
+            options: ["Making people happy", "Sharing knowledge", "Saving nature", "Caring for people"],
+            category: ["Community Hero", "Educator", "Eco Warrior", "Compassionate Carer"]
+        }
+    ];
+
+    // Volunteer recommendations data
+    const volunteerRecommendations = {
+        "Community Hero": ["🏠 Homeless shelter assistance", "📦 Food bank volunteering", "🛠 Community event planning"],
+        "Educator": ["📚 Tutoring children", "🎤 Public speaking workshops", "📝 Helping in literacy programs"],
+        "Eco Warrior": ["🌱 Tree planting programs", "♻️ Beach clean-ups", "🌿 Sustainability projects"],
+        "Compassionate Carer": ["🏥 Hospital volunteering", "🐾 Animal shelter work", "💜 Elderly care programs"]
+    };
+
+    let currentQuestionIndex = 0;
+    let score = { "Community Hero": 0, "Educator": 0, "Eco Warrior": 0, "Compassionate Carer": 0 };
+
+    function launchConfetti() {
+    const confettiContainer = document.createElement("div");
+    confettiContainer.classList.add("confetti-container");
+    document.body.appendChild(confettiContainer);
+
+    for (let i = 0; i < 100; i++) {
+        let confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.backgroundColor = ["#ff4757", "#1e90ff", "#2ed573", "#ffa502", "#eccc68"][Math.floor(Math.random() * 5)];
+        confetti.style.animationDuration = (Math.random() * 3 + 2) + "s"; // 2s - 5s duration
+        confettiContainer.appendChild(confetti);
+    }
+
+    // Remove confetti after 3 seconds
+    setTimeout(() => confettiContainer.remove(), 3000);
+}
+
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = { "Community Hero": 0, "Educator": 0, "Eco Warrior": 0, "Compassionate Carer": 0 };
+        questions.sort(() => Math.random() - 0.5); // Randomize question order
+        document.getElementById("question-container").classList.remove("hidden");
+        document.getElementById("result-container").classList.add("hidden");
+        showQuestion();
+        updateProgressBar();
+    }
+
+    function showQuestion() {
+        if (currentQuestionIndex < questions.length) {
+            const questionData = questions[currentQuestionIndex];
+            const questionText = document.getElementById("question-text");
+            questionText.textContent = questionData.question;
+            questionText.classList.add("fade-in");
+
+            const optionsContainer = document.getElementById("options");
+            optionsContainer.innerHTML = "";
+
+            questionData.options.forEach((option, index) => {
+                let button = document.createElement("button");
+                button.className = "option";
+                button.style.backgroundColor = ["#ff5733", "#3498db", "#2ecc71", "#f1c40f"][index]; // Different colors
+                button.textContent = option;
+                button.onclick = () => selectOption(index);
+                optionsContainer.appendChild(button);
+            });
+
+            setTimeout(() => {
+                questionText.classList.remove("fade-in");
+            }, 500);
+        } else {
+            showResult();
+        }
+    }
+
+    function selectOption(index) {
+        let category = questions[currentQuestionIndex].category[index];
+        score[category]++;
+
+        currentQuestionIndex++;
+        updateProgressBar();
+        showQuestion();
+    }
+
+    function updateProgressBar() {
+        const totalSteps = questions.length + 1; // Includes final result screen
+        const progress = ((currentQuestionIndex + 1) / totalSteps) * 100;
+        document.getElementById("progressBar").style.width = `${progress}%`;
+    }
+
+    function showResult() {
+    document.getElementById("question-container").classList.add("hidden");
+    document.getElementById("result-container").classList.remove("hidden");
+
+    let topCategory = Object.keys(score).reduce((a, b) => score[a] > score[b] ? a : b);
+    document.getElementById("result-text").textContent = `${topCategory} - You're great at volunteering in this area!`;
+
+    const recommendationList = document.getElementById("recommendation-list");
+    recommendationList.innerHTML = volunteerRecommendations[topCategory].map(role => `<li>${role}</li>`).join("");
+
+    launchConfetti(); // 🎉 Trigger confetti when results are shown
+}
+
+
+    startQuiz();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const canvas = document.getElementById("volunteerGame");
+        const ctx = canvas.getContext("2d");
+        const difficultySlider = document.getElementById("difficulty");
+        const difficultyLabel = document.getElementById("difficulty-label");
+
+        let player, obstacles, collectibles, score, isGameOver, gameRunning, gameStarted;
+        let gameLoop, gameSpeed = 5, obstacleFrequency = 2000;
+        let lanes = [100, 200, 300]; // Now only 3 lanes
+
+        // Game Assets (Emojis)
+        const PLAYER = "🦸";
+        const OBSTACLE = "🗑️";
+        const COLLECTIBLE = "♻️";
+        const GROUND_Y = 600;
+
+        function updateDifficulty() {
+            const difficulty = parseInt(difficultySlider.value);
+            if (difficulty === 1) { // Easy Mode
+                gameSpeed = 5;
+                obstacleFrequency = 2000;
+                difficultyLabel.textContent = "Easy";
+                difficultyLabel.style.color = "green";
+            } else if (difficulty === 2) { // Hard Mode
+                gameSpeed = 7;
+                obstacleFrequency = 1500;
+                difficultyLabel.textContent = "Hard";
+                difficultyLabel.style.color = "red";
+            }
+        }
+
+        function drawEmoji(text, x, y, size) {
+            ctx.font = `${size}px Arial`;
+            ctx.fillText(text, x, y);
+        }
+
+        function startGame() {
+            isGameOver = false;
+            gameRunning = true;
+            gameStarted = true;
+            score = 0;
+            player = { x: 200, y: 500, width: 50, height: 50 }; // Start in center lane
+            obstacles = [];
+            collectibles = [];
+            requestAnimationFrame(update);
+            spawnObstacle();
+            spawnCollectible();
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Road Background
+            ctx.fillStyle = "#333";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Lanes
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 5;
+            for (let i = 1; i < 3; i++) { // Only 3 lanes now
+                ctx.beginPath();
+                ctx.moveTo(i * 133, 0);
+                ctx.lineTo(i * 133, canvas.height);
+                ctx.stroke();
+            }
+
+            // Move obstacles down
+            obstacles.forEach(obstacle => obstacle.y += gameSpeed);
+            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height);
+
+            // Move collectibles down
+            collectibles.forEach(collectible => collectible.y += gameSpeed);
+            collectibles = collectibles.filter(collectible => collectible.y < canvas.height);
+
+            // Check collisions
+            obstacles.forEach(obstacle => {
+                if (player.x === obstacle.x && player.y < obstacle.y + 40 && player.y + 40 > obstacle.y) {
+                    endGame();
+                }
+            });
+
+            collectibles.forEach((collectible, index) => {
+                if (player.x === collectible.x && player.y < collectible.y + 40 && player.y + 40 > collectible.y) {
+                    score += 10;
+                    collectibles.splice(index, 1);
+                }
+            });
+
+            // Draw elements
+            drawEmoji(PLAYER, player.x, player.y, 40);
+            obstacles.forEach(obstacle => drawEmoji(OBSTACLE, obstacle.x, obstacle.y, 40));
+            collectibles.forEach(collectible => drawEmoji(COLLECTIBLE, collectible.x, collectible.y, 40));
+
+            // Stylish Score Display (Centered at Top)
+            ctx.fillStyle = "white";
+            ctx.font = "22px Arial";
+            ctx.textAlign = "center"; // Ensures it is centered
+            ctx.fillText("🏆 Score: " + score, canvas.width / 2, 40);
+
+            // If game is not started, show start button
+            if (!gameStarted) {
+                drawStartButton();
+                return;
+            }
+
+            // Keep game running
+            if (!isGameOver) {
+                gameLoop = requestAnimationFrame(update);
+            }
+        }
+
+        function spawnObstacle() {
+            if (gameRunning) {
+                let lane = lanes[Math.floor(Math.random() * lanes.length)];
+                obstacles.push({ x: lane, y: -40 });
+                setTimeout(spawnObstacle, Math.random() * obstacleFrequency + 1000);
+            }
+        }
+
+        function spawnCollectible() {
+            if (gameRunning) {
+                let lane = lanes[Math.floor(Math.random() * lanes.length)];
+                collectibles.push({ x: lane, y: -40 });
+                setTimeout(spawnCollectible, Math.random() * 3000 + 1500);
+            }
+        }
+
+    function saveScore(score) {
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+        // Add the new score to the leaderboard
+        leaderboard.push(score);
+
+        // Sort the leaderboard in descending order based on score
+        leaderboard.sort((a, b) => b.score - a.score);
+
+        // Keep only the top 5 scores
+        leaderboard = leaderboard.slice(0, 5);
+
+        // Save the updated leaderboard back to localStorage
+        localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
+        // Update leaderboard display immediately
+        displayLeaderboard();
+    }
+    // Function to display the leaderboard
+    function displayLeaderboard() {
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+        const leaderboardList = document.getElementById("leaderboard-list");
+        
+        leaderboardList.innerHTML = ""; // Clear the existing list
+
+        // Display the top 5 players
+        leaderboard.forEach((entry, index) => {
+            const leaderboardItem = document.createElement("li");
+            leaderboardItem.classList.add("leaderboard-item");
+            leaderboardItem.innerHTML = `<span>Rank ${index + 1}:</span> ${entry.username} - ${entry.score} points`;
+            leaderboardList.appendChild(leaderboardItem);
+        });
+    }
+
+    function endGame() {
+        isGameOver = true;
+        gameRunning = false;
+        cancelAnimationFrame(gameLoop);
+
+        // Display the game over screen with the score
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // Dark overlay matching the road
+        ctx.fillRect(50, 200, 300, 180);
+
+        ctx.fillStyle = "white";
+        ctx.font = "28px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over!", canvas.width / 2, 260);
+
+        ctx.font = "20px Arial";
+        ctx.fillText(`Score: ${score}`, canvas.width / 2, 290);
+
+        ctx.fillStyle = "#FFD700"; // Golden restart button
+        ctx.fillRect(120, 320, 160, 50);
+
+        ctx.fillStyle = "black";
+        ctx.font = "22px Arial";
+        ctx.fillText("Restart", canvas.width / 2, 352);
+
+        // Prompt user for their name to save the score
+        const username = prompt("Enter your name:");
+
+        // Save the score with the player's name
+        saveScore({ username: username, score: score });
+
+        // Add click event to restart game
+        canvas.addEventListener("click", function restartHandler(event) {
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = event.clientX - rect.left;
+            let mouseY = event.clientY - rect.top;
+
+            if (mouseX >= 120 && mouseX <= 280 && mouseY >= 320 && mouseY <= 370) {
+                canvas.removeEventListener("click", restartHandler);
+                startGame();
+            }
+        });
+    }
+
+    // Initialize the leaderboard when the page loads
+    document.addEventListener("DOMContentLoaded", () => {
+        displayLeaderboard(); // Show the top 5 leaderboard on page load
+    });
+
+        function drawStartButton() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.8)"; // Dark overlay matching road
+    ctx.fillRect(50, 200, 300, 180);
+
+    ctx.fillStyle = "white";
+    ctx.font = "28px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("🏃 Recyle Run!", canvas.width / 2, 260);
+
+    ctx.fillStyle = "#FFD700"; // Golden button color
+    ctx.fillRect(120, 320, 160, 50);
+    
+    ctx.fillStyle = "black";
+    ctx.font = "22px Arial";
+    ctx.fillText("Start Game", canvas.width / 2, 352);
+
+    canvas.addEventListener("click", function startHandler(event) {
+        let rect = canvas.getBoundingClientRect();
+        let mouseX = event.clientX - rect.left;
+        let mouseY = event.clientY - rect.top;
+
+        if (mouseX >= 120 && mouseX <= 280 && mouseY >= 320 && mouseY <= 370) {
+            canvas.removeEventListener("click", startHandler);
+            startGame();
+        }
+    });
+}
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "ArrowLeft" && player.x > 100) {
+                player.x -= 100;
+            } else if (e.code === "ArrowRight" && player.x < 300) {
+                player.x += 100;
+            }
+        });
+
+        difficultySlider.addEventListener("input", updateDifficulty);
+        updateDifficulty();
+
+        drawStartButton(); // Show start button first
+    });
+</script>
+
+{% endblock %}

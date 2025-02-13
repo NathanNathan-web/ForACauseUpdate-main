@@ -83,7 +83,6 @@
             class="rounded-circle mb-3" style="height: 100px; width: 100px; object-fit: cover;">
         <h2 class="card-title">{{ user.username }}</h2>
         <p class="card-text text-muted">{{ user.email }}</p>
-        <p><strong>Total Donations:</strong> ${{ user.donation_total }}</p>
 
         <!-- Form to upload profile image -->
         <form action="{{ url_for('update_profile_image') }}" method="POST" enctype="multipart/form-data">
@@ -119,8 +118,6 @@
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Address</th>
-                            <th>Donation Total</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,11 +129,6 @@
                             <td>{{ user.email }}</td>
                             <td>{{ user.phone }}</td>
                             <td>{{ user.address }}</td>
-                            <td>${{ user.donation_total }}</td>
-                            <td>
-                                <button type="button" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i> View
-                                    Image</button>
-                            </td>
                         </tr>
                     </tbody>
                 </table>
