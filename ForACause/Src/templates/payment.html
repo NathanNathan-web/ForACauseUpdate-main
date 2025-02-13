@@ -11,6 +11,9 @@
             <h5>You're Donating To</h5>
             <h2 class="text-primary">{{ organization_name }}</h2>
 
+            <!-- Error Messages -->
+            <div id="errorMessages" class="alert alert-danger d-none"></div>
+
             <p class="text-muted mt-2"><strong>Original Amount:</strong> ${{ donation_amount }}</p>
 
             <!-- 🎟 Voucher Selection Dropdown -->
@@ -40,20 +43,20 @@
             <h5 class="mt-4">Choose Your Payment Method</h5>
 
             <!-- Payment Options -->
-            <form method="POST">
+            <form method="POST" onsubmit="return validateForm()">
                 <div class="payment-options">
                     <div class="mb-3">
-                        <input type="radio" id="paynow" name="payment_method" value="paynow" required>
+                        <input type="radio" id="paynow" name="payment_method" value="paynow">
                         <label for="paynow">PayNow (Scan QR Code)</label>
                     </div>
                     <div class="mb-3">
-                        <input type="radio" id="stripe" name="payment_method" value="stripe" required>
+                        <input type="radio" id="stripe" name="payment_method" value="stripe">
                         <label for="stripe">Credit/Debit Card (Stripe)</label>
                     </div>
                 </div>
 
                 <!-- PayNow QR Code -->
-                <div id="paynow-container" class="my-4" style="display: none;">
+                <div id="paynow-container" class="my-4 d-none">
                     <h5>Scan the QR Code</h5>
                     <img id="qrCodeImage" 
                          src="{{ url_for('generate_qr', amount=final_amount, reference=reference) }}"
@@ -72,21 +75,52 @@
 
 <script>
     function updateAmount() {
-        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");  // Donation amount passed from Flask
+        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");  
         const voucherSelect = document.getElementById("voucherSelect");
+        const finalAmountDisplay = document.getElementById("finalAmount");
+        const errorMessages = document.getElementById("errorMessages");
 
-        // Get the discount of the selected voucher (if any)
+        // Get selected voucher discount
         const discount = parseFloat(voucherSelect.options[voucherSelect.selectedIndex].getAttribute("data-discount")) || 0;
+        let finalAmount = Math.max(0, originalAmount - discount);
 
-        // Calculate the final amount after discount
-        const finalAmount = Math.max(0, originalAmount - discount);
+        // Show error if voucher discount is greater than donation amount
+        if (discount > originalAmount) {
+            errorMessages.innerHTML = "⚠️ The selected voucher discount exceeds your donation amount.";
+            errorMessages.classList.remove("d-none");
+        } else {
+            errorMessages.innerHTML = "";
+            errorMessages.classList.add("d-none");
+        }
 
-        // Update the displayed final amount
-        document.getElementById("finalAmount").innerText = `$${finalAmount.toFixed(2)}`;
+        // Update displayed final amount
+        finalAmountDisplay.innerText = `$${finalAmount.toFixed(2)}`;
 
-        // Dynamically update the PayNow QR code with the final amount
+        // Dynamically update QR code with correct amount
         const qrCodeImage = document.getElementById("qrCodeImage");
         qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount.toFixed(2)}`;
+    }
+
+    function validateForm() {
+        const errorMessages = document.getElementById("errorMessages");
+        const finalAmount = parseFloat(document.getElementById("finalAmount").innerText.replace("$", ""));
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+
+        // Ensure donation amount is valid
+        if (finalAmount <= 0) {
+            errorMessages.innerHTML = "⚠️ Donation amount must be greater than $0.";
+            errorMessages.classList.remove("d-none");
+            return false;
+        }
+
+        // Ensure a payment method is selected
+        if (!paymentMethod) {
+            errorMessages.innerHTML = "⚠️ Please select a payment method.";
+            errorMessages.classList.remove("d-none");
+            return false;
+        }
+
+        return true;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -95,7 +129,7 @@
         const paynowContainer = document.getElementById('paynow-container');
 
         function togglePayNow() {
-            paynowContainer.style.display = paynowOption.checked ? 'block' : 'none';
+            paynowContainer.classList.toggle("d-none", !paynowOption.checked);
         }
 
         paynowOption.addEventListener('change', togglePayNow);
@@ -141,67 +175,12 @@
         transition: all 0.3s ease;
     }
 
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Voucher Dropdown */
-    .form-select {
-        border-radius: 10px;
-        padding: 10px;
+    /* Error Message Styling */
+    .alert-danger {
         font-size: 1rem;
-    }
-
-    /* QR Code Section */
-    #paynow-container {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
-        border-radius: 20px;
-        padding: 20px;
-        text-align: center;
-        transition: opacity 0.3s ease;
-        display: none;
-    }
-
-    #paynow-container img {
-        border-radius: 15px;
-        max-width: 250px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1rem;
-    }
-
-    /* Redeemed Vouchers */
-    .redeemed-vouchers {
-        background: #f8f9fa;
-        padding: 15px;
+        font-weight: bold;
+        padding: 10px;
         border-radius: 10px;
-        border: 1px solid #dee2e6;
-    }
-
-    .redeemed-vouchers h5 {
-        font-size: 1.3rem;
-        color: #0d6efd;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        h2 {
-            font-size: 2rem;
-        }
-
-        h5 {
-            font-size: 1rem;
-        }
-
-        .btn-success {
-            font-size: 1rem;
-            padding: 12px 30px;
-        }
-
-        label {
-            font-size: 1rem;
-        }
     }
 </style>
 

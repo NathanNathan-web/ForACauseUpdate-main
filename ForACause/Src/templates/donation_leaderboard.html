@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Donation Leaderboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center fw-bold mb-4">🏆 Donation Leaderboard</h2>
+
+    <div class="table-responsive">
+        <table class="table table-hover leaderboard-table">
+            <thead>
+                <tr class="table-primary">
+                    <th>Rank</th>
+                    <th>Username</th>
+                    <th>Total Donated ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donor in top_donors %}
+                <tr class="{% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+                    <td>
+                        {% if loop.index == 1 %}
+                        🥇
+                        {% elif loop.index == 2 %}
+                        🥈
+                        {% elif loop.index == 3 %}
+                        🥉
+                        {% else %}
+                        #{{ loop.index }}
+                        {% endif %}
+                    </td>
+                    <td>{{ donor.username }}</td>
+                    <td>${{ "%.2f"|format(donor.total_donated) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No donations yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    /* Leaderboard Styling */
+    .leaderboard-table {
+        max-width: 700px;
+        margin: auto;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .leaderboard-table th, .leaderboard-table td {
+        text-align: center;
+        padding: 15px;
+    }
+
+    .leaderboard-table tbody tr:nth-child(odd) {
+        background-color: #f8f9fa;
+    }
+
+    .gold {
+        background: #FFD700 !important;
+        font-weight: bold;
+    }
+
+    .silver {
+        background: #C0C0C0 !important;
+        font-weight: bold;
+    }
+
+    .bronze {
+        background: #CD7F32 !important;
+        font-weight: bold;
+    }
+
+    .table-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+</style>
+{% endblock %}

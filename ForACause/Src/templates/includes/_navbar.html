@@ -142,14 +142,21 @@
         {% endif %}
       </ul>
 
-      <!-- Donate Button -->
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a href="{{ url_for('donate') }}">
-            <button class="btn btn-outline-primary">Donate</button>
-          </a>
-        </li>
+      <!-- Donation Dropdown -->
+<ul class="navbar-nav ms-auto">
+  <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle btn btn-outline-primary" href="#" id="donationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          💖 Donate
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="donationDropdown">
+          <li><a class="dropdown-item" href="{{ url_for('donate') }}">Make a Donation</a></li>
+          {% if current_user.isAdmin %}
+          <li><a class="dropdown-item" href="{{ url_for('donation_leaderboard') }}">Leaderboard</a></li>
+          {% endif %}
       </ul>
+  </li>
+</ul>
+
 
     </div>
   </div>

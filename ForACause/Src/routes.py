@@ -1236,6 +1236,25 @@ def donation_success():
         organization_name=organization_name
     )
 
+@app.route('/donation_leaderboard')
+@login_required
+def donation_leaderboard():
+    if not current_user.isAdmin:  # Ensure only admins can view
+        flash("Access denied: Only admins can view the leaderboard.", "danger")
+        return redirect(url_for("home"))
+
+    # Aggregate total donations per user
+    top_donors = (
+        db.session.query(User.username, db.func.sum(Donation.amount).label("total_donated"))
+        .join(Donation, User.id == Donation.user_id)
+        .group_by(User.username)
+        .order_by(db.desc("total_donated"))
+        .limit(10)
+        .all()
+    )
+
+    return render_template("donation_leaderboard.html", top_donors=top_donors)
+
 
 
 
@@ -1302,7 +1321,6 @@ def payment_cancel():
     flash("Your payment was canceled. Please try again.", "warning")
     return redirect(url_for('donate'))
 
-
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
@@ -1312,11 +1330,33 @@ def chat():
         if not user_message:
             return jsonify({"reply": "Message cannot be empty."}), 400
 
+        # Custom prompt for ForACause-related queries
+        prompt = f"""
+        You are an AI assistant for 'ForACause', a donation platform where users contribute to charities, redeem vouchers, and support causes.
+        Your job is to assist users with donation-related questions, voucher redemptions, and troubleshooting.
+        If a user reports an issue, guide them on how to fix it or escalate the issue.
+
+        Here are some specific queries you should handle:
+        - "How do I donate?"
+        - "Can I cancel my donation?"
+        - "I donated to the wrong organization. What should I do?"
+        - "How do I track my donation history?"
+        - "How do I redeem vouchers?"
+        - "Are my donations tax-deductible?"
+        - "I didn’t receive my donation receipt. How can I get it?"
+        - "How do I update my payment details?"
+        - "How can I contact customer support?"
+        - "I have an issue with my donation, how can I escalate it?"
+
+        User: {user_message}
+        Chatbot:
+        """
+
         # API configuration
         url = "https://free-chatgpt-api.p.rapidapi.com/chat-completion-one"
-        querystring = {"prompt": user_message}
+        querystring = {"prompt": prompt}
         headers = {
-            "x-rapidapi-key": os.getenv("RAPIDAPI_KEY", "a26de8c9c7msh2f30c7ea2545caep18aa6bjsn7536d84ca8f2"),  # Replace with your valid API key
+            "x-rapidapi-key": os.getenv("RAPIDAPI_KEY", "a26de8c9c7msh2f30c7ea2545caep18aa6bjsn7536d84ca8f2"),
             "x-rapidapi-host": "free-chatgpt-api.p.rapidapi.com"
         }
 
@@ -1326,10 +1366,10 @@ def chat():
         # Check response status
         if response.status_code == 200:
             data = response.json()
-            reply = data.get("response", "No reply available.")
+            reply = data.get("response", "I'm here to assist with ForACause! How can I help?")
             return jsonify({"reply": reply})
         else:
             return jsonify({"reply": f"API error: {response.status_code} - {response.reason}"}), response.status_code
 
     except Exception as e:
-        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 
+        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 500
