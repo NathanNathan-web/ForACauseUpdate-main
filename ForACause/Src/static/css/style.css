@@ -79,22 +79,18 @@ h1 {
 h2 {
     font-family: 'Amaranth', sans-serif;
 }
-.navbar, footer{
+
+.navbar, footer {
     background-color: #000080;
 }
 
 .nav-item a {
     text-decoration: none;
-    color: white;
+    color: white; /* Keep the text color static */
     font-weight: 600;
     text-transform: uppercase;
     margin-right: 15px;
     font-family: 'Alegreya Sans SC', sans-serif;
-
-}
-
-.nav-item a:hover {
-    color: black;
 }
 
 .navbar-nav .nav-link.active {
@@ -156,21 +152,15 @@ h2 {
     outline: none;
     border: none;
     background-color: #000080;
-    color: white;
+    color: white; /* Static color */
     border-radius: 0px 20px 20px 0px;
-    transition: all 0.4s;
-}
-
-.btn1:hover {
-    background-color: #000080;
 }
 
 .bi-cart {
     font-size: 30px;
-    color: rgb(255, 255, 255);
+    color: white; /* Static color */
     cursor: pointer;
     padding-top: 5px;
-    transition: all 0.4s;
     margin: 10px;
 }
 
@@ -183,7 +173,6 @@ h2 {
     color: rgb(255, 255, 255);
     cursor: pointer;
     padding-top: 5px;
-    transition: all 0.4s;
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -202,15 +191,10 @@ button.navbar-toggler {
     width: 4vw;
     outline: none;
     background-color: transparent;
-    color: white;
-    font-weight:bold;
+    color: white; /* Static color */
+    font-weight: bold;
     border: none;
-    transition: all;
     font-size: 0.9vw;
-}
-
-.acc:hover {
-    color: black;
 }
 
 .logout {
@@ -218,10 +202,9 @@ button.navbar-toggler {
     width: 10vw;
     outline: none;
     background-color: transparent;
-    color: white;
+    color: white; /* Static color */
     border: 1px solid white;
     border-radius: 50px;
-    transition: all;
 }
 
 
@@ -474,20 +457,31 @@ a {
 
 /* Product Customer view */
 
-.column {
-    float: left;
-    width:100%;
-    max-width:100%;
-    padding:30px;
+.header {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
   }
-
-.row {
-    width:100%;
-    max-width:100%;
-}
   
-.left {
-    width: 20%;
+  .logo img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .filter-sidebar {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-right: 1px solid #e9ecef;
+  }
+  
+  .product-card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
   }
   
 .right {

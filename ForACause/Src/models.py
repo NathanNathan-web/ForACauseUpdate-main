@@ -72,28 +72,24 @@ class Product(db.Model):
     name = db.Column(db.String(40), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
     category = db.Column(db.String(80), nullable=False)
-    country = db.Column(db.String(80), nullable=False)
-    price = db.Column(db.Integer(), nullable=False)
-    image_file = db.Column(db.String(20), nullable=False,
-                           default='default.jpg')
-    stock = db.Column(db.Integer(), nullable=True, default=0)
+    allergens = db.Column(db.String(200), nullable=True)  # Updated from `country`
+    price = db.Column(db.Float, nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
+    stock = db.Column(db.Integer(), nullable=False, default=0)
     isValid = db.Column(db.Integer, nullable=False, default=1)
     orders = db.relationship('Order', backref='product', lazy=True)
     carts = db.relationship('Cart', backref='product', lazy=True)
-    def update_stock(self, quantity):
-        self.stock -= quantity
-        db.session.commit()
     
-
-    def __init__(self, name, description, category,country, price,image_file, stock,  isValid):
+    def __init__(self, name, description, category, allergens, price, image_file, stock, isValid):
         self.name = name
         self.description = description
         self.category = category
-        self.country = country
+        self.allergens = allergens
         self.price = price
         self.image_file = image_file
         self.stock = stock
         self.isValid = isValid
+
     
 class Supplier(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)

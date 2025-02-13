@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmation{% endblock %}
+
+{% block content %}
+<style>
+    .order-confirmation-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .order-confirmation-container h2 {
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+    .order-id {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 15px;
+    background: #E3F2FD;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+    .order-confirmation-container p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .order-details ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .order-details li {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .order-details img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 20px;
+    }
+
+    .order-details .item-info {
+        flex-grow: 1;
+    }
+
+    .order-details .item-info span {
+        display: block;
+        font-size: 1rem;
+        color: #495057;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 8px;
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        text-decoration: none;
+    }
+    .progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px auto;
+  position: relative;
+  padding: 0 40px;  /* Increased padding */
+  max-width: 800px;  /* Increased max-width */
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Steps */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 0 20px;  /* Added padding to space out steps */
+}
+
+/* Circles */
+.circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Step Text */
+.step p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Horizontal Line */
+.line {
+  position: absolute;
+  top: 17px;
+  height: 2px;
+  background: #ddd;
+  width: calc(100% - 160px);  /* Adjusted width */
+  left: 60px;  /* Adjusted left position */
+  z-index: 0;
+}
+
+/* Active and Completed Step Styling */
+.step.completed .circle {
+  background: #4CAF50;
+}
+
+.step.active .circle {
+  background: #4CAF50;
+}
+
+.step.completed p,
+.step.active p {
+  color: #333;
+}
+</style>
+
+    <div class="progress-container">
+    <div class="line"></div>
+    <div class="step completed">
+        <div class="circle">1</div>
+        <p>View Cart</p>
+    </div>
+    <div class="step completed">
+        <div class="circle">2</div>
+        <p>Checkout</p>
+    </div>
+    <div class="step completed">
+        <div class="circle">3</div>
+        <p>Payment</p>
+    </div>
+    <div class="step active">
+        <div class="circle">4</div>
+        <p> Confirmation</p>
+    </div>
+    </div>
+<div class="order-confirmation-container">
+    <h2 class="text-center">Order Confirmation</h2>
+    <p class="order-id"><strong>Order ID:</strong> {{ order_id }}</p>
+    <p class="text-center">Thank you for your purchase! Here are your order details:</p>
+    
+    <div class="order-details">
+        <h3>Items Purchased:</h3>
+        <ul>
+            {% for item in items %}
+            <li>
+                <img src="{{ url_for('static', filename='images/' + item['image_file']) }}" alt="{{ item['name'] }}">
+                <div class="item-info">
+                    <span><strong>Product:</strong> {{ item['name'] }}</span>
+                    <span><strong>Quantity:</strong> {{ item['quantity'] }}</span>
+                    <span><strong>Price:</strong> ${{ '%.2f' % item['price'] }}</span>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="order-summary">
+        <p><strong>Mode of Delivery:</strong> {{ delivery_method }}</p>
+        <p><strong>Time Slot:</strong> {{ time_slot }}</p>
+        <p><strong>Total Amount Paid:</strong> ${{ '%.2f' % total }}</p>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>
+<script>
+    function displayOrderHistory() {
+      let orderHistory = JSON.parse(localStorage.getItem("orderHistory")) || [];
+      let tableBody = document.querySelector("#orderTable tbody");
+      
+      tableBody.innerHTML = ""; // Clear previous data
+      
+      orderHistory.forEach(order => {
+        let row = `
+          <tr>
+            <td>${order.id}</td>
+            <td>${order.date}</td>
+            <td>${order.items.map(item => item.name + " x" + item.quantity).join("<br>")}</td>
+            <td>${order.delivery_method}</td>
+            <td>${order.time_slot}</td>
+            <td>$${order.total}</td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+  
+    // Load order history on page load
+    document.addEventListener("DOMContentLoaded", displayOrderHistory);
+  </script>
+{% endblock %}

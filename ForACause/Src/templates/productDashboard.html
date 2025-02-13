@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Product Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  .dashboard-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-between;
+  }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 48%;
+  }
+
+  /* 🏆 Leaderboard Styling */
+  .leaderboard {
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .leaderboard h3 {
+    text-align: center;
+    color: #FF7043;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+
+  .leaderboard ol {
+    list-style: none;
+    padding: 0;
+  }
+
+  .leaderboard li {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  }
+
+  .leaderboard li:nth-child(1) {
+    background: linear-gradient(135deg, #FFD700, #FFC107); /* Gold */
+    color: white;
+  }
+
+  .leaderboard li:nth-child(2) {
+    background: linear-gradient(135deg, #C0C0C0, #B0BEC5); /* Silver */
+    color: white;
+  }
+
+  .leaderboard li:nth-child(3) {
+    background: linear-gradient(135deg, #CD7F32, #A1887F); /* Bronze */
+    color: white;
+  }
+
+  .medal {
+    font-size: 1.5rem;
+    margin-right: 10px;
+  }
+
+  
+</style>
+
+<div class="dashboard-container">
+    <!-- 🏆 Most Sold Products (Leaderboard) -->
+    <div class="card leaderboard">
+        <h3>🏆 Most Sold Products</h3>
+        <ol>
+            {% for product in most_sold %}
+                <li>
+                    <span>
+                        {% if loop.index == 1 %}
+                            🥇
+                        {% elif loop.index == 2 %}
+                            🥈
+                        {% elif loop.index == 3 %}
+                            🥉
+                        {% else %}
+                            ⭐
+                        {% endif %}
+                        {{ product.name }}
+                    </span>
+                    <span>{{ product.sales }} sold</span>
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <!-- 💰 Revenue Per Week -->
+<div class="card">
+    <h3>💰 Revenue Per Week</h3>
+    <img src="/static/images/graph1.png" alt="Revenue Per Week" style="width:100%; height:auto;">
+</div>
+
+
+    <!-- 📦 Total Orders -->
+    <div class="card">
+        <h3>📦 Total Orders Per Week</h3>
+        <img src="/static/images/graph3.png" alt="Total Orders Per Week" style="width:100%; height:auto;">
+    </div>
+
+    <!-- 🍰 Product Category Breakdown -->
+    <div class="card">
+        <h3>🍰 Product Category Sales</h3>
+        <img src="/static/images/graph4.png" alt="Product Category Sales" style="width:100%; height:auto;">
+    </div>
+
+    <!-- 💵 Average Order Value -->
+    <div class="card">
+        <h3>💵 Average Order Value</h3>
+        <canvas id="orderValueChart"></canvas>
+    </div>
+
+</div>
+
+{% endblock %}

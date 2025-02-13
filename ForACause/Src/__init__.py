@@ -8,6 +8,7 @@ from flask_login import LoginManager
 from flask_babel import Babel
 from flask_mail import Mail
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_migrate import Migrate
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -58,6 +59,7 @@ def get_locale():
 babel.init_app(app, locale_selector=get_locale)
 
 db = SQLAlchemy(app)
+migrate = Migrate(app,db)
 bcrypt = Bcrypt(app)
 mail = Mail(app)
 migrate = Migrate(app, db)

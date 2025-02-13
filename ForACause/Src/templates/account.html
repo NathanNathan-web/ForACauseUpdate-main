@@ -2,6 +2,81 @@
 {% block title %}ForACause - Account{% endblock %}
 
 {% block content %}
+<style>
+    /* Table Styling */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    
+    /* Header Styling */
+    .table th {
+        text-align: center;
+        background-color: #007BFF;
+        color: white;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
+    
+    /* Row Styling */
+    .table tbody tr {
+        border-bottom: 2px solid #DEE2E6;
+    }
+    
+    /* Last row should not have a border at the bottom */
+    .table tbody tr:last-child {
+        border-bottom: none;
+    }
+    
+    /* Item Column */
+    .item-column {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        gap: 12px;
+    }
+    
+    /* Image Styling */
+    .order-item-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+    
+    /* Product Name Column */
+    .product-name {
+        font-weight: bold;
+        text-align: left;
+    }
+    
+    /* Quantity Column */
+    .quantity-column {
+        text-align: center;
+        font-weight: bold;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
+    
+    /* Accordion Styling */
+    .accordion-button {
+        font-weight: bold;
+        background-color: #007BFF;
+        color: white;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+    }
+    
+    .accordion-body {
+        padding: 15px;
+    }
+    
+    </style>
+
 <div class="card mb-4 shadow-sm">
     <div class="card-body text-center">
         <img src="{{ url_for('static', filename='images/' + user.image_file ) }}" alt="User Profile Image"
@@ -70,6 +145,70 @@
 
         <!-- Accordion for Voucher and Activity History -->
         <div class="accordion" id="profileAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOrders">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOrders" aria-expanded="false" aria-controls="collapseOrders">
+                        Order History
+                    </button>
+                </h2>
+                <div id="collapseOrders" class="accordion-collapse collapse" aria-labelledby="headingOrders" data-bs-parent="#profileAccordion">
+                    <div class="accordion-body p-0">
+                        {% if order_history %}
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-primary text-center">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Order Date & Time</th>
+                                    <th>Items</th>
+                                    <th>Product Name</th> <!-- New Column -->
+                                    <th>Quantity</th>
+                                    <th>Delivery Method</th>
+                                    <th>Time Slot</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in order_history %}
+                                <tr>
+                                    <td class="text-center"><strong>{{ order.order_id }}</strong></td>
+                                    <td class="text-center">{{ order.date }}</td>
+                                    <td>
+                                        <ul class="order-items-list">
+                                            {% for item in order.order_items %}
+                                            <li>
+                                                <img src="{{ url_for('static', filename='images/' + item.image_file) }}" 
+                                                     alt="{{ item.name }}" class="order-item-img">
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td class="text-center">
+                                        <ul class="order-product-list">
+                                            {% for item in order.order_items %}
+                                            <li class="product-name">{{ item.name }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td class="text-center">
+                                        <ul class="order-quantity-list">
+                                            {% for item in order.order_items %}
+                                            <li>{{ item.quantity }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td class="text-center">{{ order.delivery_method }}</td>
+                                    <td class="text-center">{{ order.time_slot }}</td>
+                                    <td class="text-center">${{ order.total | round(2) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-center m-3">No orders found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             <!-- Voucher Information -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingVouchers">

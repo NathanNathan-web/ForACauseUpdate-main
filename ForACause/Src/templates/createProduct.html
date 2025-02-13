@@ -1,102 +1,173 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Create Product{% endblock %}
+{% block title %}Create Bakery Product{% endblock %}
 
 {% block content %}
-<div class="container">
-    <form method="POST">
-        {{form.hidden_tag()}}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Create Product</legend>
-            <div class="form-group" margin:5px;>
-                {{ form.name.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.name.errors %}
-                    {{ form.name(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.name.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.name(class="form-control form-control-lg") }}
-                {% endif %}
+<style>
+    body {
+        background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
+    .bakery-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 2px solid #FFA500;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #6D4C41;
+    }
+
+    .form-control, .form-select {
+        border-color: #FFA500;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #FF6D00;
+        box-shadow: 0 0 0 0.2rem rgba(255,109,0,0.25);
+    }
+
+    .btn-primary {
+        background-color: #FF6D00;
+        border-color: #FF6D00;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #FF8F00;
+        transform: translateY(-3px);
+    }
+
+    .allergen-checkbox {
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card bakery-card">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4" style="color: #6D4C41;">Create Bakery Product</h2>
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="row g-4">
+                            <!-- Product Name -->
+                            <div class="col-md-6">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control " + ("is-invalid" if form.name.errors else ""), placeholder="") }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                {{ form.category.label(class="form-label") }}
+                                {{ form.category(class="form-select " + ("is-invalid" if form.category.errors else "")) }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control " + ("is-invalid" if form.description.errors else ""), rows="3", placeholder="Describe your delectable creation") }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-6">
+                                {{ form.price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.price(class="form-control " + ("is-invalid" if form.price.errors else ""), placeholder="Price per item") }}
+                                    {% if form.price.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.price.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Stock -->
+                            <div class="col-md-6">
+                                {{ form.stock.label(class="form-label") }}
+                                {{ form.stock(class="form-control " + ("is-invalid" if form.stock.errors else ""), placeholder="Daily Batch Quantity") }}
+                                {% if form.stock.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.stock.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Allergens -->
+                            <div class="col-12">
+                                <label class="form-label">{{ form.allergens.label }}</label>
+                                <div class="row">
+                                    {% for value, label in form.allergens.choices %}
+                                    <div class="col-md-3 allergen-checkbox">
+                                        <div class="form-check">
+                                            <input 
+                                                type="checkbox" 
+                                                name="{{ form.allergens.name }}" 
+                                                id="{{ form.allergens.id }}-{{ loop.index }}" 
+                                                value="{{ value }}" 
+                                                class="form-check-input"
+                                                {% if form.allergens.data and value in form.allergens.data %} checked {% endif %}
+                                            >
+                                            <label class="form-check-label" for="{{ form.allergens.id }}-{{ loop.index }}">
+                                                {{ label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="col-12">
+                                {{ form.image_file.label(class="form-label") }}
+                                {{ form.image_file(class="form-control " + ("is-invalid" if form.image_file.errors else ""), accept="image/*") }}
+                                {% if form.image_file.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.image_file.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg px-5") }}
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                {{ form.description.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.description.errors %}
-                    {{ form.description(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.description.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.description(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.category.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.category.errors %}
-                    {{ form.category(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.category.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.category(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.country.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.country.errors %}
-                    {{ form.country(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.country.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.country(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-            <div class="form-group">
-                {{ form.price.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.price.errors %}
-                    {{ form.price(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.price.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.price(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>      
-            <div class="form-group">                
-                {{ form.image_file.label(class="form-control-label") }}
-                <!-- Feedback For Errors for Register-->
-                {% if form.image_file.errors %}
-                    {{ form.image_file(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for errors in form.image_file.errors %}
-                            <span>{{ errors }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                {{ form.image_file(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
-        </fieldset>
-        <div class="form-group" style="margin:30px 0 30px 0">
-            {{ form.submit(class="btn btn-outline-info") }}
         </div>
-    </form>
+    </div>
 </div>
-
 {% endblock %}

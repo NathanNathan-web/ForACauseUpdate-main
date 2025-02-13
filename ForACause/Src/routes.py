@@ -1,8 +1,14 @@
+from ast import Return
+from datetime import date, datetime
+import random
+from flask import jsonify, render_template, url_for, flash, redirect, request, session
+from sqlalchemy import func
+from . import app, db, bcrypt
 from collections import Counter
 from datetime import date
 from flask import abort, render_template, url_for, flash, redirect, request, session, jsonify
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm, DonateForm
-from Src.models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
+from .models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
 from . import app, db, bcrypt, mail
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
@@ -304,6 +310,7 @@ def login():
 @login_required
 def account():
     if current_user.is_authenticated:
+        # Redeem vouchers and other user info (unchanged)
         redeemvoucher_list = []
         donateitem_list = []
         
@@ -324,12 +331,17 @@ def account():
                 donateitem.image_path = None
             donateitem_list.append(donateitem)
         
+        # Get order history from session (or temporary storage)
+        order_history = session.get('order_history', [])
+        
         return render_template(
             'account.html',
             image_file=image_file,
             user=user,
             redeemvoucher_list=redeemvoucher_list,
-            donateitems=donateitem_list)
+            donateitems=donateitem_list,
+            order_history=order_history)
+        
     else:
         return render_template('login.html')
 
@@ -518,34 +530,141 @@ def updateoneuser(id):
     else:
         return redirect(url_for('login'))
 
-
-@app.route('/product')
+@app.route('/product', methods=['GET', 'POST'])
 def product():
-    products_list = []
-    products = Product.query.all()
-    for product in products:
-        products_list.append(product)
-    return render_template('product.html', products_list=products_list)
+    search_query = ''
+    category_filter = ''
+    allergy_filter = ''
+
+    # Handle POST request
+    if request.method == 'POST':
+        search_query = request.form.get('search', '').strip().lower()
+        category_filter = request.form.get('category', '')
+        allergy_filter = request.form.get('allergy', '')
+
+    # Fetch all products
+    products_query = Product.query
+
+    # Apply search filter
+    if search_query:
+        products_query = products_query.filter(Product.name.ilike(f"%{search_query}%"))
+
+    # Apply category filter (now filtering by string)
+    if category_filter:
+        products_query = products_query.filter(Product.category == category_filter)
+
+    # Apply allergy filter
+    if allergy_filter:
+        products_query = products_query.filter(~Product.allergens.ilike(f"%{allergy_filter}%"))
+
+    # Execute query and fetch results
+    products = products_query.all()
+
+    # Category map for dropdowns (can now match string directly)
+    category_map = {
+        "Cakes and Pastries": "Cakes and Pastries",
+        "Bread and Rolls": "Bread and Rolls",
+        "Cookies and Biscuits": "Cookies and Biscuits",
+        "Pies and Tarts": "Pies and Tarts"
+    }
+
+    return render_template(
+        'product.html',
+        products_list=products,
+        category_map=category_map,
+        search=search_query,
+        category=category_filter,
+        allergy=allergy_filter
+    )
+@app.route('/productDashboard')
+@login_required
+def product_dashboard():
+    if not current_user.isAdmin:
+        flash("Admin access required!", "warning")
+        return redirect(url_for('home'))
+
+    most_sold = [
+        {"name": "Coffee Bread", "sales": 120},
+        {"name": "Garlic Bread", "sales": 95},
+        {"name": "Monster Cookie", "sales": 85}
+    ]
+
+    weekly_revenue = [200, 350, 200, 150, 500, 300, 400]
+
+    total_orders = [21, 32, 12, 12, 54, 36, 44]
+
+    category_sales = {
+        "Cookies & Biscuits": 36,
+        "Pies & Tarts": 10,
+        "Cakes & Pastries": 20,
+        "Bread & Rolls": 34
+    }
+
+    avg_order_value = [12, 15, 17, 19, 21, 22, 24]
+
+    return render_template(
+        'productDashboard.html',
+        most_sold=most_sold,
+        weekly_revenue=weekly_revenue,
+        total_orders=total_orders,
+        category_sales=category_sales,
+        avg_order_value=avg_order_value,
+    )
 
 
-@app.route('/productDetails/<int:id>', methods=['GET','POST'])
+@app.route('/add_to_cart/<int:product_id>', methods=['GET'])
+@login_required
+def add_to_cart(product_id):
+    # Fetch the product from the database
+    product = Product.query.get_or_404(product_id)
+
+    # Check if the product is already in the cart for the current user
+    existing_cart_item = Cart.query.filter_by(product_id=product_id, user_id=current_user.id).first()
+
+    if existing_cart_item:
+        # Increment quantity if it exists
+        if existing_cart_item.quantity < product.stock:
+            existing_cart_item.quantity += 1
+            flash(f"{product.name} quantity updated in your cart!", "success")
+        else:
+            flash(f"Cannot add more of {product.name}. Stock limit reached!", "danger")
+    else:
+        # Add new item to the cart
+        new_cart_item = Cart(user_id=current_user.id, product_id=product.id, quantity=1)
+        db.session.add(new_cart_item)
+        flash(f"{product.name} added to your cart!", "success")
+
+    # Commit the changes
+    db.session.commit()
+
+    # Redirect to the shopping cart page
+    return redirect(url_for('cart'))
+
+
+@app.route('/productDetails/<int:id>', methods=['GET', 'POST'])
 def productdetails(id):
     if current_user.is_authenticated:
         product = Product.query.filter_by(id=id).first()
         cart = Cart.query.filter_by(product_id=id).first()
         form = CartForm()
+
+        # Generate a new random rating (between 3.0 and 5.0) on every request
+        random_rating = round(random.uniform(3.0, 5.0), 1)
+        rounded_stars = round(random_rating)  # Round for star display
+
         if form.validate_on_submit:
-            if form.quantity.data > 0 and form.quantity.data <= product.stock:
+            if 0 < form.quantity.data <= product.stock:
                 quantity = form.quantity.data
-                current_user.add_to_cart(product,quantity)
+                current_user.add_to_cart(product, quantity)
                 return redirect(url_for('cart'))
             else:
                 flash('Quantity must be within the stock amount', 'warning')
-                return render_template('productdetails.html', product = product, idsite = True, form=form)
-                
+                return render_template('productdetails.html', product=product, idsite=True, form=form, random_rating=random_rating, rounded_stars=rounded_stars)
         else:
-            flash('Quantity need to be a valid number', 'warning')
-        return render_template('productdetails.html', product = product, idsite = True, form=form)
+            flash('Quantity needs to be a valid number', 'warning')
+
+        return render_template('productdetails.html', product=product, idsite=True, form=form, random_rating=random_rating, rounded_stars=rounded_stars)
+
     else:
         return redirect(url_for('login'))
         
@@ -611,23 +730,197 @@ def remove_from_cart(product_id):
 @app.route("/shoppingcart", methods=['GET', 'POST'])
 @login_required
 def cart():
-    carts_list = []
-    vouchers_list = []
+    carts_list = []  # Store valid cart items
+    total = 0  # Initialize total price
+    error_messages = []  # Store validation errors
+    recommendations = []  # Store recommended products
+
     if current_user.is_authenticated:
-        redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
-        for redeemvoucher in redeemvouchers:
-            vouchers_list.append(redeemvoucher)
-        total = 0
+        # Fetch all cart items for the logged-in user
         carts = Cart.query.filter_by(user_id=current_user.id).all()
 
+        if request.method == 'POST':
+            # Handle quantity updates from the form
+            for cart in carts:
+                quantity_field = f"quantity_{cart.id}"  # Get dynamic field name
+                new_quantity = request.form.get(quantity_field, type=int)  # Fetch new quantity
+
+                if new_quantity is not None:
+                    # Validate new quantity
+                    if new_quantity > cart.product.stock:
+                        error_messages.append(
+                            f"Quantity for '{cart.product.name}' cannot exceed available stock ({cart.product.stock})."
+                        )
+                    elif new_quantity <= 0:
+                        error_messages.append(
+                            f"Quantity for '{cart.product.name}' must be at least 1."
+                        )
+                    else:
+                        # Update the cart item with the new valid quantity
+                        cart.quantity = new_quantity
+                        db.session.commit()
+
+        # Calculate the total price correctly
         for cart in carts:
-            total += cart.quantity * cart.product.price
-            carts_list.append(cart)
-            print(cart)
+            if cart.product:  # Ensure product exists
+                # Apply 10% discount only for "cookies and biscuits"
+                if cart.product.category.lower() in ["cookies and biscuits", "cookies & biscuits"]:
+                    item_price = cart.product.price * 0.90  # Apply 10% discount
+                else:
+                    item_price = cart.product.price  # Keep original price
+
+                total += cart.quantity * item_price  # Accumulate total price
+                carts_list.append(cart)  # Store valid cart items
+            else:
+                # Remove invalid cart entries (e.g., product no longer exists)
+                db.session.delete(cart)
+                db.session.commit()
+
+        # Debugging: Print total to verify calculation
+        print("Calculated Total:", total)
+
+        # Fetch product recommendations
+        if carts_list:
+            first_product_category = carts_list[0].product.category  # Get category of first product
+            cart_product_ids = [cart.product_id for cart in carts_list]  # Get product IDs in cart
+            
+            # Exclude products already in cart from recommendations
+            recommendations = Product.query.filter(
+                Product.category == first_product_category,
+                ~Product.id.in_(cart_product_ids)
+            ).limit(3).all()
+
+        # Store the total in the session for consistency across views
         session['total'] = total
-        return render_template('shoppingcart.html', carts=carts, total=total, carts_list = carts_list, vouchers_list = vouchers_list)
+
+        # Render shopping cart page
+        return render_template(
+            'shoppingcart.html',
+            carts=carts_list,
+            total=total,
+            error_messages=error_messages,
+            recommendations=recommendations
+        )
+
     else:
+        # Redirect to login if the user is not authenticated
+        flash("Please log in to view your shopping cart.", "warning")
         return redirect(url_for('login'))
+
+@app.route('/order_confirmation')
+@login_required
+def order_confirmation():
+    order_id = f"ORD-{random.randint(100000, 999999)}"  
+    items = session.get('items', [])  
+    delivery_method = session.get('delivery_method', 'Not Specified')
+    time_slot = session.get('time_slot', 'Not Specified')
+    total = session.get('total', 0)
+
+    if not items or total == 0:
+        return redirect(url_for('cart'))  
+
+    # Convert datetime to Singapore timezone
+    singapore_tz = pytz.timezone('Asia/Singapore')
+    current_time = datetime.now(singapore_tz).strftime("%Y-%m-%d %H:%M:%S")  
+
+    # ✅ Store order_id inside order dictionary
+    order = {
+        "order_id": order_id,  # Store the Order ID
+        "date": current_time,
+        "order_items": items,
+        "delivery_method": delivery_method,
+        "time_slot": time_slot,
+        "total": total,
+    }
+
+    # ✅ Save order history with order_id
+    order_history = session.get('order_history', [])
+    order_history.append(order)
+    session['order_history'] = order_history
+
+    # ✅ Store order_id in session (for use in confirmation page)
+    session['last_order_id'] = order_id  
+
+    # ✅ Clear session variables after order is placed
+    session.pop('items', None)
+    session.pop('delivery_method', None)
+    session.pop('time_slot', None)
+    session.pop('total', None)
+
+    return render_template(
+        'order_confirmation.html',
+        order_id=order_id,  
+        items=order["order_items"],
+        delivery_method=order["delivery_method"],
+        time_slot=order["time_slot"],
+        total=order["total"]
+    )
+
+
+
+
+
+
+
+
+@app.route('/finalize_payment', methods=['POST'])
+@login_required
+def finalize_payment():
+    # Retrieve form data
+    delivery_method = request.form.get('delivery_method', 'Not Specified')
+    time_slot = request.form.get('time_slot', 'Not Specified')
+    payment_method = request.form.get('payment_method')
+
+    if not session.get('total'):
+        flash("Total amount not found in session. Please try again.", "danger")
+        return redirect(url_for('checkout'))
+
+    if payment_method == "paynow":
+        try:
+            # Simulate product stock update
+            carts = Cart.query.filter_by(user_id=current_user.id).all()
+            items = []
+            for cart in carts:
+                product = cart.product  # Assuming Cart has a relationship to Product
+                if product.stock >= cart.quantity:
+                    product.stock -= cart.quantity  # Deduct purchased quantity
+                    items.append({
+                        "name": product.name,
+                        "quantity": cart.quantity,
+                        "price": product.price * 0.85,
+                        "image_file": product.image_file,
+                    })
+                    db.session.delete(cart)  # Remove the cart item
+                else:
+                    flash(f"Insufficient stock for {product.name}. Please adjust your cart.", "danger")
+                    return redirect(url_for('cart'))
+            
+            db.session.commit()  # Save changes to the database
+            
+            # Store items and delivery info in session
+            session['items'] = items
+            session['delivery_method'] = delivery_method
+            session['time_slot'] = time_slot
+
+            # Redirect to payment confirmation
+            qr_code_path = "/static/images/yh_qr.jpg"  # Hardcoded QR code
+            return render_template('payment_confirmation.html', qr_code_path=qr_code_path, total=session['total'])
+        
+        except Exception as e:
+            flash(f"An error occurred while processing your payment: {str(e)}", "danger")
+            return redirect(url_for('checkout'))
+    else:
+        flash("Unsupported payment method selected.", "warning")
+        return redirect(url_for('checkout'))
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/usevoucher', methods=['GET', 'POST'])
@@ -641,22 +934,34 @@ def usevoucher():
         return redirect(url_for('cart'))
     else:
         return redirect(url_for('login'))
-@app.route('/checkOut')
+
+@app.route('/checkout', methods=['GET', 'POST'])
+@login_required
 def checkout():
-    if current_user.is_authenticated:
-        if current_user.balance >= session['total']:
-            carts = Cart.query.filter_by(user_id=current_user.id).all()
-            for cart in carts:
-                db.session.delete(cart)
-                db.session.commit()
-            current_user.balance -= session['total']
-            flash('You have successfully checked out!')
-            return redirect(url_for('home'))
-        else:
-            flash('Not even balance to checkout!')
-            return redirect(url_for('cart'))
-    else:
-        return redirect(url_for('login'))
+    if request.method == 'POST':
+        # Retrieve delivery method and time slot from form
+        delivery_method = request.form.get('delivery_method')
+        time_slot = request.form.get('time_slot')
+
+        # Validate the inputs
+        if not delivery_method or not time_slot:
+            flash("Please select a delivery method and time slot.", "warning")
+            return redirect(url_for('checkout'))
+
+        # Store delivery details in the session
+        session['delivery_details'] = {
+            "delivery_method": delivery_method,
+            "time_slot": time_slot
+        }
+
+        # Redirect to the payment page
+        return redirect(url_for('payment_page'))
+
+    # Render the checkout page
+    total = session.get('total', 0)
+    return render_template('checkout.html', total=total)
+
+
 
 # =================================  VOUCHER ==================================
     
@@ -750,36 +1055,140 @@ def deleteuser(id):
 
 # ============================= PRODUCT =============================
 
-@app.route('/productAdmin')
+@app.route('/productadmin', methods=['GET', 'POST'])
 @login_required
 def productadmin():
-    if current_user.is_authenticated and current_user.isAdmin == True:
-        product_list = []
-        products = Product.query.all()
-        orders_list = []
-        suppliercount = 0
-        for product in products:
-            orders = Order.query.filter_by(product_id=product.id)
-            orders_list.append(orders)
-            product_list.append(product)
-        return render_template('productAdmin.html', product_list=product_list, adminStat = True, orders_list=orders_list, suppliercount = suppliercount)
+    if current_user.is_authenticated and current_user.isAdmin:
+        search_query = ''
+        selected_category = ''
+        selected_allergen = ''
+
+        if request.method == 'POST':
+            search_query = request.form.get('search', '').strip().lower()
+            selected_category = request.form.get('category', '')
+            selected_allergen = request.form.get('allergen', '')
+
+        # Fetch all products
+        products_query = Product.query
+
+        # Apply search filter
+        if search_query:
+            products_query = products_query.filter(Product.name.ilike(f"%{search_query}%"))
+
+        # Apply category filter
+        if selected_category:
+            products_query = products_query.filter(Product.category == selected_category)
+
+        # Apply allergen filter (ensure it shows products containing the allergen)
+        if selected_allergen:
+            products_query = products_query.filter(Product.allergens.ilike(f"%{selected_allergen}%"))
+
+        # Fetch the filtered products
+        products = products_query.all()
+
+        return render_template(
+            'productAdmin.html',
+            product_list=products,
+            search=search_query,
+            selected_category=selected_category,
+            selected_allergen=selected_allergen,
+            adminStat=True,
+            suppliercount=Supplier.query.count()
+        )
     else:
+        flash("You need admin privileges to access this page.", "warning")
         return redirect(url_for('login'))
+
+
 
 @app.route('/createProduct', methods=['GET', 'POST'])
 @login_required
 def createProduct():
-    if current_user.is_authenticated and current_user.isAdmin == True:
+    # Ensure only admin users can access this route
+    if current_user.is_authenticated and current_user.isAdmin:
+        # Initialize the ProductForm
         form = ProductForm()
+
+        # Handle form submission
         if form.validate_on_submit():
-            product = Product(name=form.name.data, description=form.description.data, category=category(form.category.data), country=form.country.data,price=form.price.data, stock=0, image_file=form.image_file.data, isValid=True)
+            # Get selected allergens as a comma-separated string
+            selected_allergens = ', '.join(form.allergens.data)
+
+            # Create a new Product object with form data
+            product = Product(
+                name=form.name.data,
+                description=form.description.data,
+                category=form.category.data,
+                allergens=selected_allergens,  # Save selected allergens
+                price=form.price.data,
+                stock=form.stock.data,
+                image_file=form.image_file.data.filename,
+                isValid=True
+            )
+
+            # Save the uploaded image file
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], form.image_file.data.filename)
+            form.image_file.data.save(file_path)
+
+            # Add and commit the product to the database
             db.session.add(product)
             db.session.commit()
-            flash('New Product created!', 'success')
+
+            # Flash a success message and redirect to the admin page
+            flash('New product created successfully!', 'success')
             return redirect(url_for('productadmin'))
-        return render_template('createProduct.html',form=form)
+
+        # Render the form if it’s a GET request or form validation failed
+        return render_template('createProduct.html', form=form, adminStat=True)
+    
+    # Redirect non-admin users to the login page
+    return redirect(url_for('login'))
+
+
+@app.route('/updateProduct', methods=['GET', 'POST'])
+def updateProduct():
+    product_id = request.args.get('id')  # Get product ID from query string
+    product = Product.query.get(product_id)  # Fetch the product from the database
+
+    if not product:
+        flash('Product not found.', 'danger')
+        return redirect(url_for('productadmin'))  # Redirect to productAdmin if product is not found
+
+    form = ProductForm(obj=product)  # Populate the form with existing product data
+
+    # Ensure allergens are initialized correctly for pre-check
+    if product.allergens:
+        form.allergens.data = product.allergens.split(', ')
     else:
-        return redirect(url_for('login'))
+        form.allergens.data = []  # Initialize as an empty list if no allergens
+
+    if form.validate_on_submit():
+        # Update product fields with form data
+        product.name = form.name.data
+        product.description = form.description.data
+        product.category = form.category.data
+
+        # Handle allergens safely
+        submitted_allergens = request.form.getlist('allergens[]')  # Get list of selected allergens
+        product.allergens = ', '.join(submitted_allergens) if submitted_allergens else ''  # Save as a comma-separated string
+
+        product.price = form.price.data
+        product.stock = form.stock.data
+
+        # Handle image upload (keep the old image if no new image is uploaded)
+        if form.image_file.data:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], form.image_file.data.filename)
+            form.image_file.data.save(file_path)
+            product.image_file = form.image_file.data.filename  # Update the image file name in the database
+
+        db.session.commit()  # Commit the changes to the database
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('productadmin'))  # Redirect to productAdmin after updating the product
+
+    return render_template('updateProduct.html', form=form, product=product,adminStat=True)
+
+
+
 
 @app.route('/updateUser/<int:id>/', methods=['GET', 'POST'])
 def updateuser(id):

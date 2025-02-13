@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #007BFF;
+        --secondary-color: #6C757D;
+        --background-light: #F8F9FA;
+        --text-dark: #343A40;
+        --border-light: #E9ECEF;
+    }
+
+    body {
+        background-color: var(--background-light);
+        font-family: 'Inter', 'Poppins', sans-serif;
+        line-height: 1.6;
+        color: var(--text-dark);
+    }
+
+    .checkout-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: white;
+        padding: 30px 40px;
+        border-radius: 16px;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-light);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        color: var(--text-dark);
+    }
+
+    .section-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .section-header .icon {
+        margin-right: 15px;
+        color: var(--primary-color);
+        font-size: 1.5rem;
+    }
+
+    .cart-summary {
+        background-color: #F7F9FC;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .cart-summary ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .cart-summary li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .cart-summary li:last-child {
+        border-bottom: none;
+    }
+
+    .cart-summary li img {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+        object-fit: cover;
+        margin-right: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-summary .product-details {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+    }
+
+    .cart-summary .product-name {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .cart-summary .product-price {
+        color: var(--secondary-color);
+    }
+
+    .total-price {
+        text-align: right;
+        font-size: 1.3rem;
+        color: var(--text-dark);
+        font-weight: 700;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid var(--border-light);
+    }
+
+    form {
+        margin-top: 30px;
+    }
+
+    form h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+    }
+
+    form h3 .section-icon {
+        margin-right: 10px;
+        color: var(--primary-color);
+    }
+
+    .radio-group, .select-group {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .radio-group label, .select-group label {
+        flex: 1;
+        background-color: #F7F9FC;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .radio-group input[type="radio"],
+    .select-group select {
+        margin-bottom: 10px;
+    }
+
+    .radio-group input[type="radio"]:checked + label,
+    .select-group select:focus {
+        border-color: var(--primary-color);
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    form select {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        appearance: none;
+        background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M1 4l5 5 5-5' fill='none' stroke='%23343A40' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 15px center;
+        background-size: 12px;
+    }
+
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 15px 0;
+        font-size: 1.2rem;
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 123, 255, 0.4);
+    }
+
+    .alert {
+        margin-bottom: 25px;
+        background-color: #FFF3CD;
+        color: #856404;
+        border: 1px solid #FFE5B4;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+    }
+    .progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  position: relative;
+  padding: 0 20px;
+}
+
+/* Steps */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  color: #666;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+/* Circles */
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Horizontal Line */
+.line {
+  position: absolute;
+  top: 25px;
+  height: 5px;
+  background: #ddd;
+  width: calc(100% - 100px);
+  left: 50px;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Active and Completed Step Styling */
+.step.active .circle,
+.step.completed .circle {
+  background: var(--primary-color);
+  color: white;
+}
+
+.step.completed .circle {
+  background: #4CAF50;
+}
+
+.step.active {
+  color: #000;
+}
+
+.step p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+</style>
+
+<div class="checkout-container">
+    <div class="section-header">
+        <span class="icon">🛒</span>
+        <h2>Checkout</h2>
+    </div>
+    <div class="progress-container">
+        <div class="line"></div>
+        <div class="step completed">
+          <div class="circle">1</div>
+          <p>View Cart</p>
+        </div>
+        <div class="step active">
+          <div class="circle">2</div>
+          <p>Checkout</p>
+        </div>
+        <div class="step">
+          <div class="circle">3</div>
+          <p>Payment</p>
+        </div>
+        <div class="step">
+          <div class="circle">4</div>
+          <p> Confirmation</p>
+        </div>
+      </div>
+
+   
+
+    <!-- Display Cart Items -->
+    <div class="cart-summary">
+        <h3>Order Summary</h3>
+        <ul>
+            {% for cart in carts %}
+            <li>
+                <div class="product-details">
+                    <img src="{{ url_for('static', filename='images/' + cart.product.image_file) }}" alt="{{ cart.product.name }}">
+                    <div>
+                        <span class="product-name">{{ cart.product.name }}</span>
+                        <div class="product-price">{{ cart.quantity }} x ${{ '%.2f' % (cart.product.price * 0.85) }}</div>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="total-price">
+            <strong>Total:</strong> ${{ '%.2f' % total }}
+        </div>
+    </div>
+
+    <!-- Payment and Delivery Options -->
+    <form method="POST" action="{{ url_for('finalize_payment') }}">
+        <h3><span class="section-icon">🚚</span>Delivery Options</h3>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="delivery_method" value="store" checked>
+                Pickup at Store
+            </label>
+            <label>
+                <input type="radio" name="delivery_method" value="delivery">
+                Home Delivery
+            </label>
+        </div>
+
+        <h3><span class="section-icon">⏰</span>Time Slot</h3>
+        <select name="time_slot" required>
+            <option value="" disabled selected>Select a time slot</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="12:30 PM">12:30 PM</option>
+            <option value="1:00 PM">1:00 PM</option>
+            <option value="1:30 PM">1:30 PM</option>
+            <option value="2:00 PM">2:00 PM</option>
+            <option value="2:30 PM">2:30 PM</option>
+            <option value="3:00 PM">3:00 PM</option>
+        </select>
+
+        <h3><span class="section-icon">💳</span>Payment Method</h3>
+        <select name="payment_method" required>
+            <option value="" disabled selected>Select a payment method</option>
+            <option value="paynow">PayNow/PayLah</option>
+        </select>
+        <br>
+        <br>
+
+        <button type="submit" class="btn-primary">Proceed to Payment</button>
+    </form>
+</div>
+{% endblock %}

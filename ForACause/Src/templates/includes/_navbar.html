@@ -153,4 +153,18 @@
       </ul>
     </div>
   </div>
+
+      <style>
+        /* Styling for cart icon */
+        a[href="{{ url_for('cart') }}"] {
+          color: white; /* Shopping cart default color */
+          text-decoration: none; /* No underline */
+        }
+      
+        a[href="{{ url_for('cart') }}"]:hover {
+          color: inherit; /* Prevent hover color change */
+          text-decoration: none; /* Prevent underline on hover */
+        }
+      </style>
+      
 </nav>
