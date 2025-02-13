@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import date
 from flask import abort, render_template, url_for, flash, redirect, request, session, jsonify
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm, DonateForm
@@ -328,8 +329,7 @@ def account():
             image_file=image_file,
             user=user,
             redeemvoucher_list=redeemvoucher_list,
-            donateitems=donateitem_list
-        , languages=app.config['LANGUAGES'])
+            donateitems=donateitem_list)
     else:
         return render_template('login.html')
 

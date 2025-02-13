@@ -17,29 +17,10 @@
                 <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Submit</button>
             </div>
         </form>
-
-        <button class="btn btn-primary" id="update-profile-btn"><i class="bi bi-pencil"></i> Update Profile
-            Image</button>
-
-        <!-- Language Selection -->
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body text-center">
-                <h5 class="mb-3">{{ _('Select Language') }}</h5>
-                <form action="{{ url_for('set_language') }}" method="POST">
-                    <div class="form-group">
-                        <select name="language" class="form-select">
-                            {% for lang_code, lang_name in languages.items() %}
-                            <option value="{{ lang_code }}" {% if session.get('lang')==lang_code %}selected{% endif %}>
-                                {{ lang_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-2">{{ _('Save Language') }}</button>
-                </form>
-
-            </div>
+        <div><button class="btn btn-primary" id="update-profile-btn"><i class="bi bi-pencil"></i> Update Profile
+                Image</button>
         </div>
-
+        <br>
         <script>
             document.getElementById('update-profile-btn').addEventListener('click', function () {
                 const uploadContainer = document.getElementById('file-upload-container');
@@ -136,10 +117,20 @@
 
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingDonationHistory">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseDonationHistory" aria-expanded="false"
-                        aria-controls="collapseDonationHistory">
+                    <button class="accordion-button collapsed d-flex justify-content-between align-items-center"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseDonationHistory"
+                        aria-expanded="false" aria-controls="collapseDonationHistory">
                         Donation History
+                        <span class="ms-2 text-dark small">({{ donateitems|length }})</span>
+                            {% if donateitems|length >= 50 %}
+                            <span class="ms-2 badge bg-warning">🏅 Platinum Donor</span>
+                            {% elif donateitems|length >= 25 %}
+                            <span class="ms-2 badge bg-success">🥇 Gold Donor</span>
+                            {% elif donateitems|length >= 10 %}
+                            <span class="ms-2 badge bg-primary">🥈 Silver Donor</span>
+                            {% else %}
+                            <span class="ms-2 badge bg-secondary">🌱 New Donor</span>
+                            {% endif %}
                     </button>
                 </h2>
                 <div id="collapseDonationHistory" class="accordion-collapse collapse"
@@ -191,8 +182,10 @@
                                         {% endif %}
                                         {% if donateitem.preferred_date and donateitem.preferred_time %}
                                         <div class="small text-muted">
-                                            <i class="bi bi-calendar me-1"></i>{{ donateitem.preferred_date }}
-                                            <i class="bi bi-clock ms-2 me-1"></i>{{ donateitem.preferred_time }}
+                                            <i class="bi bi-calendar me-1"></i>{{
+                                            donateitem.preferred_date.strftime('%d-%m-%Y') }}
+                                            <i class="bi bi-clock ms-2 me-1"></i>{{
+                                            donateitem.preferred_time.strftime('%I:%M %p') }}
                                         </div>
                                         {% endif %}
                                     </td>
