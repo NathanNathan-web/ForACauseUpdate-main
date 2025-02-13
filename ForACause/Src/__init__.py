@@ -13,6 +13,7 @@ from flask_migrate import Migrate
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+
 secretKey = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database/db.sqlite3')
@@ -54,6 +55,7 @@ def get_locale():
     Otherwise, it uses the browser's preferred language.
     """
     return session.get('lang', request.accept_languages.best_match(app.config['LANGUAGES'].keys()))
+
 
 # Initialize Babel with the locale selector
 babel.init_app(app, locale_selector=get_locale)

@@ -5,7 +5,7 @@
 
       {% if adminStat == True and current_user.isAdmin == True %}
       <!-- Admin Navbar -->
-      <a class="navbar-brand" href="{{ url_for('home') }}">
+      <a class="navbar-brand">
         <img src="{{ url_for('static', filename='images/foracause_logo.png') }}" alt="ForACause" style="height: 40px;">
       </a>
       <ul class="navbar-nav m-auto mb-2 mb-lg-0">
@@ -19,25 +19,21 @@
             <li><a class="dropdown-item" href="{{ url_for('productadmin') }}">Products</a></li>
             <li><a class="dropdown-item" href="{{ url_for('inventoryadmin') }}">Inventory</a></li>
           </ul>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('retrievevoucher') }}">Vouchers</a>
-        </li>
+          <!-- Vouchers Dropdown for Admin -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
-            aria-expanded="false">Donation</a>
-          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <li><a class="dropdown-item" href="{{ url_for('donateitemadmin') }}">Item Donation</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('donateitemadmin') }}">Monetary Donation</a></li>
+          <a class="nav-link dropdown-toggle" href="#" id="voucherDropdownAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Vouchers
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="voucherDropdownAdmin">
+            <li><a class="dropdown-item" href="{{ url_for('retrievevoucher') }}">View Vouchers</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin_redemption_history') }}">Voucher Redemption History</a></li>
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('create_volunteer_event') }}">Volunteer</a>
+          <a class="nav-link" href="{{ url_for('donateitemadmin') }}">Donate Item</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('serviceadmin') }}">Services</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/adminCustomer">Customer View</a>
         </li>
       </ul>
       </ul>
@@ -54,8 +50,15 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('product') }}">Products</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('voucher') }}">Vouchers</a>
+        <!-- Vouchers Dropdown for User -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="voucherDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Vouchers
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="voucherDropdownUser">
+            <li><a class="dropdown-item" href="{{ url_for('voucher') }}">View Vouchers</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('redemption_history') }}">Redemption History</a></li>
+          </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
@@ -71,9 +74,6 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('service') }}">Services</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/accountAdmin">Admin Page</a>
-        </li>
       </ul>
 
       {% else %}
@@ -87,8 +87,13 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('product') }}">Products</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('voucher') }}">Vouchers</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">Vouchers</a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('voucher') }}">Vouchers</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('redemption_history') }}">Redemption History</a></li>
+          </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"

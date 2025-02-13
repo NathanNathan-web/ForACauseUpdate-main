@@ -15,7 +15,7 @@
     {% endwith %}
 
     <!-- Header Section -->
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm border-0 mb-4 bg-gradient-to-r from-primary-50 to-white">
         <div class="card-body">
             <div class="row align-items-center">
                 <div class="col-md-4">
@@ -132,8 +132,11 @@
     .table th {
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
     }
     
     .badge {
@@ -148,6 +151,10 @@
     
     .form-control:focus, .form-select:focus {
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+    
+    .bg-gradient-to-r {
+        background: linear-gradient(to right, #f0f7ff, #ffffff);
     }
 </style>
 {% endblock %}

@@ -1,10 +1,11 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import SelectMultipleField, StringField,FloatField,RadioField, SelectField, PasswordField, SubmitField, BooleanField,FileField, EmailField, IntegerField,TextAreaField, TimeField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional,InputRequired
 from .models import User, Product
 from wtforms.fields import DateField
 import pycountry
+
 
 
 def country():
@@ -67,16 +68,72 @@ class SupplierForm(FlaskForm):
 
 
 class VoucherForm(FlaskForm):
-    name = StringField('Voucher Name', validators=[DataRequired()])
-    description = StringField('Description', validators=[DataRequired()])
-    value = IntegerField('Voucher Value', validators=[DataRequired()])
-    credits = IntegerField('Credits', validators=[DataRequired()])
-    redeem_date = DateField('Redemption Date',format='%Y-%m-%d')
-    expiry_date = DateField('Expiry Date',format='%Y-%m-%d')
-    image_file = FileField('Logo', validators=[DataRequired(),FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
-    stock = IntegerField('Stock Quantity', validators=[DataRequired()])
-    isValid = RadioField('Validity', coerce=bool, choices=[(True, 'Available'),(False, 'Not Available')], default=True)
+    name = StringField(
+        'Voucher Name',
+        validators=[
+            DataRequired(message="Voucher name is required."),
+            Length(min=3, max=100, message="Voucher name must be between 3 and 100 characters.")
+        ]
+    )
+
+    description = StringField(
+        'Description',
+        validators=[
+            DataRequired(message="Description is required."),
+            Length(min=10, max=200, message="Description must be between 10 and 200 characters.")
+        ]
+    )
+
+    value = IntegerField(
+        'Voucher Value',
+        validators=[
+            DataRequired(message="Voucher value is required."),
+            NumberRange(min=1, max=1000, message="Voucher value must be between 1 and 1000.")
+        ]
+    )
+
+    credits = IntegerField(
+        'Credits',
+        validators=[
+            DataRequired(message="Credits are required."),
+            NumberRange(min=1, max=1000, message="Credits must be between 1 and 1000.")
+        ]
+    )
+
+    redeem_date = DateField(
+        'Redemption Date',
+        format='%Y-%m-%d',
+        validators=[InputRequired(message="Redemption date is required.")]
+    )
+
+    expiry_date = DateField(
+        'Expiry Date',
+        format='%Y-%m-%d',
+        validators=[InputRequired(message="Expiry date is required.")]
+    )
+
+    image_file = FileField(
+        'Logo',
+        validators=[
+            DataRequired(message="Please upload an image."),
+            FileAllowed(['jpg', 'png', 'jpeg'], 'Only JPG, PNG, and JPEG files are allowed.')
+        ]
+    )
+
+    isValid = RadioField(
+        'Validity',
+        coerce=bool,
+        choices=[(True, 'Available'), (False, 'Not Available')],
+        default=True
+    )
+
     submit = SubmitField('Add Voucher')
+
+    # **🔥 Custom Validation: Ensure expiry date is after redeem date**
+    def validate_expiry_date(self, expiry_date):
+        if self.redeem_date.data and expiry_date.data:
+            if expiry_date.data <= self.redeem_date.data:
+                raise ValidationError("Expiry date must be after the redemption date.")
 
 class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[DataRequired(), Length(min=1, max=100)])
@@ -118,10 +175,47 @@ class OrderForm(FlaskForm):
     orderstock = IntegerField('Stock Quantity', validators=[DataRequired()])
     submit = SubmitField('Add Order')
 
+
 class FeedbackForm(FlaskForm):
-    rating = RadioField('Rating', coerce=int, validators=[DataRequired()], choices=[(4, 'Very good'), (3, 'Good'), (2, 'Bad'), (1, 'Very bad')])
-    description = TextAreaField('Description', validators=[DataRequired()])
-    issue = SelectField('What topic of issues are you having?', choices=[(1,'Delivery Issues'),(2,'Payment Issues'),(3,'Services Issues'),(4,'Product Issues'),(5,'Other Issues')], validators=[DataRequired()])
+    rating = RadioField(
+        'Rating',
+        coerce=int,
+        choices=[
+            (4, 'Very good'),
+            (3, 'Good'),
+            (2, 'Bad'),
+            (1, 'Very bad')
+        ],
+        validators=[
+            DataRequired(message="Please select a rating."),
+            NumberRange(min=1, max=4, message="Invalid rating selection.")
+        ]
+    )
+
+    description = TextAreaField(
+        'Description',
+        validators=[
+            DataRequired(message="Please provide a description."),
+            Length(min=10, max=500, message="Description must be between 10 and 500 characters.")
+        ]
+    )
+
+    issue = SelectField(
+        'What topic of issues are you having?',
+        choices=[
+            ('', 'Select an issue'),  # Default empty choice
+            (1, 'Delivery Issues'),
+            (2, 'Payment Issues'),
+            (3, 'Service Issues'),
+            (4, 'Product Issues'),
+            (5, 'Other Issues')
+        ],
+        coerce=int,
+        validators=[
+            DataRequired(message="Please select an issue type.")
+        ]
+    )
+
     submit = SubmitField('Add Feedback')
 
 class ForgetPassword(FlaskForm):
@@ -209,12 +303,14 @@ class DonationItemForm(FlaskForm):
 
 class DonateForm(FlaskForm):
     amount = FloatField(
-        'Donation Amount',
+        'Donation Amount (SGD)',
         validators=[
-            DataRequired(message="Please enter a valid donation amount."),
-            NumberRange(min=1, message="Donation amount must be at least $1.")
+            DataRequired(message="Please enter a valid donation amount in SGD."),
+            NumberRange(min=1, message="Donation amount must be at least $1 SGD.")
         ]
     )
+    submit = SubmitField('Donate Now')
+    
     organization = SelectField(
         'Organization',
         choices=[],  # Placeholder, will be populated dynamically

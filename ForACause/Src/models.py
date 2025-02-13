@@ -3,6 +3,8 @@ from datetime import datetime
 from flask_login import UserMixin
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy import ARRAY
+from datetime import date
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -181,6 +183,7 @@ class RedeemedVouchers(db.Model):
         self.voucher_id = voucher_id
         self.status = status
 
+
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rating = db.Column(db.Integer, nullable=False)
@@ -188,11 +191,9 @@ class Feedback(db.Model):
     issue = db.Column(db.Integer, nullable=False)
     feedback_date = db.Column(db.Date, nullable=False)
 
-    def __init__(self, rating, description, issue , feedback_date):
-        self.rating = rating
-        self.description = description
-        self.issue = issue
-        self.feedback_date = feedback_date
+    def __repr__(self):
+        return f"Feedback('{self.rating}', '{self.issue}', '{self.feedback_date}')"
+
  
 class VolunteerEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -246,4 +247,5 @@ class Organization(db.Model):
 
     def __repr__(self):
         return f'<Organization {self.name}>'
-db.create_all()
+    
+   

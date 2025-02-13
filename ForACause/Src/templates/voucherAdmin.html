@@ -2,123 +2,411 @@
 {% block title %}ForACause - Admin Voucher{% endblock %}
 
 {% block content %}
-<div class="container">
-    <table class="table table-hover">
-        <thead class="table-light-blue">
-            <tr>
-                <th scope="col" class="topleft">Logo</th>
-                <th scope="col">Voucher ID</th>
-                <th scope="col">Voucher Name</th>
-                <th scope="col">Voucher Description</th>
-                <th scope="col">Voucher Value</th>
-                <th scope="col">Voucher Credit</th>
-                <th scope="col">Redeem Date</th>
-                <th scope="col">Expiry Date</th>
-                <th scope="col">Status</th>
-                <th scope="col" class="topright" colspan="2">Action</th>
-            </tr>
-        </thead>
+<div class="voucher-container">
+    <div class="voucher-card">
 
-        <tbody>
-            {% for voucher in voucher_list %}
-            <tr>
-                <td><img src="{{ url_for('static', filename='images/' + voucher.image_file )}}" alt="Logo"
-                        style="height:5vh; width: 3vw;"></td>
-                <td>{{ voucher.id }}</td>
-                <td>{{ voucher.name }}</td>
-                <td>{{ voucher.description }}</td>
-                <td>${{ voucher.value }}</td>
-                <td>{{voucher.credit}}</td>
-                <td>{{ voucher.redeem_date }}</td>
-                <td>{{ voucher.expiry_date }}</td>
-                <!--  -->
-                {% if voucher.isValid == True %}
-                <td><a href="{{ url_for('vouchervalidity', id=voucher.id)}}"><button class='valid'>Valid</button></a></td>
-                {% else %}
-                <td><a href="{{ url_for('vouchervalidity', id=voucher.id)}}"><button class='nonvalid'>Non-valid</button></a></td>
-                {% endif %}
-                {% if voucher.isValid == True %}
-                <td><a href="/updateVoucher/{{voucher.id}}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a></td>
-                <td>
-                    <form action="{{url_for('deletevoucher', id=voucher.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{voucher.id}}"><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{voucher.id}}">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <!-- Modal Header -->
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{voucher.name}}?
-                                    </div>
-                                    <!-- Modal footer -->
-                                    <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
+        <!-- Expired Voucher Notifications -->
+        {% if notifications %}
+        <div class="alert alert-danger mb-4">
+            <h5>Expired Voucher Notifications:</h5>
+            <ul>
+                {% for notification in notifications %}
+                <li>{{ notification }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-container">
+            <div class="search-bar mb-4">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="form-control search-input" 
+                    placeholder="Search vouchers..."
+                    onkeyup="searchVouchers()"
+                >
+                <button id="searchButton" class="btn btn-primary search-btn" onclick="searchVouchers()">Search</button>
+            </div>
+            <div class="date-filter mb-4">
+                <input 
+                    type="text" 
+                    id="startDate" 
+                    class="form-control date-input" 
+                    placeholder="Start Date"
+                >
+                <input 
+                    type="text" 
+                    id="endDate" 
+                    class="form-control date-input" 
+                    placeholder="End Date"
+                >
+                <button id="filterButton" class="btn btn-success filter-btn" onclick="filterByDate()">Filter</button>
+            </div>
+        </div>
+
+        <!-- Voucher Table -->
+        <div class="table-responsive">
+            <table class="table table-hover" id="voucherTable">
+                <thead>
+                    <tr>
+                        <th>Logo</th>
+                        <th>Voucher ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Value</th>
+                        <th>Credit</th>
+                        <th>Redeem Date</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for voucher in voucher_list %}
+                    <tr>
+                        <td><img src="{{ url_for('static', filename='images/' + voucher.image_file) }}" alt="Logo" class="voucher-logo"></td>
+                        <td>{{ voucher.id }}</td>
+                        <td>{{ voucher.name }}</td>
+                        <td>{{ voucher.description }}</td>
+                        <td>${{ voucher.value }}</td>
+                        <td>{{ voucher.credit }}</td>
+                        <td>{{ voucher.redeem_date }}</td>
+                        <td>{{ voucher.expiry_date }}</td>
+                        <td>
+                            {% if voucher.isValid %}
+                            <a href="{{ url_for('vouchervalidity', id=voucher.id) }}">
+                                <button class="btn btn-success status-btn">Valid</button>
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('vouchervalidity', id=voucher.id) }}">
+                                <button class="btn btn-danger status-btn">Non-valid</button>
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/updateVoucher/{{ voucher.id }}" class="btn btn-warning action-btn">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <!-- Delete Button and Modal -->
+                            <button type="button" class="btn btn-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal_{{ voucher.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <!-- Modal -->
+                            <div class="modal fade" id="deleteModal_{{ voucher.id }}" tabindex="-1" aria-labelledby="modalLabel_{{ voucher.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalLabel_{{ voucher.id }}">Confirm Delete</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete the voucher <strong>{{ voucher.name }}</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form action="{{ url_for('deletevoucher', id=voucher.id) }}" method="POST">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </td>
-                {% else %}
-                <td><a role="link" aria-disabled="true" class="btn btn-warning"
-                        style="background: rgb(255, 232, 29); color:rgb(102, 102, 102); cursor:default;">Update</a></td>
-                <td>
-                    <form action="{{url_for('deletevoucher', id=voucher.id)}}" method="POST">
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#myModal_{{voucher.id}}" disabled><i class="bi bi-trash"></i></button>
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal_{{voucher.id}}">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <!-- Modal Header -->
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Delete Confirmation</h4>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <!-- Modal body -->
-                                    <div class="modal-body"> Are you sure you want to delete
-                                        {{voucher.name}}?
-                                    </div>
-                                    <!-- Modal footer -->
-                                    <div class="modal-footer">
-                                        <input type="submit" value="Delete" class="btn btn-danger">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot class="table-light-blue">
-            <tr>
-                <th class="bottomleft"></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th colspan="3" class="bottomright"></th>
-            </tr>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-        </tfoot>
-    </table>
-    <a href="/createVoucher"><button class="btn btn-outline-info"> Add Voucher</button></a>
+        <div class="add-voucher mt-4 text-center">
+            <a href="/createVoucher">
+                <button class="btn btn-outline-info add-btn">Add Voucher</button>
+            </a>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Search Functionality
+    function searchVouchers() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#voucherTable tbody tr');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(input) ? '' : 'none';
+        });
+    }
+
+    // Filter by Date Range
+    function filterByDate() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const rows = document.querySelectorAll('#voucherTable tbody tr');
+
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+
+        rows.forEach(row => {
+            const redeemDateText = row.querySelectorAll('td')[6].innerText.trim();
+            const redeemDate = new Date(redeemDateText);
+            if (isNaN(redeemDate.getTime())) {
+                row.style.display = 'none';
+                return;
+            }
+            if (start && end) {
+                row.style.display = (redeemDate >= start && redeemDate <= end) ? '' : 'none';
+            } else if (start) {
+                row.style.display = (redeemDate >= start) ? '' : 'none';
+            } else if (end) {
+                row.style.display = (redeemDate <= end) ? '' : 'none';
+            } else {
+                row.style.display = '';
+            }
+        });
+    }
+
+    // Initialize Flatpickr and Attach Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+        flatpickr("#startDate", { dateFormat: "Y-m-d", onChange: filterByDate });
+        flatpickr("#endDate", { dateFormat: "Y-m-d", onChange: filterByDate });
+    });
+</script>
+<style>
+    /* General Page Styling */
+body {
+    background: linear-gradient(135deg, #f6f9fc, #e9f0f7);
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Voucher Container */
+.voucher-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+}
+
+/* Voucher Card */
+.voucher-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1200px;
+    padding: 30px;
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.table th, .table td {
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+.table th {
+    background-color: #007bff;
+    color: white;
+}
+
+.table td {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e9ecef;
+}
+
+/* Voucher Logo */
+.voucher-logo {
+    height: 50px;
+    border-radius: 5px;
+}
+
+/* Search and Filter Section */
+.search-filter-container {
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-input {
+    width: 75%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Date Filter Section */
+.date-filter {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.date-input {
+    width: 45%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background-color: #218838;
+}
+
+/* Add Voucher Button */
+.add-voucher {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.add-btn {
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 10px 30px;
+    border: 2px solid #007bff;
+    background-color: transparent;
+    color: #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-btn:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Action Buttons */
+.action-btn {
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+
+.status-btn {
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.status-btn.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-btn.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-btn:hover {
+    opacity: 0.8;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-body {
+    font-size: 1rem;
+    color: #333;
+}
+
+.modal-footer {
+    justify-content: flex-start;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+}
+
+.modal-footer .btn-danger {
+    background-color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-input,
+    .date-input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .voucher-card {
+        padding: 20px;
+    }
+
+    .table th, .table td {
+        padding: 8px;
+    }
+
+    .voucher-logo {
+        height: 40px;
+    }
+
+    .add-btn {
+        font-size: 1rem;
+        padding: 8px 20px;
+    }
+
+    .action-btn {
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
+}
+</style>
 {% endblock %}

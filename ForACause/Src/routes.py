@@ -1,12 +1,11 @@
 from ast import Return
 from datetime import date, datetime
 import random
-from flask import jsonify, render_template, url_for, flash, redirect, request, session
+from flask import jsonify, render_template, url_for, flash, redirect, send_file, abort, request, session
 from sqlalchemy import func
 from . import app, db, bcrypt
 from collections import Counter
 from datetime import date
-from flask import abort, render_template, url_for, flash, redirect, request, session, jsonify
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm, DonationItemForm, DonateForm
 from .models import Donation, User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers,DonateItem,VolunteerEvent,UserVolunteer,db
 from . import app, db, bcrypt, mail
@@ -17,20 +16,37 @@ from flask_babel import _
 from datetime import datetime, timedelta
 import http.client  # Import for chatbot API
 import json  # Required for JSON serialization and deserialization
-from flask import render_template, url_for, flash, redirect, request, session, jsonify
 import logging
 import requests
 import qrcode
 from io import BytesIO
-from flask import send_file
 import stripe
 from sched import scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Message
 import pytz
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
+# Set up logging for debugging
+logging.basicConfig(level=logging.DEBUG)
 
 stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    if isinstance(value, str):  # Ensure it's a string before formatting
+        try:
+            # Convert the string to a datetime object
+            local_tz = pytz.timezone('Asia/Singapore')  # Singapore Time Zone
+            dt = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            dt = pytz.utc.localize(dt)  # Localize UTC time if not already
+            dt_sg = dt.astimezone(local_tz)  # Convert to Singapore Time
+            return dt_sg.strftime("%d-%m-%Y %H:%M")  # Return in desired format
+        except ValueError:
+            return value  # If parsing fails, return the original value
+    return value
+
 
 def Vegetable():
     return "Vegetable"
@@ -964,36 +980,122 @@ def checkout():
 
 
 # =================================  VOUCHER ==================================
-    
-@app.route('/voucher')
+@app.route('/voucher', methods=['GET'])
+@login_required
 def voucher():
-    vouchers_list = []
-    vouchers = Voucher.query.all()
-    for voucher in vouchers:
-        vouchers_list.append(voucher)
-    return render_template('voucher.html', vouchers_list=vouchers_list)
+    search_query = request.args.get('search', '')  # Get the search term from query parameters
+
+    if search_query:
+        # Filter vouchers based on the search query
+        vouchers_list = Voucher.query.filter(
+            (Voucher.name.ilike(f'%{search_query}%')) |
+            (Voucher.description.ilike(f'%{search_query}%')) |
+            (Voucher.id.ilike(f'%{search_query}%'))
+        ).all()
+    else:
+        # Fetch all vouchers if no search query
+        vouchers_list = Voucher.query.all()
+
+    return render_template('voucher.html', vouchers_list=vouchers_list, search_query=search_query)
 
 
-
-@app.route('/redeemVoucher/<int:id>', methods= ['GET', 'POST'])
+@app.route('/redeemVoucher/<int:id>', methods=['GET', 'POST'])
+@login_required
 def redeemvoucher(id):
     if current_user.is_authenticated:
-        current_user.credit += 500
-        db.session.commit()
-        vouchers = Voucher.query.filter_by(id=id).first()
-        print(current_user.credit)
-        print(vouchers.credit)
-        if current_user.credit >= vouchers.credit:
-            redeem = RedeemedVouchers(status=1, user_id=current_user.id, voucher_id=vouchers.id)
-            current_user.credit -= vouchers.credit
-            db.session.add(redeem)
-            db.session.commit()
-            return redirect(url_for('account'))
-        else:
-            flash('Not enough credit to redeem', 'warning')
+        # Retrieve the voucher by ID
+        voucher = Voucher.query.get(id)
+
+        # If voucher is not found, redirect back with a flash message
+        if not voucher:
+            flash('Voucher not found!', 'danger')
             return redirect(url_for('voucher'))
-    else:
-        return redirect(url_for('login'))
+
+        # 🚀 **Check if user already redeemed this voucher**
+        existing_redeemed = RedeemedVouchers.query.filter_by(user_id=current_user.id, voucher_id=voucher.id).first()
+        if existing_redeemed:
+            flash('You have already redeemed this voucher.', 'warning')
+            return redirect(url_for('voucher'))
+
+        # ✅ **Check if user has enough credits**
+        if current_user.credit >= voucher.credit:
+            # Create a new RedeemedVouchers object without redeem_date, assuming it's not part of the model
+            redeemed_voucher = RedeemedVouchers(
+                user_id=current_user.id,
+                voucher_id=voucher.id,
+                status=1  # Assuming '1' means redeemed. Adjust if necessary.
+            )
+
+            # Deduct the voucher's credit from the user's balance
+            current_user.credit -= voucher.credit
+            db.session.add(redeemed_voucher)
+            db.session.commit()
+
+            # Add the redemption to the redemption history file
+            add_redemption(current_user.id, voucher.id, voucher.name)
+
+            flash('Voucher successfully redeemed!', 'success')
+
+            # Redirect to a confirmation page or stay on the same page
+            return redirect(url_for('voucher'))  # Redirect back to the voucher page
+
+        else:
+            flash('Not enough credits to redeem this voucher.', 'warning')
+            return redirect(url_for('voucher'))
+
+    # If the user is not authenticated, redirect to login
+    return redirect(url_for('login'))
+
+
+# Function to load voucher redemption history from JSON
+def load_redemption_history():
+    try:
+        with open('voucher_history.json', 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}  # Return an empty dictionary if file doesn't exist
+    
+@app.route('/redemption_history', methods=['GET'])
+@login_required
+def redemption_history():
+    # Load the redemption history from the JSON file
+    history = load_redemption_history()
+
+    # Get the user's redemption history (if any)
+    user_history = history.get(str(current_user.id), [])  # Ensure user_id is string for matching
+
+    return render_template('redemption_history.html', user_history=user_history)
+
+
+# Function to save redemption history to the JSON file
+def save_redemption_history(history):
+    with open('voucher_history.json', 'w') as file:
+        json.dump(history, file, indent=4)
+
+def add_redemption(user_id, voucher_id, voucher_name):
+    # Load the current history
+    history = load_redemption_history()
+
+    # Add new redemption data to the history
+    if str(user_id) not in history:
+        history[str(user_id)] = []
+
+     # Set Singapore Timezone
+    sg_tz = pytz.timezone('Asia/Singapore')
+    sg_time = datetime.now(sg_tz)  # Get the current time in Singapore
+
+    redemption_data = {
+        "voucher_id": voucher_id,
+        "voucher_name": voucher_name,
+        "redemption_date": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    history[str(user_id)].append(redemption_data)
+
+    # Save the updated history back to the file
+    save_redemption_history(history)
+
+
 # =================================  Service ==================================
 @app.route('/service', methods=['GET', 'POST'])
 @login_required
@@ -1552,17 +1654,73 @@ def rejectorder(id):
 # ===================== Voucher =======================
 
 
+
 @app.route('/voucherAdmin', methods=['GET', 'POST'])
 @login_required
 def retrievevoucher():
-    if current_user.is_authenticated and current_user.isAdmin == True:
+    if current_user.is_authenticated and current_user.isAdmin:
+        # Fetch all vouchers
         voucher_list = []
         vouchers = Voucher.query.all()
         for voucher in vouchers:
             voucher_list.append(voucher)
-        return render_template('voucherAdmin.html', voucher_list=voucher_list, adminStat=True)
+
+        # Fetch expired vouchers
+        today = datetime.today().date()
+        expired_vouchers = Voucher.query.filter(Voucher.expiry_date < today).all()
+        notifications = [
+            f"Voucher '{voucher.name}' expired on {voucher.expiry_date}."
+            for voucher in expired_vouchers
+        ]
+
+        # Pass voucher list and notifications to the template
+        return render_template(
+            'voucherAdmin.html',
+            voucher_list=voucher_list,
+            adminStat=True,
+            notifications=notifications
+        )
     else:
         return redirect(url_for('login'))
+
+@app.route('/toggleVoucherStatus/<int:id>', methods=['POST'])
+@login_required
+def toggle_voucher_status(id):
+    if not current_user.is_authenticated or not current_user.isAdmin:
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    voucher = Voucher.query.get(id)
+    if not voucher:
+        return jsonify({"success": False, "message": "Voucher not found"}), 404
+
+    # Toggle the status between 'valid' and 'non-valid'
+    voucher.status = 'non-valid' if voucher.status == 'valid' else 'valid'
+    db.session.commit()
+
+    return jsonify({"success": True, "new_status": voucher.status})
+
+@app.route('/admin_redemption_history')
+@login_required
+def admin_redemption_history():
+    if not current_user.isAdmin:
+        flash("Access denied!", "danger")
+        return redirect(url_for('home'))
+
+    # Load the redemption history from JSON or database
+    redemption_history = load_redemption_history()  # If using JSON, ensure this function loads correctly
+
+    redemption_data = []
+    for user_id, redemptions in redemption_history.items():
+        user = User.query.filter_by(id=user_id).first()  # Retrieve the user by ID
+        for redemption in redemptions:
+            redemption_data.append({
+                "voucher_name": redemption["voucher_name"],
+                "voucher_id": redemption["voucher_id"],
+                "user_username": user.username if user else "Unknown",  # Replace user_id with username
+                "redemption_date": redemption["redemption_date"]
+            })
+
+    return render_template("admin_redemption_history.html", adminStat=True, redemption_data=redemption_data)
 
 
 @app.route('/createVoucher', methods=['GET', 'POST'])
@@ -1614,22 +1772,20 @@ def updatevoucher(id):
 @login_required
 def deletevoucher(id):
     voucher = Voucher.query.filter_by(id=id).first()
-    db.session.delete(voucher)
-    db.session.commit()
-    return redirect(url_for('retrievevoucher'), idsite=True)
-
-# ============ SERVICE ===============
-
+    if voucher:
+        db.session.delete(voucher)
+        db.session.commit()
+        flash('Voucher deleted successfully!', 'success')
+    else:
+        flash('Voucher not found.', 'danger')
+    return redirect(url_for('retrievevoucher'))
 
 @app.route('/serviceAdmin')
 @login_required
 def serviceadmin():
-    if current_user.isAdmin:  # Ensure only admins can access this route
-        feedback_list = Feedback.query.all()  # Retrieve all feedbacks from the database
-        return render_template('serviceAdmin.html', feedback_list=feedback_list, adminStat=True)
-    else:
-        flash('You do not have permission to view this page.', 'danger')
-        return redirect(url_for('home'))
+    feedbacks = Feedback.query.all()  # Fetch all feedbacks directly
+    return render_template('serviceAdmin.html', feedback_list=feedbacks, adminStat=True)
+
 
 
 
@@ -1726,12 +1882,12 @@ def donate():
     return render_template('donate.html', form=form, organizations=organizations)
 
 @app.route('/generate_qr', methods=['GET'])
-@login_required
 def generate_qr():
-    from io import BytesIO
-    import qrcode
+    """
+    Generate a PayNow QR Code based on the given amount.
+    """
 
-    # Your PayNow mobile number and other details
+    # PayNow details
     uen_or_mobile = "88185649"  # Your PayNow mobile number
     merchant_name = "ForACause"  # Merchant name
     merchant_city = "Singapore"  # Merchant city
@@ -1739,25 +1895,28 @@ def generate_qr():
     reference = "Donation"  # Fixed payment reference
 
     # Validate input
-    if not uen_or_mobile or not amount:
+    if not uen_or_mobile or amount is None:
         return "Invalid QR code parameters", 400
+
+    # Format amount correctly
+    formatted_amount = f"{amount:.2f}"
 
     # Construct SGQR payload
     payload = (
         "000201"  # Payload format indicator
         "010211"  # Static QR code
         "26440014SG.PAYNOW"  # PayNow identifier
-        f"01012021{len(uen_or_mobile):02}{uen_or_mobile}"  # Mobile number proxy
+        f"010120{len(uen_or_mobile):02}{uen_or_mobile}"  # Mobile number proxy
         "5303702"  # Currency (SGD = 702)
-        f"54{len(f'{amount:.2f}'):02}{amount:.2f}"  # Amount
-        "5802SG"  # Country
+        f"54{len(formatted_amount):02}{formatted_amount}"  # Amount
+        "5802SG"  # Country code
         f"59{len(merchant_name):02}{merchant_name}"  # Merchant name
         f"60{len(merchant_city):02}{merchant_city}"  # Merchant city
         f"62{len(reference)+4:02}01{len(reference):02}{reference}"  # Reference
         "6304"  # CRC checksum placeholder
     )
 
-    # Calculate CRC checksum
+     # Calculate CRC checksum
     crc = calculate_crc(payload)
     payload += crc
 
@@ -1779,68 +1938,102 @@ def generate_qr():
     # Return the QR code as a PNG
     return send_file(buffer, mimetype='image/png')
 
-
 @app.route('/donation/payment', methods=['GET', 'POST'])
 @login_required
 def donation_payment():
     from .organization import organizations
 
-    # Retrieve donation details from query parameters
-    donation_amount = request.args.get('amount', type=float)
-    selected_org = request.args.get('organization')
+    donation_amount = request.args.get('amount', type=float, default=0.0)  # Default donation amount
+    selected_org = request.args.get('organization', '')
 
-    # Validate the organization
+    # 🚀 Ensure the organization is valid, fallback if missing
     if selected_org not in organizations:
-        flash('Invalid organization selected. Please try again.', 'danger')
-        return redirect(url_for('donate'))
+        selected_org = list(organizations.keys())[0]  # Default to the first available organization
 
-    # Organization details
-    organization_name = organizations[selected_org]['name']
-    uen_or_mobile = "88185649"  # Registered PayNow mobile number
-    reference = "Donation"  # Payment reference
+    # **Retrieve only unique redeemed vouchers**
+    redeemed_vouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+    unique_vouchers = {}
+    for v in redeemed_vouchers:
+        if v.voucher and v.voucher.value:
+            unique_vouchers[v.voucher.id] = v  # Prevent duplicates
 
-    if request.method == 'POST':
-        # Handle Stripe or PayNow confirmation
-        payment_method = request.form.get('payment_method')
+    # Calculate the total discount based on vouchers
+    total_discount = sum(v.voucher.value for v in unique_vouchers.values())
+    final_amount = max(0, donation_amount - total_discount)  # Ensure non-negative final amount
 
-        if payment_method == 'stripe':
-            # Redirect to Stripe Checkout
-            return redirect(url_for(
-                'create_checkout_session',
-                amount=donation_amount,
-                organization=selected_org,
-            ))
+    if request.method == "POST":
+        payment_method = request.form.get("payment_method")
+        if not payment_method:
+            flash("Please select a payment method.", "error")
+            return redirect(url_for("donation_payment"))
 
-        elif payment_method == 'paynow':
-            flash("Please scan the QR code with your PayNow app to complete the payment.", "info")
-            return redirect(url_for('donation_payment', amount=donation_amount, organization=selected_org))
-
-        flash('Invalid payment method selected. Please try again.', 'danger')
+        # ✅ Process payment and redirect to success page
+        flash(f"Donation of SGD {final_amount:.2f} processed successfully!", "success")
+        
+        # Pass the donation_amount and organization_name to donation_success page
+        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]['name']))
 
     return render_template(
         'payment.html',
-        organization_name=organization_name,
+        organization_name=organizations[selected_org]['name'],
         donation_amount=donation_amount,
-        uen_or_mobile=uen_or_mobile,
-        reference=reference
+        redeemed_vouchers=list(unique_vouchers.values()),  # Only unique vouchers
+        total_discount=total_discount,
+        final_amount=final_amount,
     )
 
 
-def calculate_crc(payload: str) -> str:
-    """Calculate CRC16-CCITT checksum for SGQR."""
-    crc = 0xFFFF
-    polynomial = 0x1021
+@app.route('/donation/success', methods=['GET'])
+@login_required
+def donation_success():
+    # Retrieve donation amount and organization name from query parameters
+    donation_amount = request.args.get('amount', type=float)  # Ensure correct amount is fetched
+    organization_name = request.args.get('organization')
 
-    for byte in payload.encode("utf-8"):
+    # Render success page
+    return render_template(
+        'donation.success.html',
+        donation_amount=donation_amount,
+        organization_name=organization_name
+    )
+
+@app.route('/donation_leaderboard')
+@login_required
+def donation_leaderboard():
+    if not current_user.isAdmin:  # Ensure only admins can view
+        flash("Access denied: Only admins can view the leaderboard.", "danger")
+        return redirect(url_for("home"))
+
+    # Aggregate total donations per user
+    top_donors = (
+        db.session.query(User.username, db.func.sum(Donation.amount).label("total_donated"))
+        .join(Donation, User.id == Donation.user_id)
+        .group_by(User.username)
+        .order_by(db.desc("total_donated"))
+        .limit(10)
+        .all()
+    )
+
+    return render_template("donation_leaderboard.html", top_donors=top_donors)
+
+
+
+
+def calculate_crc(payload):
+    """
+    Calculate CRC16-CCITT checksum required for SGQR format.
+    """
+    poly = 0x1021
+    crc = 0xFFFF
+    for byte in bytearray(payload.encode('utf-8')):
         crc ^= (byte << 8)
         for _ in range(8):
-            if crc & 0x8000:
-                crc = (crc << 1) ^ polynomial
+            if (crc & 0x8000) != 0:
+                crc = (crc << 1) ^ poly
             else:
                 crc <<= 1
-        crc &= 0xFFFF  # Ensure 16-bit
-
-    return f"{crc:04X}"  # Return checksum in uppercase hex
+    crc &= 0xFFFF
+    return f"{crc:04X}"  # Convert to uppercase hex
 
 
 @app.route('/create-checkout-session', methods=['GET'])
@@ -1879,8 +2072,8 @@ def create_checkout_session():
 @app.route('/payment/success')
 @login_required
 def payment_success():
-    flash("Your payment was successful! Thank you for your donation.", "success")
-    return redirect(url_for('home'))
+    flash("Your payment was successful! Thank you for your donation.Do you want to donate again ?", "success")
+    return redirect(url_for('donate'))
 
 
 @app.route('/payment/cancel')
@@ -1888,8 +2081,6 @@ def payment_success():
 def payment_cancel():
     flash("Your payment was canceled. Please try again.", "warning")
     return redirect(url_for('donate'))
-
-
 
 @app.route('/chat', methods=['POST'])
 @login_required
@@ -1900,11 +2091,33 @@ def chat():
         if not user_message:
             return jsonify({"reply": "Message cannot be empty."}), 400
 
+        # Custom prompt for ForACause-related queries
+        prompt = f"""
+        You are an AI assistant for 'ForACause', a donation platform where users contribute to charities, redeem vouchers, and support causes.
+        Your job is to assist users with donation-related questions, voucher redemptions, and troubleshooting.
+        If a user reports an issue, guide them on how to fix it or escalate the issue.
+
+        Here are some specific queries you should handle:
+        - "How do I donate?"
+        - "Can I cancel my donation?"
+        - "I donated to the wrong organization. What should I do?"
+        - "How do I track my donation history?"
+        - "How do I redeem vouchers?"
+        - "Are my donations tax-deductible?"
+        - "I didn’t receive my donation receipt. How can I get it?"
+        - "How do I update my payment details?"
+        - "How can I contact customer support?"
+        - "I have an issue with my donation, how can I escalate it?"
+
+        User: {user_message}
+        Chatbot:
+        """
+
         # API configuration
         url = "https://free-chatgpt-api.p.rapidapi.com/chat-completion-one"
-        querystring = {"prompt": user_message}
+        querystring = {"prompt": prompt}
         headers = {
-            "x-rapidapi-key": os.getenv("RAPIDAPI_KEY", "a26de8c9c7msh2f30c7ea2545caep18aa6bjsn7536d84ca8f2"),  # Replace with your valid API key
+            "x-rapidapi-key": os.getenv("RAPIDAPI_KEY", "a26de8c9c7msh2f30c7ea2545caep18aa6bjsn7536d84ca8f2"),
             "x-rapidapi-host": "free-chatgpt-api.p.rapidapi.com"
         }
 
@@ -1914,7 +2127,7 @@ def chat():
         # Check response status
         if response.status_code == 200:
             data = response.json()
-            reply = data.get("response", "No reply available.")
+            reply = data.get("response", "I'm here to assist with ForACause! How can I help?")
             return jsonify({"reply": reply})
         else:
             return jsonify({"reply": f"API error: {response.status_code} - {response.reason}"}), response.status_code
