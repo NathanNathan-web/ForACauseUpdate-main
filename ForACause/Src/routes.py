@@ -470,9 +470,18 @@ def accountadmin():
         # Fetch the filtered users
         user_list = query.all()
 
-        return render_template('accountAdmin.html', adminStat=True, user_list=user_list)
+        # Get the list of hidden users' IDs from the session
+        hidden_users = session.get('hidden_users', [])
+
+        # Filter out the hidden users
+        visible_users = [user for user in user_list if user.id not in hidden_users]
+
+        return render_template('accountAdmin.html', adminStat=True, user_list=visible_users)
     else:
         return redirect(url_for('login'))
+
+
+
 
 
 
@@ -480,10 +489,19 @@ def accountadmin():
 @app.route('/deleteUser/<int:id>', methods=['POST'])
 @login_required
 def deleteuser(id):
+    # We need to retrieve the user by ID, which is stored in the session
     user = User.query.filter_by(id=id).first()
-    db.session.delete(user)
-    db.session.commit()
-    return redirect(url_for('accountadmin', idsite=True))
+
+    if user:
+        # Add the user ID to the "hidden" list in the session
+        if 'hidden_users' not in session:
+            session['hidden_users'] = []
+
+        session['hidden_users'].append(id)  # Add this user to the hidden list
+        session.modified = True  # Mark session as modified
+
+    return redirect(url_for('accountadmin'))
+
 
 
 # ============================= PRODUCT =============================
@@ -1448,3 +1466,19 @@ def filter_reviews():
 @app.route('/quiz')
 def quiz():
     return render_template('quiz.html')
+
+
+from flask import session, redirect, url_for
+
+@app.route('/hideUser/<int:user_id>', methods=['POST'])
+@login_required
+def hideuser(user_id):
+    # Initialize the hidden_users list in session if it doesn't exist
+    if 'hidden_users' not in session:
+        session['hidden_users'] = []
+
+    # Add the user's ID to the hidden_users list in the session
+    session['hidden_users'].append(user_id)
+    session.modified = True  # Mark session as modified to save
+
+    return redirect(url_for('accountadmin'))
