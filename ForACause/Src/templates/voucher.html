@@ -7,7 +7,7 @@
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
-            <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+            <div class="alert alert-info alert-dismissible fade show mb-4 text-center shadow-sm" role="alert">
                 {% for category, message in messages %}
                     {{ message }}
                 {% endfor %}
@@ -16,18 +16,16 @@
         {% endif %}
     {% endwith %}
 
-    <div class="row">
-        <div class="col-12 text-center mb-5">
-            <h1 class="display-5 fw-bold text-body-emphasis">Available Vouchers</h1>
-            <p class="lead text-muted">Redeem your credits for exciting rewards!</p>
-        </div>
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">🎟 Available Vouchers</h1>
+        <p class="lead text-muted">Redeem your credits for exclusive rewards!</p>
     </div>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for voucher in vouchers_list %}
-            {% if voucher.isValid == True %}
+            {% if voucher.isValid %}
         <div class="col">
-            <div class="card h-100 border-0 shadow-lg voucher-card" data-bs-toggle="modal" data-bs-target="#voucherModal" 
+            <div class="card voucher-card shadow-sm" data-bs-toggle="modal" data-bs-target="#voucherModal" 
                  data-voucher-id="{{ voucher.id }}" 
                  data-voucher-name="{{ voucher.name }}" 
                  data-voucher-description="{{ voucher.description }}" 
@@ -42,12 +40,12 @@
                     </div>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title fw-bold mb-3">{{ voucher.name }}</h5>
-                    <p class="card-text text-muted flex-grow-1">{{ voucher.description }}</p>
+                    <h5 class="card-title fw-bold text-dark text-center">{{ voucher.name }}</h5>
+                    <p class="card-text text-muted small flex-grow-1">{{ voucher.description }}</p>
                     
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <span class="h5 mb-0 text-success">${{ voucher.value }}</span>
-                        <button class="btn btn-primary" disabled>
+                        <span class="h5 text-success fw-bold">${{ voucher.value }}</span>
+                        <button class="btn btn-primary redeem-btn">
                             Redeem Now
                         </button>
                     </div>
@@ -70,162 +68,119 @@
 <div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="voucherModalLabel"></h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="voucherModalLabel"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p id="voucherDescription"></p>
-                <p><strong>Credits:</strong> <span id="voucherCredits"></span></p>
-                <p><strong>Value:</strong> $<span id="voucherValue"></span></p>
+            <div class="modal-body text-center">
+                <p id="voucherDescription" class="text-muted"></p>
+                <p><strong>Credits:</strong> <span id="voucherCredits" class="text-primary fw-bold"></span></p>
+                <p><strong>Value:</strong> $<span id="voucherValue" class="text-success fw-bold"></span></p>
             </div>
             <div class="modal-footer">
-                <a href="#" id="redeemLink" class="btn btn-primary">Redeem Now</a>
+                <a href="#" id="redeemLink" class="btn btn-success btn-lg w-100">Redeem Now</a>
             </div>
         </div>
     </div>
 </div>
 
 <style>
- /* General Styles */
+/* General Styles */
 body {
-    background-color: #f8f9fa; /* Light background for contrast */
-    font-family: 'Poppins', sans-serif; /* Modern font */
-    color: #333; /* Default text color */
+    background: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Card Styles */
+/* Card Styling */
 .voucher-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
     overflow: hidden;
-    border-radius: 15px; /* Rounded corners for cards */
-    background-color: #ffffff; /* White background for cards */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    background: white;
 }
 
 .voucher-card:hover {
-    transform: translateY(-5px); /* Slight lift effect on hover */
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Voucher Image Styles */
+/* Voucher Image */
 .voucher-image {
-    height: 200px; /* Fixed height for images */
-    object-fit: cover; /* Cover the area without distortion */
-    transition: transform 0.3s ease; /* Smooth scaling effect */
-    border-top-left-radius: 15px; /* Rounded corners for the top */
-    border-top-right-radius: 15px; /* Rounded corners for the top */
+    height: 220px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
-.voucher-card:hover .voucher-image {
-    transform: scale(1.05); /* Slightly scale image on hover */
-}
-
-/* Overlay Styles */
+/* Badge Overlay */
 .voucher-overlay {
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 10;
+    padding: 5px 10px;
+    border-radius: 8px;
 }
 
-.voucher-overlay .badge {
-    font-size: 1rem; /* Font size for badge */
-    padding: 10px; /* Padding for badge */
+/* Button Styling */
+.redeem-btn {
+    background: linear-gradient(135deg, #0d6efd, #0056b3);
+    border: none;
+    padding: 8px 20px;
+    font-weight: 600;
+    border-radius: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Card Body Styles */
-.card-body {
-    padding: 20px; /* Padding inside card body */
+.redeem-btn:hover {
+    background: linear-gradient(135deg, #0056b3, #003a70);
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-.card-title {
-    font-size: 1.25rem; /* Font size for card title */
-    font-weight: 600; /* Semi-bold weight */
-    color: #0d6efd; /* Primary color for titles */
-}
-
-.card-text {
-    font-size: 0.9rem; /* Font size for card text */
-    color: #6c757d; /* Muted text color */
-}
-
-/* Price and Button Styles */
-.text-success {
-    font-size: 1.5rem; /* Larger font size for price */
-    font-weight: bold; /* Bold weight for price */
-}
-
-.btn-primary {
-    background-color: #0d6efd; /* Primary button color */
-    border: none; /* Remove border */
-    border-radius: 25px; /* Rounded button */
-    padding: 10px 20px; /* Padding for button */
-    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
-}
-
-.btn-primary:hover {
-    background-color: #0056b3; /* Darker shade on hover */
-    transform: translateY(-2px); /* Slight lift effect on hover */
-}
-
-/* Flash Message Styles */
+/* Flash Messages */
 .alert {
-    border-radius: 10px; /* Rounded corners for alerts */
-    font-size: 1rem; /* Font size for alerts */
-    padding: 15px; /* Padding for alerts */
+    border-radius: 8px;
+    font-size: 1rem;
+    padding: 10px;
 }
 
-/* No Vouchers Available Message */
-.text-center h2 {
-    font-size: 2rem; /* Font size for no vouchers message */
-    color: #6c757d; /* Muted color */
-}
-
-.text-center p {
-    font-size: 1.2rem; /* Font size for lead text */
-    color: #495057; /* Darker muted color */
-}
-
-/* Modal Styles */
+/* Modal Styling */
 .modal-content {
-    border-radius: 15px; /* Rounded corners for modal */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); /* Shadow for modal */
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
-    border-bottom: none; /* Remove border */
+    border-bottom: none;
 }
 
 .modal-title {
-    font-size: 1.5rem; /* Font size for modal title */
-    font-weight: bold; /* Bold weight for title */
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
 .modal-body {
-    padding: 20px; /* Padding for modal body */
+    padding: 20px;
 }
 
 .modal-footer {
-    border-top: none; /* Remove border */
+    border-top: none;
+    text-align: center;
 }
 
-/* Responsive Adjustments */
+/* Responsive Design */
 @media (max-width: 768px) {
     .voucher-image {
-        height: 150px; /* Adjust image height for smaller screens */
+        height: 180px;
     }
 
     .card-title {
-        font-size: 1.1rem; /* Adjust title size */
+        font-size: 1.1rem;
     }
 
-    .text-success {
-        font-size: 1.25rem; /* Adjust price size */
-    }
-
-    .btn-primary {
-        padding: 8px 16px; /* Adjust button padding */
+    .redeem-btn {
+        font-size: 1rem;
+        padding: 8px 16px;
     }
 }
 </style>
@@ -248,14 +203,14 @@ body {
                 const voucherCreditsValue = this.getAttribute('data-voucher-credits');
                 const voucherValueAmount = this.getAttribute('data-voucher-value');
 
-                // Update modal content
                 voucherModalLabel.textContent = voucherName;
                 voucherDescription.textContent = voucherDesc;
                 voucherCredits.textContent = voucherCreditsValue;
                 voucherValue.textContent = voucherValueAmount;
-                redeemLink.href = `/redeemVoucher/${voucherId}`; // Set redeem link
+                redeemLink.href = `/redeemVoucher/${voucherId}`;
             });
         });
     });
 </script>
+
 {% endblock %}
