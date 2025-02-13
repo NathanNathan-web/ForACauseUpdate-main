@@ -193,6 +193,75 @@
         display: flex;
         align-items: center;
     }
+    .progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  position: relative;
+  padding: 0 20px;
+}
+
+/* Steps */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  color: #666;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+/* Circles */
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Horizontal Line */
+.line {
+  position: absolute;
+  top: 25px;
+  height: 5px;
+  background: #ddd;
+  width: calc(100% - 100px);
+  left: 50px;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Active and Completed Step Styling */
+.step.active .circle,
+.step.completed .circle {
+  background: var(--primary-color);
+  color: white;
+}
+
+.step.completed .circle {
+  background: #4CAF50;
+}
+
+.step.active {
+  color: #000;
+}
+
+.step p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
 </style>
 
 <div class="checkout-container">
@@ -200,17 +269,27 @@
         <span class="icon">🛒</span>
         <h2>Checkout</h2>
     </div>
+    <div class="progress-container">
+        <div class="line"></div>
+        <div class="step completed">
+          <div class="circle">1</div>
+          <p>View Cart</p>
+        </div>
+        <div class="step active">
+          <div class="circle">2</div>
+          <p>Checkout</p>
+        </div>
+        <div class="step">
+          <div class="circle">3</div>
+          <p>Payment</p>
+        </div>
+        <div class="step">
+          <div class="circle">4</div>
+          <p> Confirmation</p>
+        </div>
+      </div>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-    {% endwith %}
+   
 
     <!-- Display Cart Items -->
     <div class="cart-summary">
@@ -264,6 +343,8 @@
             <option value="" disabled selected>Select a payment method</option>
             <option value="paynow">PayNow/PayLah</option>
         </select>
+        <br>
+        <br>
 
         <button type="submit" class="btn-primary">Proceed to Payment</button>
     </form>

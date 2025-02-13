@@ -4,7 +4,7 @@
 {% block content %}
 <style>
   body {
-    background-color: #F7F8FA;
+    background-color: #F8FAFC;
     font-family: 'Poppins', sans-serif;
   }
 
@@ -12,7 +12,7 @@
     width: 100%;
     padding: 20px;
     background: #ffffff;
-    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     margin-top: 20px;
     overflow-x: auto;
@@ -23,60 +23,79 @@
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #FF7043;
-  }
-
-  .table {
-    margin-bottom: 0;
-    width: 100%;
+    color: #002855;
   }
 
   .table th {
-    background-color: #FF7043;
+    background-color: #002855;
     color: white;
     text-align: center;
     font-weight: bold;
-    vertical-align: middle;
     font-size: 1.1rem;
   }
 
   .table td {
     text-align: center;
-    vertical-align: middle;
     font-size: 1rem;
-    color: #555555;
+    color: #333;
   }
 
   .product-image {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   .quantity-input {
-    width: 80px;
+    width: 70px;
     padding: 5px;
     text-align: center;
-    border: 1px solid #E0E0E0;
-    border-radius: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
     font-size: 1rem;
   }
 
   .btn-danger {
-    background-color: #FF5252;
-    border: none;
-    color: #ffffff;
-    font-size: 1rem;
-    padding: 5px 15px;
+    background-color: #DC3545;
+    color: white;
+    padding: 6px 12px;
     border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: 0.3s;
+    border: none;
   }
 
   .btn-danger:hover {
-    background-color: #D32F2F;
+    background-color: #B02A37;
+  }
+
+  .btn-update {
+    background-color: #002855;
+    color: white;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: 0.3s;
+    border: none;
+  }
+
+  .btn-update:hover {
+    background-color: #001f40;
+  }
+
+  .btn-checkout {
+    background-color: #28A745;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: 0.3s;
+    border: none;
+  }
+
+  .btn-checkout:hover {
+    background-color: #218838;
   }
 
   .cart-footer {
@@ -84,73 +103,54 @@
     padding-top: 20px;
     border-top: 2px solid #EEEEEE;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     font-size: 1.2rem;
+  }
+
+  .checkout-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
   }
 
   .total {
     font-weight: bold;
     font-size: 1.5rem;
-    color: #BF360C;
-  }
-
-  .btn-update {
-    background-color: #FF7043;
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-  }
-
-  .btn-update:hover {
-    background-color: #E64A19;
-  }
-
-  .btn-checkout {
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-  }
-
-  .btn-checkout:hover {
-    background-color: #388E3C;
+    color: #002855;
   }
 
   .recommendation-section {
     margin-top: 40px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
   }
 
   .recommendation-header {
     font-size: 1.8rem;
     font-weight: bold;
-    margin-bottom: 20px;
-    color: #FF7043;
+    color: #002855;
     text-align: center;
+    margin-bottom: 20px;
   }
 
   .recommendation-grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
   }
 
   .recommendation-card {
-    width: 250px;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+    padding-bottom: 10px;
   }
 
   .recommendation-card:hover {
@@ -160,86 +160,138 @@
 
   .recommendation-card img {
     width: 100%;
-    height: 150px;
+    height: 140px;
     object-fit: cover;
   }
 
   .recommendation-card .card-body {
-    padding: 10px;
-    text-align: center;
+    padding: 15px;
   }
 
   .recommendation-card h5 {
     font-size: 1.2rem;
     font-weight: bold;
     color: #333;
-    margin: 10px 0;
   }
 
-  .recommendation-card .btn-view {
-    background-color: #FF7043;
+  .recommendation-card p {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 5px;
+  }
+
+  .btn-view {
+    display: inline-block;
+    background-color: #002855;
     color: white;
     font-weight: bold;
-    border-radius: 8px;
-    padding: 5px 10px;
+    padding: 8px 15px;
+    border-radius: 6px;
     text-decoration: none;
-    transition: background-color 0.3s;
-    display: inline-block;
+    transition: 0.3s;
   }
 
-  .recommendation-card .btn-view:hover {
-    background-color: #E64A19;
+  .btn-view:hover {
+    background-color: #001f40;
   }
+ /* Progress Bar Container */
+ .progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 20px;
+  position: relative;
+}
 
-  @media (max-width: 768px) {
-    .cart-footer {
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
+/* Steps */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  color: #666;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
 
-    .total {
-      font-size: 1.2rem;
-    }
+/* Circles */
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10px;
+  transition: all 0.3s ease-in-out;
+}
 
-    .btn-update,
-    .btn-checkout {
-      width: 100%;
-    }
-  }
+/* Horizontal Line */
+.line {
+  position: absolute;
+  top: 25px; /* Half of circle height */
+  height: 5px;
+  background: #ddd;
+  width: calc(100% - 100px); /* Adjust based on circle size */
+  left: 50px;
+  z-index: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Active Step Styling */
+.step.active .circle {
+  background: #4CAF50;
+  color: white;
+}
+
+.step.active {
+  color: #000;
+}
+
+/* Progress Line Fill */
+.step.active ~ .step .circle {
+  background: #ddd;
+}
+
+.step.active ~ .step {
+  color: #666;
+}
 </style>
 
-<div class="container-fluid">
-  <div class="cart-container">
-    <!-- Header -->
-    <h1 class="cart-header">🛒 Your Shopping Cart</h1>
-
-    <!-- Display Validation Errors -->
-    {% if error_messages %}
-    <div class="alert alert-danger">
-      <ul>
-        {% for error in error_messages %}
-        <li>{{ error }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    {% endif %}
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="container-fluid">
+      <div class="cart-container">
+        <h1 class="cart-header">🛒  Shopping Cart</h1>
+        <!-- Checkout Progress Bar -->
+        <div class="progress-container">
+          <div class="line"></div>
+          <div class="step active">
+            <div class="circle">1</div>
+            <p>View Cart</p>
+          </div>
+          <div class="step">
+            <div class="circle">2</div>
+            <p>Checkout</p>
+          </div>
+          <div class="step">
+            <div class="circle">3</div>
+            <p>Payment</p>
+          </div>
+          <div class="step">
+            <div class="circle">4</div>
+            <p> Confirmation</p>
+          </div>
         </div>
-      {% endfor %}
-    {% endif %}
-    {% endwith %}
 
-    <!-- Cart Table -->
+
+
     <form method="POST">
-      <table class="table table-bordered table-hover">
+      <table class="table table-bordered">
         <thead>
           <tr>
             <th>Image</th>
@@ -251,60 +303,46 @@
         </thead>
         <tbody>
           {% for cart in carts %}
-          {% if cart.product %}
           <tr>
-            <td>
-              <img src="{{ url_for('static', filename='images/' + cart.product.image_file) }}" alt="Product" class="product-image">
-            </td>
+            <td><img src="{{ url_for('static', filename='images/' + cart.product.image_file) }}" class="product-image"></td>
             <td>{{ cart.product.name }}</td>
-            <td>${{ '%.2f' % (cart.product.price * 0.85) }}</td>
             <td>
-              <input 
-                type="number" 
-                name="quantity_{{ cart.id }}" 
-                value="{{ cart.quantity }}" 
-                min="1" 
-                max="{{ cart.product.stock }}" 
-                class="quantity-input">
+              {% if cart.product.category.lower() in ["cookies and biscuits", "cookies & biscuits"] %}
+                
+                <span class="discounted-price">${{ '%.2f' % (cart.product.price * 0.90) }}</span>
+              {% else %}
+                <span class="price">${{ '%.2f' % cart.product.price }}</span>
+              {% endif %}
             </td>
+            
+            <td><input type="number" name="quantity_{{ cart.id }}" value="{{ cart.quantity }}" min="1" max="{{ cart.product.stock }}" class="quantity-input"></td>
             <td>
-              <!-- Delete button with confirmation -->
-              <a 
-                href="{{ url_for('remove_from_cart', product_id=cart.product_id) }}" 
-                class="btn btn-danger" 
-                onclick="return confirm('Are you sure you want to remove this product from your cart?');">
-                Remove
-              </a>
+              <button type="submit" name="update_cart" value="{{ cart.id }}" class="btn-update">Update</button>
+              <a href="{{ url_for('remove_from_cart', product_id=cart.product_id) }}" class="btn btn-danger">Remove</a>
             </td>
           </tr>
-          {% else %}
-          <tr>
-            <td colspan="5" class="text-danger">Product no longer exists.</td>
-          </tr>
-          {% endif %}
           {% endfor %}
         </tbody>
       </table>
-
-      <!-- Cart Footer -->
-      <div class="cart-footer">
-        <div class="actions">
-          <button type="submit" class="btn-update">Update Cart</button>
-          <a href="/checkout" class="btn-checkout">Proceed to Checkout</a>
-        </div>
-        <div class="total">Total Price: ${{ '%.2f' % total }}</div>
-      </div>
     </form>
 
-    <!-- Recommendation Section -->
+    <div class="cart-footer">
+      <div class="checkout-section">
+        <div class="total">Total Price: ${{ '%.2f' % total }}</div><br>
+        <a href="/checkout" class="btn-checkout">Checkout</a>
+      </div>
+    </div>
+
     <div class="recommendation-section">
       <h2 class="recommendation-header">You May Also Like</h2>
       <div class="recommendation-grid">
         {% for product in recommendations %}
         <div class="recommendation-card">
-          <img src="{{ url_for('static', filename='images/' + product.image_file) }}" alt="{{ product.name }}">
+          <img src="{{ url_for('static', filename='images/' + product.image_file) }}">
           <div class="card-body">
             <h5>{{ product.name }}</h5>
+            <p>Price: ${{ '%.2f' % product.price }}</p>
+            <p>Allergens: {{ product.allergens if product.allergens else "None" }}</p>
             <a href="{{ url_for('productdetails', id=product.id) }}" class="btn-view">View Product</a>
           </div>
         </div>

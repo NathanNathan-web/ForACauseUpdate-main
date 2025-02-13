@@ -9,269 +9,422 @@
   }
 
   .header {
-    background-color: #FF7043;
-    color: white;
-    padding: 20px 0;
+    background-color: white;
+    padding: 15px 0;
     text-align: center;
-    border-bottom: 5px solid #FFA726;
+    border-bottom: 2px solid #e0e0e0;
   }
 
   .header h1 {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: bold;
     margin: 0;
+    color: #1a237e; /* Dark blue color matching navbar */
   }
 
-  .filter-bar {
-    margin-bottom: 30px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
+  /* Top Search Bar */
+  .search-bar {
+    background-color: white;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
   }
 
-  .filter-bar .search-container {
+  .search-container {
+    max-width: 600px;
+    margin: 0 auto;
     position: relative;
-    flex: 2;
   }
 
-  .filter-bar .search-container input {
+  .search-container input {
     width: 100%;
-    padding: 10px 40px 10px 15px;
+    padding: 12px 40px 12px 15px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 1rem;
   }
 
-  .filter-bar .search-container .search-icon {
+  .search-container .search-icon {
     position: absolute;
     top: 50%;
-    right: 10px;
+    right: 15px;
     transform: translateY(-50%);
     color: #FF7043;
     font-size: 1.2rem;
   }
 
-  .filter-bar select,
-  .filter-bar button,
-  .filter-bar a {
-    flex: 1;
+  /* Main Content Layout */
+  .main-content {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  /* Filter Panel */
+  .filter-panel {
+    width: 250px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: fit-content;
+  }
+
+  .filter-panel h3 {
+    color: #1a237e;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+  }
+
+  .filter-panel select {
+    width: 100%;
     padding: 10px;
+    margin-bottom: 15px;
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-size: 1rem;
   }
 
-  .filter-bar button {
-    background-color: #FF7043;
-    color: white;
-    border: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
-
-  .filter-bar button:hover {
-    background-color: #E64A19;
-  }
-
-  .filter-bar a {
-    text-align: center;
-    color: white;
-    background-color: #757575;
+  /* Enhanced Button Styles */
+  .btn-filter, .btn-clear, .btn-view-product, .btn-add-to-cart {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
     text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
-  .filter-bar a:hover {
+  .btn-filter {
+    background-color: #1a237e;
+    color: white;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .btn-filter:hover {
+    background-color: #0d47a1;
+    transform: translateY(-2px);
+  }
+
+  .btn-clear {
+    background-color: #757575;
+    color: white;
+    width: 100%;
+    text-decoration: none;
+  }
+
+  .btn-clear:hover {
     background-color: #616161;
+    transform: translateY(-2px);
+  }
+
+  .btn-view-product {
+    background-color: #1a237e;
+    color: white;
+    margin-right: 8px;
+  }
+
+  .btn-view-product:hover {
+    background-color: #0d47a1;
+    transform: translateY(-2px);
+  }
+
+  .btn-add-to-cart {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .btn-add-to-cart:hover {
+    background-color: #388E3C;
+    transform: translateY(-2px);
+  }
+
+  /* Product Grid */
+  .product-content {
+    flex: 1;
   }
 
   .product-grid {
-    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3x3 grid */
+    gap: 20px;
+    padding: 20px;
   }
 
   .product-card {
     background: white;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    transform: scale(0.83); /* 20% smaller */
+    transform-origin: center;
     position: relative;
-    overflow: hidden;
   }
 
   .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .product-card .sold-out {
-    color: white;
-    background-color: #D32F2F;
-    padding: 5px 10px;
-    border-radius: 8px;
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    font-weight: bold;
   }
 
   .product-card img {
-    height: 180px;
+    height: 220px;
     width: 100%;
     object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
   }
 
   .product-card h5 {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #BF360C;
-    margin-bottom: 10px;
+    font-size: 1.7rem;
+    color: #1a237e;
+    margin-bottom: 8px;
   }
 
   .product-card p {
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     color: #5D4037;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
 
-  .product-card .limited-stock {
-    color: #FFA000;
-    font-weight: bold;
-    margin-top: 10px;
-  }
-
-  .product-card .btn-view-product {
-    background-color: #FF7043;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 15px;
-    font-size: 1rem;
-    text-transform: uppercase;
-    transition: background-color 0.3s ease;
-    margin-right: 10px;
-  }
-
-  .product-card .btn-view-product:hover {
-    background-color: #E64A19;
-  }
-
-  .product-card .btn-add-to-cart {
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 15px;
-    font-size: 1rem;
-    text-transform: uppercase;
-    transition: background-color 0.3s ease;
-  }
-
-  .product-card .btn-add-to-cart:hover {
-    background-color: #388E3C;
-  }
-
-  .badge {
-    display: inline-block;
+  .product-card .badge {
     background-color: #FFE082;
     color: #BF360C;
     border-radius: 12px;
-    padding: 5px 10px;
+    padding: 4px 8px;
     font-size: 0.8rem;
-    margin-right: 5px;
-    margin-top: 5px;
+    margin-right: 4px;
   }
+
+  .sold-out {
+    background-color: #D32F2F;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .card-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+   
+  }
+ /* Discount Badge */
+.discount-badge {
+  background: linear-gradient(135deg, #FF9800, #FF5722);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+}
+
+/* Strikethrough Original Price */
+.original-price {
+  text-decoration: line-through;
+  color: #D32F2F;
+  margin-right: 5px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Highlighted Discounted Price */
+.discounted-price {
+  font-weight: bold;
+  color: #2E7D32;
+  font-size: 1.3rem;
+}
+.price-label {
+  font-weight: bold;
+  color: #5D4037;
+  margin-right: 5px;
+}
+
+/* Sold Out Badge */
+.sold-out {
+  background: linear-gradient(135deg, #FF5252, #D32F2F);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+/* Search Bar Container */
+.search-bar {
+    background-color: white;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Wrapper for Input & Icon */
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Input Field */
+.search-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 40px; /* Space for icon */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+/* Search Icon */
+.search-icon {
+    position: absolute;
+    right: 15px;
+    color: #007BFF; /* Blue color */
+    font-size: 1.2rem;
+}
+/* Limited Stock Badge */
+.limited-stock-badge {
+  background: linear-gradient(135deg, #FFA000, #FF7043);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+
+
 </style>
 
 <header class="header">
   <h1>🍰 Welcome to Our Bakery Store!</h1>
+  <p>All cookies and biscuits will have 10% disocunt</p>
 </header>
+<!-- Font Awesome (for icons) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-<div class="container mt-4">
-  <!-- Filter Bar -->
-  <form method="POST" action="{{ url_for('product') }}">
-    <div class="filter-bar">
-      <!-- Search Bar -->
-      <div class="search-container">
-        <input type="text" name="search" placeholder="Search by name..." value="{{ search or '' }}">
-        <i class="fas fa-search search-icon"></i>
-      </div>
 
-      <!-- Category Dropdown -->
-      <select name="category">
-        <option value="">All Categories</option>
-        {% for key, value in category_map.items() %}
-        <option value="{{ key }}" {% if category == key %}selected{% endif %}>{{ value }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Allergy Dropdown -->
-      <select name="allergy">
-        <option value="">All Allergens</option>
-        {% for allergen in ['nuts', 'gluten', 'dairy', 'eggs', 'soy', 'none'] %}
-        <option value="{{ allergen }}" {% if allergy == allergen %}selected{% endif %}>{{ allergen.capitalize() }}</option>
-        {% endfor %}
-      </select>
-
-      <!-- Filter and Clear Buttons -->
-      <button type="submit">Filter</button>
-      <a href="{{ url_for('product') }}">Clear Filters</a>
+<!-- Search Bar -->
+<div class="search-bar">
+  <form method="POST" action="{{ url_for('product') }}" class="search-container">
+    <div class="search-wrapper">
+      <i class="fas fa-search search-icon"></i> <!-- Search Icon -->
+      <input type="text" name="search" placeholder="Search by name..." value="{{ search or '' }}">
+      <button type="submit" style="display: none"></button>
     </div>
   </form>
+</div>
 
-  <!-- Product Grid -->
-  <div class="row product-grid">
-    {% if products_list %}
-    {% for product in products_list %}
-    <div class="col-md-4 mb-4">
+
+
+<div class="main-content">
+  <!-- Filter Panel -->
+  <form method="POST" action="{{ url_for('product') }}" class="filter-panel">
+    <h3>Filter Products</h3>
+    
+    <select name="category">
+      <option value="">All Categories</option>
+      {% for key, value in category_map.items() %}
+      <option value="{{ key }}" {% if category == key %}selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="allergy">
+      <option value="">All Allergens</option>
+      {% for allergen in ['nuts', 'gluten', 'dairy', 'eggs', 'soy'] %}
+      <option value="{{ allergen }}" {% if allergy == allergen %}selected{% endif %}>{{ allergen.capitalize() }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn-filter">Apply Filters</button>
+    <a href="{{ url_for('product') }}" class="btn-clear">Clear Filters</a>
+  </form>
+
+  <!-- Product Content -->
+  <div class="product-content">
+    <div class="product-grid">
+      {% if products_list %}
+      {% for product in products_list %}
       <div class="product-card">
-        <!-- Sold Out Badge -->
         {% if product.stock == 0 %}
         <span class="sold-out">Sold Out</span>
         {% endif %}
 
-        <!-- Product Image -->
-        <img src="{{ url_for('static', filename='images/' + product.image_file) }}" class="card-img-top" alt="{{ product.name }}">
-
-        <!-- Product Details -->
+        <img src="{{ url_for('static', filename='images/' + product.image_file) }}" alt="{{ product.name }}">
         <h5>{{ product.name }}</h5>
         <p>Category: {{ product.category }}</p>
+        <!-- Discounted Price Section -->
+        <p>
+          {% if product.category.lower() in ["cookies and biscuits", "cookies & biscuits"] %}
+            <span class="discount-badge">10% OFF</span>
+          
+            <span class="price-label">Price:</span>
+            <span class="original-price">${{ '%.2f' % product.price }}</span>
+            <span class="discounted-price">${{ '%.2f' % (product.price * 0.90) }}</span>
+          {% else %}
+            <span class="price-label">Price:</span>
+            <span class="price">${{ '%.2f' % product.price }}</span>
+          {% endif %}
+        </p>
+        
+        
+        
+        
+
         <p>Allergens: 
           {% for allergen in product.allergens.split(', ') %}
           <span class="badge">{{ allergen }}</span>
           {% endfor %}
         </p>
-        <p>Price: ${{ product.price }}</p>
+        
 
-        <!-- Stock Status -->
-        <p>
-          {% if product.stock < 5 and product.stock > 0 %}
-          <span class="limited-stock">Limited stock available</span>
-          {% elif product.stock > 0 %}
-          <span>In stock: {{ product.stock }}</span>
-          {% endif %}
-        </p>
+        {% if product.stock == 0 %}
+        <span class="sold-out">Sold Out</span>
+      {% elif product.stock < 5 %}
+        <span class="limited-stock-badge">Limited Stock</span>
+      {% else %}
+        <p>In stock: {{ product.stock }}</p>
+      {% endif %}
+      
 
-        <!-- Buttons -->
-        <div class="d-flex">
-          <a href="/productDetails/{{ product.id }}" class="btn btn-view-product">View Product</a>
+        <div class="card-buttons">
+          <a href="/productDetails/{{ product.id }}" class="btn-view-product">View</a>
           {% if product.stock > 0 %}
-          <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-add-to-cart">Add to Cart</a>
+          <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn-add-to-cart">Add to Cart</a>
           {% endif %}
         </div>
       </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-center">No products match your filter.</p>
+      {% endif %}
     </div>
-    {% endfor %}
-    {% else %}
-    <p class="text-center">No products match your filter.</p>
-    {% endif %}
   </div>
 </div>
 

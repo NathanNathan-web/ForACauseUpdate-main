@@ -3,37 +3,82 @@
 
 {% block content %}
 <style>
+  /* Full-Screen Layout */
   body {
-    background: linear-gradient(135deg, #FFF3E0, #FFCCBC);
+    background: linear-gradient(135deg, #FFF3E0, #FFAB91);
     font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
   }
 
   .product-container {
-    max-width: 1100px;
-    margin: 40px auto;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-  }
-
-  .product-header {
+    max-width: 1400px;
+    margin: 50px auto;
     display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
     align-items: center;
-    border-bottom: 2px solid #FF7043;
-    padding-bottom: 20px;
+    gap: 50px;
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 
-  .product-image {
+  /* Product Image Section */
+  .product-images {
     flex: 1;
-    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .main-product-image {
+    width: 400px;
     border-radius: 12px;
     object-fit: cover;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   }
 
+  .flash-deal-badge {
+    background: linear-gradient(135deg, #7B61FF, #FF3366);
+    color: white;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 12px;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .flash-deal-badge i {
+    font-size: 1.2rem;
+  }
+
+  /* Thumbnail Images */
+  .thumbnail-container {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .thumbnail {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s;
+  }
+
+  .thumbnail:hover {
+    transform: scale(1.1);
+    border-color: #FF7043;
+  }
+
+  /* Product Details Section */
   .product-details {
     flex: 2;
   }
@@ -41,31 +86,58 @@
   .product-details h1 {
     color: #BF360C;
     font-size: 2.5rem;
-    margin-bottom: 15px;
+    font-weight: bold;
+    margin-bottom: 10px;
   }
 
   .product-details p {
-    font-size: 1.1rem;
+    font-size: 1.7rem;
     color: #5D4037;
     margin: 8px 0;
   }
 
   .price {
-    font-size: 1.4rem;
+    font-size: 1.8rem;
+    font-weight: bold;
     margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  .price .original-price {
+  .original-price {
     text-decoration: line-through;
     color: #888;
-    margin-right: 10px;
+    font-size: 1.3rem;
   }
 
-  .price .discounted-price {
+  .discounted-price {
     color: #D84315;
     font-weight: bold;
+    font-size: 1.8rem;
   }
 
+  .savings {
+    color: #28A745;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  /* Rating Stars */
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1.2rem;
+    color: #FFC107;
+  }
+
+  .rating span {
+    font-size: 1rem;
+    color: #5D4037;
+  }
+
+  /* Add to Cart Section */
   .add-to-cart-section {
     margin-top: 30px;
     display: flex;
@@ -74,94 +146,134 @@
   }
 
   .quantity-input {
-    width: 80px;
+    width: 100px;
     padding: 10px;
-    border: 1px solid #ccc;
+    font-size: 1.2rem;
+    border: 2px solid #FF7043;
     border-radius: 8px;
     text-align: center;
-  }
-
-  .add-to-cart-btn {
-    background-color: #FF7043;
-    color: #fff;
-    font-weight: bold;
-    padding: 12px 25px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
     transition: all 0.3s;
   }
 
+  .quantity-input:focus {
+    border-color: #D84315;
+    outline: none;
+  }
+
+  .add-to-cart-btn {
+    background: linear-gradient(135deg, #007BFF, #0056B3);
+    color: white;
+    font-weight: bold;
+    padding: 14px 30px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+  }
+
   .add-to-cart-btn:hover {
-    background-color: #D84315;
+    background: linear-gradient(135deg, #0056B3, #004494);
+    transform: translateY(-3px);
   }
 
   @media (max-width: 768px) {
-    .product-header {
+    .product-container {
       flex-direction: column;
+      text-align: center;
+      padding: 20px;
     }
 
-    .product-image {
+    .product-images {
       width: 100%;
+    }
+
+    .main-product-image {
+      width: 100%;
+      max-width: 350px;
     }
 
     .product-details {
       width: 100%;
     }
+
+    .add-to-cart-section {
+      flex-direction: column;
+    }
+
+    .quantity-input {
+      width: 100%;
+      max-width: 120px;
+    }
   }
+  
+  
 </style>
 
 <div class="product-container">
-  <!-- Flash Messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-  {% endwith %}
-
-  <!-- Product Header -->
-  <div class="product-header">
-    <!-- Product Image -->
-    <img
-      src="{{ url_for('static', filename='images/' + product.image_file) }}"
-      alt="{{ product.name }}"
-      class="product-image"
-    />
-
-    <!-- Product Details -->
-    <div class="product-details">
-      <h1>{{ product.name }}</h1>
-      <p><strong>Description:</strong> {{ product.description }}</p>
-      <p><strong>Category:</strong> {{ product.category }}</p>
-      <p><strong>Allergens:</strong> {{ product.allergens }}</p>
-      <p><strong>Stock Available:</strong> {{ product.stock }}</p>
-      <div class="price">
-        <span class="original-price">${{ product.price }}</span>
-        <span class="discounted-price">${{ '%.2f' % (product.price * 0.85) }}</span>
-      </div>
+  <!-- Product Images Section -->
+  <div class="product-images">
+    <img src="{{ url_for('static', filename='images/' + product.image_file) }}" alt="{{ product.name }}" class="main-product-image" />
+    
+    <!-- Thumbnail Images -->
+    <div class="thumbnail-container">
+      <img src="{{ url_for('static', filename='images/' + product.image_file) }}" class="thumbnail">
+      <img src="{{ url_for('static', filename='images/' + product.image_file) }}" class="thumbnail">
     </div>
   </div>
 
-  <!-- Add to Cart Form -->
-  <div class="add-to-cart-section">
-    <form method="POST">
-      <label for="quantity" style="font-size: 1.2rem; color: #5D4037;">Quantity:</label>
-      <input
-        type="number"
-        name="quantity"
-        id="quantity"
-        class="quantity-input"
-        min="1"
-        max="{{ product.stock }}"
-        value="1"
-        required
-      />
-      <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-    </form>
+  <!-- Product Details Section -->
+  <div class="product-details">
+    <h1>{{ product.name }}</h1>
+    <p><strong>Description:</strong> {{ product.description }}</p>
+    <p><strong>Category:</strong> {{ product.category }}</p>
+    <p><strong>Allergens:</strong> {{ product.allergens }}</p>
+    <p><strong>Stock Available:</strong> {{ product.stock }}</p>
+
+    <!-- Price Display -->
+    <div class="price">
+      {% if product.category.lower() in ["cookies and biscuits", "cookies & biscuits"] %}
+        
+        <h2 class="price-label">Price:</h2>
+        <span class="original-price">${{ '%.2f' % product.price }}</span>
+        <span class="discounted-price">${{ '%.2f' % (product.price * 0.90) }}</span>
+      {% else %}
+        <span class="price-label">Price:</span>
+        <span class="discounted-price">${{ '%.2f' % product.price }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Rating -->
+    <div class="rating">
+      {% for i in range(1, 6) %}
+        {% if i <= rounded_stars %}
+          ⭐
+        {% else %}
+          ☆
+        {% endif %}
+      {% endfor %}
+      <span>({{ '%.1f' % random_rating }} rating)</span>
+    </div>
+    
+
+    
+
+    <!-- Add to Cart Section -->
+    <div class="add-to-cart-section">
+      <form method="POST">
+        <label for="quantity" style="font-size: 1.2rem; color: #5D4037;">Quantity:</label>
+        <input type="number" name="quantity" id="quantity" class="quantity-input" min="1" max="{{ product.stock }}" value="1" required />
+        <br>
+        <br>
+        <button type="submit" class="add-to-cart-btn">
+          <i class="fas fa-shopping-cart"></i> Add to Cart
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -1,7 +1,10 @@
+from ast import Return
 from datetime import date, datetime
-from flask import render_template, url_for, flash, redirect, request, session
+import random
+from flask import jsonify, render_template, url_for, flash, redirect, request, session
+from sqlalchemy import func
 from .forms import RegistrationForm, LoginForm, UpdateOneUserForm,UpdateUserForm,SupplierForm,RedeemVoucherForm,TopUpForm, VoucherForm, FeedbackForm, ForgetPassword, ResetPassword,ProductForm, OrderForm,CartForm
-from .models import User, Supplier, Voucher, Feedback,Product,Order,Cart,RedeemedVouchers
+from .models import User, Supplier, Voucher,Feedback,Product,Order,Cart,RedeemedVouchers
 from . import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
@@ -269,7 +272,40 @@ def product():
         category=category_filter,
         allergy=allergy_filter
     )
+@app.route('/productDashboard')
+@login_required
+def product_dashboard():
+    if not current_user.isAdmin:
+        flash("Admin access required!", "warning")
+        return redirect(url_for('home'))
 
+    most_sold = [
+        {"name": "Coffee Bread", "sales": 120},
+        {"name": "Garlic Bread", "sales": 95},
+        {"name": "Monster Cookie", "sales": 85}
+    ]
+
+    weekly_revenue = [200, 350, 200, 150, 500, 300, 400]
+
+    total_orders = [21, 32, 12, 12, 54, 36, 44]
+
+    category_sales = {
+        "Cookies & Biscuits": 36,
+        "Pies & Tarts": 10,
+        "Cakes & Pastries": 20,
+        "Bread & Rolls": 34
+    }
+
+    avg_order_value = [12, 15, 17, 19, 21, 22, 24]
+
+    return render_template(
+        'productDashboard.html',
+        most_sold=most_sold,
+        weekly_revenue=weekly_revenue,
+        total_orders=total_orders,
+        category_sales=category_sales,
+        avg_order_value=avg_order_value,
+    )
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=['GET'])
@@ -301,24 +337,30 @@ def add_to_cart(product_id):
     return redirect(url_for('cart'))
 
 
-@app.route('/productDetails/<int:id>', methods=['GET','POST'])
+@app.route('/productDetails/<int:id>', methods=['GET', 'POST'])
 def productdetails(id):
     if current_user.is_authenticated:
         product = Product.query.filter_by(id=id).first()
         cart = Cart.query.filter_by(product_id=id).first()
         form = CartForm()
+
+        # Generate a new random rating (between 3.0 and 5.0) on every request
+        random_rating = round(random.uniform(3.0, 5.0), 1)
+        rounded_stars = round(random_rating)  # Round for star display
+
         if form.validate_on_submit:
-            if form.quantity.data > 0 and form.quantity.data <= product.stock:
+            if 0 < form.quantity.data <= product.stock:
                 quantity = form.quantity.data
-                current_user.add_to_cart(product,quantity)
+                current_user.add_to_cart(product, quantity)
                 return redirect(url_for('cart'))
             else:
                 flash('Quantity must be within the stock amount', 'warning')
-                return render_template('productdetails.html', product = product, idsite = True, form=form)
-                
+                return render_template('productdetails.html', product=product, idsite=True, form=form, random_rating=random_rating, rounded_stars=rounded_stars)
         else:
-            flash('Quantity need to be a valid number', 'warning')
-        return render_template('productdetails.html', product = product, idsite = True, form=form)
+            flash('Quantity needs to be a valid number', 'warning')
+
+        return render_template('productdetails.html', product=product, idsite=True, form=form, random_rating=random_rating, rounded_stars=rounded_stars)
+
     else:
         return redirect(url_for('login'))
         
@@ -463,36 +505,43 @@ def cart():
 
 
 
+
+
 @app.route('/order_confirmation')
 @login_required
 def order_confirmation():
-    items = session.get('items', [])  # Ensure items are passed as dictionaries
+    order_id = f"ORD-{random.randint(100000, 999999)}"  
+    items = session.get('items', [])  
     delivery_method = session.get('delivery_method', 'Not Specified')
     time_slot = session.get('time_slot', 'Not Specified')
     total = session.get('total', 0)
 
     if not items or total == 0:
-        return redirect(url_for('cart'))  # Redirect if order is incomplete
+        return redirect(url_for('cart'))  
 
     # Convert datetime to Singapore timezone
     singapore_tz = pytz.timezone('Asia/Singapore')
-    current_time = datetime.now(singapore_tz).strftime("%Y-%m-%d %H:%M:%S")  # Singapore time
+    current_time = datetime.now(singapore_tz).strftime("%Y-%m-%d %H:%M:%S")  
 
-    # Create the order
+    # ✅ Store order_id inside order dictionary
     order = {
+        "order_id": order_id,  # Store the Order ID
         "date": current_time,
-        "order_items": items,  # Items list with quantity
+        "order_items": items,
         "delivery_method": delivery_method,
         "time_slot": time_slot,
         "total": total,
     }
 
-    # Append the order to the session's order history
+    # ✅ Save order history with order_id
     order_history = session.get('order_history', [])
     order_history.append(order)
     session['order_history'] = order_history
 
-    # Clear session variables used for the order
+    # ✅ Store order_id in session (for use in confirmation page)
+    session['last_order_id'] = order_id  
+
+    # ✅ Clear session variables after order is placed
     session.pop('items', None)
     session.pop('delivery_method', None)
     session.pop('time_slot', None)
@@ -500,11 +549,15 @@ def order_confirmation():
 
     return render_template(
         'order_confirmation.html',
+        order_id=order_id,  
         items=order["order_items"],
         delivery_method=order["delivery_method"],
         time_slot=order["time_slot"],
         total=order["total"]
     )
+
+
+
 
 
 
@@ -717,10 +770,6 @@ def productadmin():
     else:
         flash("You need admin privileges to access this page.", "warning")
         return redirect(url_for('login'))
-
-
-
-
 
 
 
