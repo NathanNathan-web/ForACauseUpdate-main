@@ -27,7 +27,12 @@
         {% for voucher in vouchers_list %}
             {% if voucher.isValid == True %}
         <div class="col">
-            <div class="card h-100 border-0 shadow-lg voucher-card">
+            <div class="card h-100 border-0 shadow-lg voucher-card" data-bs-toggle="modal" data-bs-target="#voucherModal" 
+                 data-voucher-id="{{ voucher.id }}" 
+                 data-voucher-name="{{ voucher.name }}" 
+                 data-voucher-description="{{ voucher.description }}" 
+                 data-voucher-credits="{{ voucher.credit }}" 
+                 data-voucher-value="{{ voucher.value }}">
                 <div class="position-relative">
                     <img src="{{ url_for('static', filename='images/' + voucher.image_file) }}" 
                          class="card-img-top voucher-image" 
@@ -42,16 +47,15 @@
                     
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <span class="h5 mb-0 text-success">${{ voucher.value }}</span>
-                        <a href="/redeemVoucher/{{ voucher.id }}" class="btn btn-primary">
+                        <button class="btn btn-primary" disabled>
                             Redeem Now
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
     {% endfor %}
-
     </div>
 
     {% if vouchers_list|selectattr('isValid')|list|length == 0 %}
@@ -62,32 +66,196 @@
     {% endif %}
 </div>
 
+<!-- Modal for Voucher Details -->
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voucherModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="voucherDescription"></p>
+                <p><strong>Credits:</strong> <span id="voucherCredits"></span></p>
+                <p><strong>Value:</strong> $<span id="voucherValue"></span></p>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="redeemLink" class="btn btn-primary">Redeem Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    .voucher-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        overflow: hidden;
-    }
+ /* General Styles */
+body {
+    background-color: #f8f9fa; /* Light background for contrast */
+    font-family: 'Poppins', sans-serif; /* Modern font */
+    color: #333; /* Default text color */
+}
 
-    .voucher-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
-    }
+/* Card Styles */
+.voucher-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    border-radius: 15px; /* Rounded corners for cards */
+    background-color: #ffffff; /* White background for cards */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
 
+.voucher-card:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+}
+
+/* Voucher Image Styles */
+.voucher-image {
+    height: 200px; /* Fixed height for images */
+    object-fit: cover; /* Cover the area without distortion */
+    transition: transform 0.3s ease; /* Smooth scaling effect */
+    border-top-left-radius: 15px; /* Rounded corners for the top */
+    border-top-right-radius: 15px; /* Rounded corners for the top */
+}
+
+.voucher-card:hover .voucher-image {
+    transform: scale(1.05); /* Slightly scale image on hover */
+}
+
+/* Overlay Styles */
+.voucher-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.voucher-overlay .badge {
+    font-size: 1rem; /* Font size for badge */
+    padding: 10px; /* Padding for badge */
+}
+
+/* Card Body Styles */
+.card-body {
+    padding: 20px; /* Padding inside card body */
+}
+
+.card-title {
+    font-size: 1.25rem; /* Font size for card title */
+    font-weight: 600; /* Semi-bold weight */
+    color: #0d6efd; /* Primary color for titles */
+}
+
+.card-text {
+    font-size: 0.9rem; /* Font size for card text */
+    color: #6c757d; /* Muted text color */
+}
+
+/* Price and Button Styles */
+.text-success {
+    font-size: 1.5rem; /* Larger font size for price */
+    font-weight: bold; /* Bold weight for price */
+}
+
+.btn-primary {
+    background-color: #0d6efd; /* Primary button color */
+    border: none; /* Remove border */
+    border-radius: 25px; /* Rounded button */
+    padding: 10px 20px; /* Padding for button */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+    transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+/* Flash Message Styles */
+.alert {
+    border-radius: 10px; /* Rounded corners for alerts */
+    font-size: 1rem; /* Font size for alerts */
+    padding: 15px; /* Padding for alerts */
+}
+
+/* No Vouchers Available Message */
+.text-center h2 {
+    font-size: 2rem; /* Font size for no vouchers message */
+    color: #6c757d; /* Muted color */
+}
+
+.text-center p {
+    font-size: 1.2rem; /* Font size for lead text */
+    color: #495057; /* Darker muted color */
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 15px; /* Rounded corners for modal */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); /* Shadow for modal */
+}
+
+.modal-header {
+    border-bottom: none; /* Remove border */
+}
+
+.modal-title {
+    font-size: 1.5rem; /* Font size for modal title */
+    font-weight: bold; /* Bold weight for title */
+}
+
+.modal-body {
+    padding: 20px; /* Padding for modal body */
+}
+
+.modal-footer {
+    border-top: none; /* Remove border */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
     .voucher-image {
-        height: 200px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
+        height: 150px; /* Adjust image height for smaller screens */
     }
 
-    .voucher-card:hover .voucher-image {
-        transform: scale(1.1);
+    .card-title {
+        font-size: 1.1rem; /* Adjust title size */
     }
 
-    .voucher-overlay {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 10;
+    .text-success {
+        font-size: 1.25rem; /* Adjust price size */
     }
+
+    .btn-primary {
+        padding: 8px 16px; /* Adjust button padding */
+    }
+}
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const voucherCards = document.querySelectorAll('.voucher-card');
+        const voucherModal = document.getElementById('voucherModal');
+        const voucherModalLabel = document.getElementById('voucherModalLabel');
+        const voucherDescription = document.getElementById('voucherDescription');
+        const voucherCredits = document.getElementById('voucherCredits');
+        const voucherValue = document.getElementById('voucherValue');
+        const redeemLink = document.getElementById('redeemLink');
+
+        voucherCards.forEach(card => {
+            card.addEventListener('click', function () {
+                const voucherId = this.getAttribute('data-voucher-id');
+                const voucherName = this.getAttribute('data-voucher-name');
+                const voucherDesc = this.getAttribute('data-voucher-description');
+                const voucherCreditsValue = this.getAttribute('data-voucher-credits');
+                const voucherValueAmount = this.getAttribute('data-voucher-value');
+
+                // Update modal content
+                voucherModalLabel.textContent = voucherName;
+                voucherDescription.textContent = voucherDesc;
+                voucherCredits.textContent = voucherCreditsValue;
+                voucherValue.textContent = voucherValueAmount;
+                redeemLink.href = `/redeemVoucher/${voucherId}`; // Set redeem link
+            });
+        });
+    });
+</script>
 {% endblock %}

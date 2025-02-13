@@ -1,187 +1,340 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForACause - Complete Your Donation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --background-gradient: linear-gradient(135deg, #e9f6ff 0%, #f3f8fd 100%);
+            --card-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-{% block title %}ForACause - Complete Your Donation{% endblock %}
+        body {
+            background: var(--background-gradient);
+            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-{% block content %}
-<div class="container py-5">
-    <h2 class="text-center mb-4">Complete Your Donation</h2>
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
 
-    <div class="card mx-auto" style="max-width: 600px;">
-        <div class="card-body text-center">
-            <h5>You're Donating To</h5>
-            <h2 class="text-primary">{{ organization_name }}</h2>
+        .donation-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            max-width: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
 
-            <!-- Error Messages -->
-            <div id="errorMessages" class="alert alert-danger d-none"></div>
+        .donation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
 
-            <p class="text-muted mt-2"><strong>Original Amount:</strong> ${{ donation_amount }}</p>
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), #4d94ff);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
 
-            <!-- 🎟 Voucher Selection Dropdown -->
-            {% if redeemed_vouchers %}
-            <div class="redeemed-vouchers my-3 p-3">
-                <h5 class="text-success"><i class="fas fa-ticket-alt"></i> Apply a Voucher</h5>
-                <select id="voucherSelect" name="voucher_id" class="form-select" onchange="updateAmount()">
-                    <option value="0" data-discount="0">-- No Voucher Applied --</option>
-                    {% for voucher in redeemed_vouchers %}
-                        {% if voucher.voucher %}
-                            <option value="{{ voucher.voucher.id }}" 
-                                    data-discount="{{ voucher.voucher.value }}">
-                                {{ voucher.voucher.name }} (-${{ voucher.voucher.value }})
-                            </option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+        .card-body {
+            padding: 2rem;
+        }
+
+        .organization-name {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .amount-display {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .final-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success-color);
+            margin: 0.5rem 0;
+        }
+
+        .voucher-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+            outline: none;
+        }
+
+        .payment-options {
+            display: grid;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .payment-option:hover {
+            border-color: var(--primary-color);
+            background: #f8f9fa;
+        }
+
+        .payment-option input[type="radio"] {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+
+        .qr-code {
+            max-width: 250px;
+            margin: 1rem auto;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .btn-donate {
+            background: linear-gradient(90deg, #00c851, #007e33);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-donate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 200, 81, 0.3);
+        }
+
+        .btn-donate:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .alert-danger {
+            background-color: #fff5f5;
+            color: var(--danger-color);
+            border: 1px solid #fed7d7;
+        }
+
+        @media (max-width: 768px) {
+            .card-header {
+                padding: 1.5rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .organization-name {
+                font-size: 1.5rem;
+            }
+
+            .final-amount {
+                font-size: 1.5rem;
+            }
+
+            .btn-donate {
+                padding: 0.875rem 1.5rem;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="donation-card">
+            <div class="card-header">
+                <h1>Complete Your Donation</h1>
             </div>
-            {% endif %}
-
-            <!-- 💰 Final Amount Display -->
-            <p class="final-amount">
-                <strong>Final Amount:</strong> 
-                <span id="finalAmount" class="text-success">${{ final_amount }}</span>
-            </p>
-
-            <h5 class="mt-4">Choose Your Payment Method</h5>
-
-            <!-- Payment Options -->
-            <form method="POST" onsubmit="return validateForm()">
-                <div class="payment-options">
-                    <div class="mb-3">
-                        <input type="radio" id="paynow" name="payment_method" value="paynow">
-                        <label for="paynow">PayNow (Scan QR Code)</label>
-                    </div>
-                    <div class="mb-3">
-                        <input type="radio" id="stripe" name="payment_method" value="stripe">
-                        <label for="stripe">Credit/Debit Card (Stripe)</label>
-                    </div>
+            <div class="card-body">
+                <div id="errorMessages" class="alert alert-danger d-none" role="alert"></div>
+                
+                <h2 class="organization-name">{{ organization_name }}</h2>
+                
+                <div class="amount-display">
+                    <p><strong>Original Amount:</strong></p>
+                    <p class="final-amount">${{ donation_amount }}</p>
                 </div>
 
-                <!-- PayNow QR Code -->
-                <div id="paynow-container" class="my-4 d-none">
-                    <h5>Scan the QR Code</h5>
-                    <img id="qrCodeImage" 
-                         src="{{ url_for('generate_qr', amount=final_amount, reference=reference) }}"
-                         alt="PayNow QR Code"
-                         class="img-fluid my-3"
-                         style="max-width: 250px;">
-                    <p class="text-muted">Use your PayNow app to complete the payment.</p>
+                {% if redeemed_vouchers %}
+                <div class="voucher-section">
+                    <h3><i class="fas fa-ticket-alt"></i> Apply a Voucher</h3>
+                    <select id="voucherSelect" name="voucher_id" class="form-select" onchange="updateAmount()">
+                        <option value="0" data-discount="0">-- No Voucher Applied --</option>
+                        {% for voucher in redeemed_vouchers %}
+                            {% if voucher.voucher %}
+                                <option value="{{ voucher.voucher.id }}" 
+                                        data-discount="{{ voucher.voucher.value }}">
+                                    {{ voucher.voucher.name }} (-${{ voucher.voucher.value }})
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="amount-display">
+                    <p><strong>Final Amount:</strong></p>
+                    <p id="finalAmount" class="final-amount">${{ final_amount }}</p>
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-success btn-lg w-100">Proceed</button>
-            </form>
+                <form method="POST" onsubmit="return validateForm()">
+                    <h3>Choose Your Payment Method</h3>
+                    
+                    <div class="payment-options">
+                        <label class="payment-option">
+                            <input type="radio" id="paynow" name="payment_method" value="paynow">
+                            <span>PayNow (Scan QR Code)</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" id="stripe" name="payment_method" value="stripe">
+                            <span>Credit/Debit Card (Stripe)</span>
+                        </label>
+                    </div>
+
+                    <div id="paynow-container" class="qr-container d-none">
+                        <h3>Scan the QR Code</h3>
+                        <img id="qrCodeImage" 
+                             src="{{ url_for('generate_qr', amount=final_amount, reference=reference) }}"
+                             alt="PayNow QR Code"
+                             class="qr-code">
+                        <p class="text-muted">Use your PayNow app to complete the payment.</p>
+                    </div>
+
+                    <button type="submit" class="btn-donate">Complete Donation</button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    function updateAmount() {
-        const originalAmount = parseFloat("{{ donation_amount | default(0) }}");  
-        const voucherSelect = document.getElementById("voucherSelect");
-        const finalAmountDisplay = document.getElementById("finalAmount");
-        const errorMessages = document.getElementById("errorMessages");
+    <script>
+        function updateAmount() {
+            const originalAmount = parseFloat("{{ donation_amount | default(0) }}");  
+            const voucherSelect = document.getElementById("voucherSelect");
+            const finalAmountDisplay = document.getElementById("finalAmount");
+            const errorMessages = document.getElementById("errorMessages");
 
-        // Get selected voucher discount
-        const discount = parseFloat(voucherSelect.options[voucherSelect.selectedIndex].getAttribute("data-discount")) || 0;
-        let finalAmount = Math.max(0, originalAmount - discount);
+            const discount = parseFloat(voucherSelect.options[voucherSelect.selectedIndex].getAttribute("data-discount")) || 0;
+            let finalAmount = Math.max(0, originalAmount - discount);
 
-        // Show error if voucher discount is greater than donation amount
-        if (discount > originalAmount) {
-            errorMessages.innerHTML = "⚠️ The selected voucher discount exceeds your donation amount.";
-            errorMessages.classList.remove("d-none");
-        } else {
-            errorMessages.innerHTML = "";
-            errorMessages.classList.add("d-none");
+            if (discount > originalAmount) {
+                errorMessages.innerHTML = "<i class='fas fa-exclamation-triangle'></i> The selected voucher discount exceeds your donation amount.";
+                errorMessages.classList.remove("d-none");
+            } else {
+                errorMessages.innerHTML = "";
+                errorMessages.classList.add("d-none");
+            }
+
+            finalAmountDisplay.innerText = `$${finalAmount.toFixed(2)}`;
+
+            const qrCodeImage = document.getElementById("qrCodeImage");
+            if (qrCodeImage) {
+                qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount.toFixed(2)}`;
+            }
         }
 
-        // Update displayed final amount
-        finalAmountDisplay.innerText = `$${finalAmount.toFixed(2)}`;
+        function validateForm() {
+            const errorMessages = document.getElementById("errorMessages");
+            const finalAmount = parseFloat(document.getElementById("finalAmount").innerText.replace("$", ""));
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
 
-        // Dynamically update QR code with correct amount
-        const qrCodeImage = document.getElementById("qrCodeImage");
-        qrCodeImage.src = `{{ url_for('generate_qr', reference=reference) }}&amount=${finalAmount.toFixed(2)}`;
-    }
+            if (finalAmount <= 0) {
+                errorMessages.innerHTML = "<i class='fas fa-exclamation-triangle'></i> Donation amount must be greater than $0.";
+                errorMessages.classList.remove("d-none");
+                return false;
+            }
 
-    function validateForm() {
-        const errorMessages = document.getElementById("errorMessages");
-        const finalAmount = parseFloat(document.getElementById("finalAmount").innerText.replace("$", ""));
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+            if (!paymentMethod) {
+                errorMessages.innerHTML = "<i class='fas fa-exclamation-triangle'></i> Please select a payment method.";
+                errorMessages.classList.remove("d-none");
+                return false;
+            }
 
-        // Ensure donation amount is valid
-        if (finalAmount <= 0) {
-            errorMessages.innerHTML = "⚠️ Donation amount must be greater than $0.";
-            errorMessages.classList.remove("d-none");
-            return false;
+            return true;
         }
 
-        // Ensure a payment method is selected
-        if (!paymentMethod) {
-            errorMessages.innerHTML = "⚠️ Please select a payment method.";
-            errorMessages.classList.remove("d-none");
-            return false;
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const paynowOption = document.getElementById('paynow');
+            const stripeOption = document.getElementById('stripe');
+            const paynowContainer = document.getElementById('paynow-container');
 
-        return true;
-    }
+            function togglePayNow() {
+                if (paynowContainer) {
+                    paynowContainer.classList.toggle("d-none", !paynowOption.checked);
+                }
+            }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const paynowOption = document.getElementById('paynow');
-        const stripeOption = document.getElementById('stripe');
-        const paynowContainer = document.getElementById('paynow-container');
-
-        function togglePayNow() {
-            paynowContainer.classList.toggle("d-none", !paynowOption.checked);
-        }
-
-        paynowOption.addEventListener('change', togglePayNow);
-        stripeOption.addEventListener('change', togglePayNow);
-        togglePayNow();
-    });
-</script>
-
-<style>
-    /* General Styling */
-    body {
-        background: linear-gradient(135deg, #e9f6ff 0%, #f3f8fd 100%);
-        font-family: 'Poppins', sans-serif;
-    }
-
-    .card {
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        background: #ffffff;
-    }
-
-    h2 {
-        color: #0d6efd;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        font-size: 2.5rem;
-    }
-
-    .final-amount {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #198754;
-    }
-
-    .btn-success {
-        background: linear-gradient(90deg, #00c851, #007e33);
-        border: none;
-        padding: 15px 40px;
-        font-size: 1.2rem;
-        border-radius: 50px;
-        color: white;
-        transition: all 0.3s ease;
-    }
-
-    /* Error Message Styling */
-    .alert-danger {
-        font-size: 1rem;
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 10px;
-    }
-</style>
-
-{% endblock %}
+            if (paynowOption && stripeOption) {
+                paynowOption.addEventListener('change', togglePayNow);
+                stripeOption.addEventListener('change', togglePayNow);
+                togglePayNow();
+            }
+        });
+    </script>
+</body>
+</html>
