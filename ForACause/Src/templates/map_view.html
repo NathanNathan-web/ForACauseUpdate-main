@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container-fluid px-4 py-5">
-    <h1 class="display-5 fw-bold text-primary text-center">Volunteer Opportunities Near Me</h1>
+    <h1 class="display-5 fw-bold text-primary mb-3 text-center">Volunteer Opportunities Near Me</h1>
 
     <!-- Reset Button -->
     <button id="reset-btn" style="
@@ -56,16 +56,80 @@
                                         <span>{{ event.address }}</span>
                                     </div>
                                 </div>
+
+                                <!-- Status Indicator -->
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge bg-warning text-dark px-3 py-2">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Signed Up
+                                    {% set is_signed_up = event.id in signed_up_event_ids %}
+                                    {% set is_completed = signed_up_event_ids.get(event.id, False) %}
+
+                                    {% if is_signed_up %}
+                                    {% if is_completed %}
+                                    <span class="badge bg-success rounded-pill">
+                                        <i class="bi bi-check-circle me-1"></i> Completed
                                     </span>
-                                    
+
+                                    <!-- Review Button (only shown when completed) -->
+                                    <button class="btn btn-sm btn-outline-primary custom-button" data-bs-toggle="modal"
+                                        data-bs-target="#reviewModal-{{ event.id }}">
+                                        <i class="bi bi-star"></i> Review
+                                    </button>
+                                    {% else %}
+                                    <span class="badge bg-warning rounded-pill">
+                                        <i class="bi bi-clock me-1"></i> Signed Up
+                                    </span>
+
+                                    <!-- Directions Button (only shown when signed up but not completed) -->
                                     <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
-                                        target="_blank" class="btn btn-outline-success">
-                                        <i class="bi bi-map me-1"></i>Directions
+                                        target="_blank" class="btn btn-sm btn-outline-success custom-button">
+                                        <i class="bi bi-map me-1"></i> Directions
                                     </a>
+                                    {% endif %}
+                                    {% else %}
+                                    <a href="{{ url_for('confirm_volunteer', event_id=event.id) }}"
+                                        class="btn btn-primary">
+                                        <i class="bi bi-person-plus"></i> Sign Up
+                                    </a>
+                                    {% endif %}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Review Modal -->
+                    <div class="modal fade" id="reviewModal-{{ event.id }}" tabindex="-1"
+                        aria-labelledby="reviewModalLabel-{{ event.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="reviewModalLabel-{{ event.id }}">Review {{ event.name }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('submit_review', event_id=event.id) }}">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="rating-{{ event.id }}" class="form-label">Rating</label>
+                                            <select name="rating" id="rating-{{ event.id }}" class="form-select"
+                                                required>
+                                                <option value="" disabled selected>Choose a rating</option>
+                                                <option value="5">★★★★★</option>
+                                                <option value="4">★★★★☆</option>
+                                                <option value="3">★★★☆☆</option>
+                                                <option value="2">★★☆☆☆</option>
+                                                <option value="1">★☆☆☆☆</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="feedback-{{ event.id }}" class="form-label">Feedback</label>
+                                            <textarea name="feedback" id="feedback-{{ event.id }}" rows="4"
+                                                class="form-control" placeholder="Write your feedback..."
+                                                required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -91,11 +155,11 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-primary">
+                                    <a href="/confirm_volunteer/{{ event.id }}" class="btn btn-sm btn-primary custom-button">
                                         Volunteer Now
                                     </a>
                                     <a href="https://www.google.com/maps/dir/?api=1&origin=Your+Current+Location&destination={{ event.address | urlencode }}"
-                                        target="_blank" class="btn btn-outline-success">
+                                        target="_blank" class="btn btn-sm btn-outline-success custom-button">
                                         <i class="bi bi-map me-1"></i>Directions
                                     </a>
                                 </div>
@@ -164,15 +228,23 @@
 
             // Custom marker for signed-up events
             const signedUpMarker = '{{ url_for("static", filename="images/signed-up-event.png") }}'; // Replace with your image path
+            const completedMarker = '{{ url_for("static", filename="images/completed-marker.png") }}';
 
             const infoWindow = new google.maps.InfoWindow();
 
             // Add markers and store references
             const markers = eventsData.map(event => {
-                const isSignedUp = event.is_signed_up; // Assuming you pass a `is_signed_up` flag in your data
-                const markerIcon = isSignedUp
-                    ? signedUpMarker
-                    : (categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}');
+                const isSignedUp = event.is_signed_up;
+                const isCompleted = event.is_completed; // Check if event is completed
+                let markerIcon;
+
+                if (isCompleted) {
+                    markerIcon = completedMarker; // Use the completed marker for completed events
+                } else {
+                    markerIcon = isSignedUp
+                        ? signedUpMarker
+                        : (categoryIcons[event.category] || '{{ url_for("static", filename="images/default-icon.png") }}');
+                }
 
                 const marker = new google.maps.Marker({
                     position: { lat: event.latitude, lng: event.longitude },
@@ -205,6 +277,7 @@
                         margin: 0;
                         font-size: 14px;
                         color: #555555;
+                        font-family: Arial, sans-serif;
                     ">
                         <strong>Date:</strong> ${event.date}<br>
                         <strong>Category:</strong> ${event.category}<br>
@@ -214,6 +287,7 @@
                         margin-top: 8px;
                         font-size: 14px;
                         line-height: 1.4;
+                        font-family: Arial, sans-serif;
                     ">${event.description}</p>
                     <div style="margin-top: 10px; display: flex; gap: 10px;">
                         ${isSignedUp
@@ -284,7 +358,7 @@
                     bounds.extend(place.geometry.location);
                 });
 
-                const extendFactor = 0.01; 
+                const extendFactor = 0.01;
                 const center = bounds.getCenter();
                 bounds.extend(new google.maps.LatLng(center.lat() + extendFactor, center.lng() + extendFactor));
                 bounds.extend(new google.maps.LatLng(center.lat() - extendFactor, center.lng() - extendFactor));

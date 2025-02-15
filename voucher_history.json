@@ -23,6 +23,23 @@
             "voucher_id": 2,
             "voucher_name": "$2 voucher",
             "redemption_date": "2025-02-13 13:49:39"
+        },
+        {
+            "voucher_id": 3,
+            "voucher_name": "$10 voucher",
+            "redemption_date": "2025-02-15 14:16:40"
+        },
+        {
+            "voucher_id": 3,
+            "voucher_name": "$10 voucher",
+            "redemption_date": "2025-02-15 14:48:51"
+        }
+    ],
+    "5": [
+        {
+            "voucher_id": 1,
+            "voucher_name": "Mamak $5 Off",
+            "redemption_date": "2025-02-15 09:34:48"
         }
     ]
 }

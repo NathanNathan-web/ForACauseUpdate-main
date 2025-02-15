@@ -6,28 +6,27 @@
     <div class="container">
         <div class="feedback-card">
             <div class="feedback-header text-center mb-4">
-                <h1 class="display-6 fw-bold">Feedback Management</h1>
-                <p class="text-muted lead">Review and manage customer feedback</p>
+                <h1 class="text-2xl font-bold">Feedback Management</h1>
+                <p class="text-gray-600">Review and manage customer feedback</p>
             </div>
 
             {% if feedback_list %}
             <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-header">
+                <table class="feedback-table">
+                    <thead>
                         <tr>
-                            <th scope="col" class="text-center">Feedback ID</th>
-                            <th scope="col" class="text-center">Rating</th>
-                            <th scope="col" class="text-center">Description</th>
-                            <th scope="col" class="text-center">Issue</th>
-                            <th scope="col" class="text-center">Date</th>
-                      
+                            <th scope="col">Feedback ID</th>
+                            <th scope="col">Rating</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Issue</th>
+                            <th scope="col">Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for feedback in feedback_list %}
                         <tr>
-                            <td class="text-center">{{ feedback.id }}</td>
-                            <td class="text-center">
+                            <td>{{ feedback.id }}</td>
+                            <td>
                                 <div class="rating-stars">
                                     {% for i in range(1, 6) %}
                                     <span class="star">{{ '★' if i <= feedback.rating else '☆' }}</span>
@@ -35,17 +34,16 @@
                                 </div>
                             </td>
                             <td>{{ feedback.description }}</td>
-                            <td class="text-center">{{ feedback.issue }}</td>
-                            <td class="text-center">{{ feedback.feedback_date }}</td>
-                           
+                            <td>{{ feedback.issue }}</td>
+                            <td>{{ feedback.feedback_date }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             {% else %}
-            <div class="alert alert-warning text-center mt-4">
-                No feedback available.
+            <div class="empty-state">
+                <p>No feedback available.</p>
             </div>
             {% endif %}
         </div>
@@ -53,94 +51,108 @@
 </div>
 
 <style>
-/* Background styling */
+/* Base styles */
 .feedback-background {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-color: #f8fafc;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
+    padding: 2rem;
 }
 
 /* Card styling */
 .feedback-card {
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    padding: 40px;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
     width: 100%;
     max-width: 1200px;
-    transition: all 0.3s ease;
+    margin: 0 auto;
 }
 
-.feedback-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+/* Header styling */
+.feedback-header h1 {
+    color: #007bff;
+    margin-bottom: 0.5rem;
+}
+
+.feedback-header p {
+    font-size: 1rem;
+    color: #64748b;
 }
 
 /* Table styling */
-.table {
-    border-radius: 10px;
-    overflow: hidden;
+.feedback-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1.5rem;
 }
 
-.table-header {
-    background-color: #20c997;
-    color: white;
-    font-size: 1rem;
+.feedback-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.875rem;
     text-transform: uppercase;
-    text-align: center;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
 }
 
-.table-hover tbody tr:hover {
-    background-color: #f7fafc;
-    transition: background-color 0.3s ease;
+.feedback-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    color: #1e293b;
+    font-size: 0.875rem;
 }
 
-.table-bordered th,
-.table-bordered td {
-    vertical-align: middle;
-    text-align: center;
-    border: 1px solid #dee2e6;
-    padding: 12px;
+.feedback-table tbody tr:hover {
+    background-color: #f8fafc;
+    transition: background-color 0.2s ease;
 }
 
 /* Rating stars styling */
 .rating-stars {
-    font-size: 1.5rem;
-    color: #ffc107;
+    display: flex;
+    gap: 0.25rem;
 }
 
 .rating-stars .star {
-    font-size: 1.2rem;
-    margin: 0 2px;
-}
-
-/* Alert styling */
-.alert {
-    border-radius: 10px;
+    color: #eab308;
     font-size: 1rem;
-    font-weight: bold;
-    background: #fff3cd;
-    border: 1px solid #ffeeba;
-    color: #856404;
 }
 
-/* Button styling */
-.btn-warning {
-    background-color: #f0ad4e;
-    border: none;
-    color: white;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 5px 15px;
-    border-radius: 20px;
-    cursor: pointer;
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    color: #64748b;
+    font-size: 0.875rem;
 }
 
-.btn-warning:hover {
-    background-color: #ec971f;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .feedback-background {
+        padding: 1rem;
+    }
+    
+    .feedback-card {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .feedback-table th,
+    .feedback-table td {
+        padding: 0.75rem;
+        font-size: 0.75rem;
+    }
 }
 </style>
 {% endblock %}

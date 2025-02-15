@@ -2,102 +2,122 @@
 {% block title %}Bakery - Update Product{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="background-color: #FFF5E6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card" style="border: 2px solid #D2691E; box-shadow: 0 8px 16px rgba(210, 105, 30, 0.2); background-color: #FFFAF0;">
-                <div class="card-header" style="background-color: #D2691E; color: white; border-bottom: 3px solid #8B4513;">
-                    <h4 class="mb-0 text-center" style="font-family: 'Brush Script MT', cursive; font-size: 2.5rem;">
-                        Edit {{ product.name }}
-                    </h4>
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Update Product</h3>
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('updateProduct', id=product.id) }}" method="POST" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
-
-                        <!-- Product Name -->
-                        <div class="mb-3">
-                            <label for="name" class="form-label" style="color: #8B4513; font-weight: bold;">Product Name</label>
-                            <input type="text" id="name" name="name" class="form-control" 
-                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
-                                   value="{{ product.name }}" required>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mb-3">
-                            <label for="description" class="form-label" style="color: #8B4513; font-weight: bold;">Description</label>
-                            <textarea id="description" name="description" class="form-control" rows="3"
-                                      style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
-                                      required>{{ product.description }}</textarea>
-                        </div>
-
-                        <!-- Category -->
-                        <div class="mb-3">
-                            <label for="category" class="form-label" style="color: #8B4513; font-weight: bold;">Category</label>
-                            <select id="category" name="category" class="form-select" 
-                                    style="border: 2px solid #D2691E; background-color: #FFF8DC;" required>
-                                <option value="Cakes and Pastries" {% if product.category == 'Cakes and Pastries' %}selected{% endif %}>Cakes and Pastries</option>
-                                <option value="Bread and Rolls" {% if product.category == 'Bread and Rolls' %}selected{% endif %}>Bread and Rolls</option>
-                                <option value="Cookies and Biscuits" {% if product.category == 'Cookies and Biscuits' %}selected{% endif %}>Cookies and Biscuits</option>
-                                <option value="Pies and Tarts" {% if product.category == 'Pies and Tarts' %}selected{% endif %}>Pies and Tarts</option>
-                            </select>
-                        </div>
-
-                        
-                       <!-- Allergens -->
-                        <div class="mb-3">
-                            <label class="form-label" style="color: #8B4513; font-weight: bold;">Product Allergens</label>
-                            <div class="row">
-                                {% for value, label in [('Nuts', 'Nuts'), ('Gluten', 'Gluten'), ('Dairy', 'Dairy'), ('Eggs', 'Eggs'), ('Soy', 'Soy')] %}
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input 
-                                            type="checkbox" 
-                                            name="allergens[]" 
-                                            value="{{ value }}" 
-                                            id="{{ value }}" 
-                                            class="form-check-input" 
-                                            style="border: 2px solid #D2691E;" 
-                                            {% if value in product.allergens.split(', ') %}checked{% endif %}>
-                                        <label for="{{ value }}" class="form-check-label" style="color: #8B4513;">{{ label }}</label>
+                        <div class="row g-4">
+                            <!-- Product Name -->
+                            <div class="col-md-6">
+                                {{ form.name.label(class="form-label fw-bold") }}
+                                {{ form.name(class="form-control form-control-lg " + ("is-invalid" if form.name.errors else ""), placeholder="Product Name", value=product.name) }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
                                     </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-6">
+                                {{ form.category.label(class="form-label fw-bold") }}
+                                {{ form.category(class="form-select form-control-lg " + ("is-invalid" if form.category.errors else ""), required=True) }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                {{ form.description.label(class="form-label fw-bold") }}
+                                {{ form.description(class="form-control form-control-lg " + ("is-invalid" if form.description.errors else ""), rows="3", placeholder="Description", value=product.description) }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Price -->
+                            <div class="col-md-6">
+                                {{ form.price.label(class="form-label fw-bold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.price(class="form-control form-control-lg " + ("is-invalid" if form.price.errors else ""), placeholder="Price", value=product.price, step="0.01") }}
+                                    {% if form.price.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.price.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                {% endfor %}
+                            </div>
+
+                            <!-- Stock -->
+                            <div class="col-md-6">
+                                {{ form.stock.label(class="form-label fw-bold") }}
+                                {{ form.stock(class="form-control form-control-lg " + ("is-invalid" if form.stock.errors else ""), placeholder="Stock", value=product.stock) }}
+                                {% if form.stock.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.stock.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Allergens -->
+                            <div class="col-12">
+                                <label class="form-label">Product Allergens</label>
+                                <div class="row">
+                                    {% for value, label in [('Nuts', 'Nuts'), ('Gluten', 'Gluten'), ('Dairy', 'Dairy'), ('Eggs', 'Eggs'), ('Soy', 'Soy')] %}
+                                    <div class="col-md-3 allergen-checkbox">
+                                        <div class="form-check">
+                                            <input type="checkbox" 
+                                                   name="allergens[]" 
+                                                   value="{{ value }}" 
+                                                   id="{{ value }}" 
+                                                   class="form-check-input"
+                                                   {% if value in product.allergens.split(', ') %}checked{% endif %}>
+                                            <label for="{{ value }}" class="form-check-label">{{ label }}</label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="col-12">
+                                {{ form.image_file.label(class="form-label fw-bold") }}
+                                {{ form.image_file(class="form-control form-control-lg " + ("is-invalid" if form.image_file.errors else ""), accept="image/*") }}
+                                {% if form.image_file.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.image_file.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
-
-                        <!-- Price -->
-                        <div class="mb-3">
-                            <label for="price" class="form-label" style="color: #8B4513; font-weight: bold;">Price</label>
-                            <input type="number" id="price" name="price" class="form-control"
-                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
-                                   value="{{ product.price }}" step="0.01" required>
-                        </div>
-
-                        <!-- Stock -->
-                        <div class="mb-3">
-                            <label for="stock" class="form-label" style="color: #8B4513; font-weight: bold;">Stock</label>
-                            <input type="number" id="stock" name="stock" class="form-control"
-                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" 
-                                   value="{{ product.stock }}" required>
-                        </div>
-
-                        <!-- Image Upload -->
-                        <div class="mb-3">
-                            <label for="image_file" class="form-label" style="color: #8B4513; font-weight: bold;">Product Image</label>
-                            <input type="file" id="image_file" name="image_file" class="form-control"
-                                   style="border: 2px solid #D2691E; background-color: #FFF8DC;" accept="image/*">
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-success" style="background-color: #228B22; border-color: #008000;">
-                                Update Product
-                            </button>
-                            <a href="{{ url_for('productadmin') }}" class="btn btn-secondary" style="background-color: #8B4513; border-color: #5D3A1A;">
-                                Cancel
-                            </a>
+                        <div class="text-center mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg px-5") }}
+                            <a href="{{ url_for('productadmin') }}" class="btn btn-secondary btn-lg px-5 ms-2">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -105,4 +125,42 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        color: #495057;
+    }
+    .card {
+        border-radius: 15px;
+        border: none;
+    }
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+    }
+    .btn {
+        transition: all 0.3s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .form-control {
+        border-radius: 8px;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.15);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
 {% endblock %}

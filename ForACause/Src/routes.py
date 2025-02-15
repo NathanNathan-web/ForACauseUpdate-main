@@ -328,9 +328,12 @@ def login():
 def account():
     if current_user.is_authenticated:
         redeemvoucher_list = []
+        donateitem_list = []
+
         image_file = url_for('static', filename='images/' + current_user.image_file)
         user = User.query.filter_by(id=current_user.id).first()
         redeemvouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
+        donateitems=DonateItem.query.filter_by(user_id=current_user.id).all()
         user_volunteer_events = UserVolunteer.query.filter_by(user_id=current_user.id).all()
         for redeemvoucher in redeemvouchers:
             redeemvoucher_list.append(redeemvoucher)
@@ -343,8 +346,19 @@ def account():
             }
             for volunteer in user_volunteer_events
         ]
+
+        for donateitem in donateitems:
+            if donateitem.image_file:
+                donateitem.image_path = url_for('static', filename='uploads/' + donateitem.image_file)
+            else:
+                donateitem.image_path = None
+            donateitem_list.append(donateitem)
+
+         # Get order history from session (or temporary storage)
+        order_history = session.get('order_history', [])
+
         # Pass app or app.config['LANGUAGES'] to the template
-        return render_template('account.html', image_file=image_file, user=user, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'], volunteering_history=volunteering_history)
+        return render_template('account.html', image_file=image_file, user=user, order_history=order_history, redeemvoucher_list=redeemvoucher_list, languages=app.config['LANGUAGES'], volunteering_history=volunteering_history, donateitems=donateitem_list)
     else:
         return redirect(url_for('login'))
 
@@ -857,14 +871,7 @@ def order_confirmation():
         delivery_method=order["delivery_method"],
         time_slot=order["time_slot"],
         total=order["total"]
-    )
-
-
-
-
-
-
-
+        )
 
 @app.route('/finalize_payment', methods=['POST'])
 @login_required
@@ -887,19 +894,24 @@ def finalize_payment():
                 product = cart.product  # Assuming Cart has a relationship to Product
                 if product.stock >= cart.quantity:
                     product.stock -= cart.quantity  # Deduct purchased quantity
+                    # Determine price based on category
+                    if product.category.lower() in ['cookies and biscuits', 'cookies & biscuits']:
+                        price = product.price * 0.90  # Apply 10% discount
+                    else:
+                        price = product.price  # Use original price
                     items.append({
                         "name": product.name,
                         "quantity": cart.quantity,
-                        "price": product.price * 0.85,
+                        "price": price,
                         "image_file": product.image_file,
                     })
                     db.session.delete(cart)  # Remove the cart item
                 else:
                     flash(f"Insufficient stock for {product.name}. Please adjust your cart.", "danger")
                     return redirect(url_for('cart'))
-            
+
             db.session.commit()  # Save changes to the database
-            
+
             # Store items and delivery info in session
             session['items'] = items
             session['delivery_method'] = delivery_method
@@ -908,23 +920,13 @@ def finalize_payment():
             # Redirect to payment confirmation
             qr_code_path = "/static/images/yh_qr.jpg"  # Hardcoded QR code
             return render_template('payment_confirmation.html', qr_code_path=qr_code_path, total=session['total'])
-        
+
         except Exception as e:
             flash(f"An error occurred while processing your payment: {str(e)}", "danger")
             return redirect(url_for('checkout'))
     else:
         flash("Unsupported payment method selected.", "warning")
         return redirect(url_for('checkout'))
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/usevoucher', methods=['GET', 'POST'])
 def usevoucher():
@@ -1342,7 +1344,7 @@ def updateuser(id):
             form.image_file.data = user.image_file
             userimagefile = ''
             userimagefile = user.image_file
-            return render_template('updateUser.html', form=form, idsite=True, userimagefile=userimagefile)
+            return render_template('updateUser.html', form=form, idsite=True, adminStat=True, userimagefile=userimagefile)
     else:
         return redirect(url_for('login'))
 
@@ -1878,7 +1880,7 @@ def productvalidity(id):
 @app.route('/donate', methods=['GET', 'POST'])
 @login_required
 def donate():
-    from .organization import organizations  # Import the organizations dictionary
+    from Src.organization import organizations  # Import the organizations dictionary
 
     # Populate organization choices dynamically
     org_choices = [(key, value['name']) for key, value in organizations.items()]
@@ -1959,46 +1961,75 @@ def generate_qr():
 @app.route('/donation/payment', methods=['GET', 'POST'])
 @login_required
 def donation_payment():
-    from .organization import organizations
+    from Src.organization import organizations
+    import stripe
+    stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"  # Your Stripe secret key
 
-    donation_amount = request.args.get('amount', type=float, default=0.0)  # Default donation amount
+    donation_amount = request.args.get('amount', type=float, default=0.0)
     selected_org = request.args.get('organization', '')
 
-    # 🚀 Ensure the organization is valid, fallback if missing
+    # Ensure the organization is valid
     if selected_org not in organizations:
-        selected_org = list(organizations.keys())[0]  # Default to the first available organization
+        selected_org = list(organizations.keys())[0]
 
-    # **Retrieve only unique redeemed vouchers**
+    # Retrieve unique redeemed vouchers
     redeemed_vouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
     unique_vouchers = {}
-    for v in redeemed_vouchers:
-        if v.voucher and v.voucher.value:
-            unique_vouchers[v.voucher.id] = v  # Prevent duplicates
+    for rv in redeemed_vouchers:
+        if rv.voucher and rv.voucher.value:
+            unique_vouchers[rv.voucher.id] = rv
 
-    # Calculate the total discount based on vouchers
     total_discount = sum(v.voucher.value for v in unique_vouchers.values())
-    final_amount = max(0, donation_amount - total_discount)  # Ensure non-negative final amount
+    final_amount = max(0, donation_amount - total_discount)
 
     if request.method == "POST":
-        payment_method = request.form.get("payment_method")
+        payment_method = request.form.get("payment_method", "")
         if not payment_method:
             flash("Please select a payment method.", "error")
-            return redirect(url_for("donation_payment"))
+            return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
 
-        # ✅ Process payment and redirect to success page
-        flash(f"Donation of SGD {final_amount:.2f} processed successfully!", "success")
-        
-        # Pass the donation_amount and organization_name to donation_success page
-        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]['name']))
+        # If Stripe Checkout is selected, create a session and redirect
+        if payment_method == "stripe":
+            try:
+                session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'sgd',
+                            'product_data': {
+                                'name': f"Donation to {organizations[selected_org]['name']} (User {current_user.id})"
+                            },
+                            'unit_amount': int(final_amount * 100),  # amount in cents
+                        },
+                        'quantity': 1,
+                    }],
+                    mode='payment',
+                    success_url=url_for('donation_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+                    cancel_url=url_for('payment_cancel', _external=True),
+                )
+                return redirect(session.url)
+            except stripe.error.StripeError as e:
+                flash(f"Stripe error: {str(e)}", "error")
+                return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
+
+        # If PayNow is selected
+        elif payment_method == "paynow":
+            flash(f"Successfully processed PayNow donation of SGD {final_amount:.2f}!", "success")
+        else:
+            flash("Invalid payment method selected.", "error")
+            return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
+
+        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]["name"]))
 
     return render_template(
-        'payment.html',
-        organization_name=organizations[selected_org]['name'],
+        "payment.html",
+        organization_name=organizations[selected_org]["name"],
         donation_amount=donation_amount,
-        redeemed_vouchers=list(unique_vouchers.values()),  # Only unique vouchers
+        redeemed_vouchers=list(unique_vouchers.values()),
         total_discount=total_discount,
         final_amount=final_amount,
     )
+
 
 
 @app.route('/donation/success', methods=['GET'])
@@ -2034,9 +2065,6 @@ def donation_leaderboard():
 
     return render_template("donation_leaderboard.html", top_donors=top_donors)
 
-
-
-
 def calculate_crc(payload):
     """
     Calculate CRC16-CCITT checksum required for SGQR format.
@@ -2053,39 +2081,41 @@ def calculate_crc(payload):
     crc &= 0xFFFF
     return f"{crc:04X}"  # Convert to uppercase hex
 
-
-@app.route('/create-checkout-session', methods=['GET'])
-@login_required
+@app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
-        # Retrieve donation details
-        amount = int(request.args.get('amount', type=float) * 100)  # Convert to cents
-        organization_name = request.args.get('organization', 'ForACause')
+        data = request.json
+        amount = data.get("amount", 0)
+        postal_code = data.get("postal_code", "")
 
-        # Create Stripe Checkout session
-        checkout_session = stripe.checkout.Session.create(
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        if not postal_code.isdigit() or len(postal_code) != 6:
+            return jsonify({'error': 'Invalid postal code'}), 400
+
+        session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'sgd',
-                        'product_data': {
-                            'name': f'Donation to {organization_name}',
-                        },
-                        'unit_amount': amount,
-                    },
-                    'quantity': 1,
+            line_items=[{
+                'price_data': {
+                    'currency': 'sgd',
+                    'product_data': {'name': 'Donation'},
+                    'unit_amount': amount,
                 },
-            ],
+                'quantity': 1,
+            }],
+            billing_address_collection='required',
             mode='payment',
-            success_url=url_for('payment_success', _external=True),
-            cancel_url=url_for('payment_cancel', _external=True),
+            # Redirects back to donation page after a successful payment
+            success_url=url_for('donate', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            # Or, if you prefer a different route on cancel, change accordingly
+            cancel_url=url_for('donation_payment', _external=True),
         )
-        return redirect(checkout_session.url, code=303)
-    except Exception as e:
-        flash(f"An error occurred: {str(e)}", "danger")
-        return redirect(url_for('donate'))
 
+        return jsonify({'id': session.id})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/payment/success')
 @login_required
@@ -2107,25 +2137,27 @@ def chat():
         # Get user message from the request
         user_message = request.json.get('message', '').strip()
         if not user_message:
-            return jsonify({"reply": "Message cannot be empty."}), 400
+            return jsonify({"reply": "Please enter a message."}), 400
 
-        # Custom prompt for ForACause-related queries
+        # Concise AI assistant prompt
         prompt = f"""
-        You are an AI assistant for 'ForACause', a donation platform where users contribute to charities, redeem vouchers, and support causes.
-        Your job is to assist users with donation-related questions, voucher redemptions, and troubleshooting.
-        If a user reports an issue, guide them on how to fix it or escalate the issue.
+        You are an AI assistant for 'ForACause', a donation platform.
+        Keep responses short, clear, and professional.
+        Assist users with:
+        - Donations, receipts, and tax queries
+        - Voucher redemptions
+        - Troubleshooting donation/payment issues
+        - Contacting support
 
-        Here are some specific queries you should handle:
+        Example queries:
         - "How do I donate?"
         - "Can I cancel my donation?"
-        - "I donated to the wrong organization. What should I do?"
-        - "How do I track my donation history?"
+        - "Where's my receipt?"
         - "How do I redeem vouchers?"
-        - "Are my donations tax-deductible?"
-        - "I didn’t receive my donation receipt. How can I get it?"
         - "How do I update my payment details?"
-        - "How can I contact customer support?"
-        - "I have an issue with my donation, how can I escalate it?"
+        - "How can I escalate an issue?"
+
+        Respond briefly but informatively.
 
         User: {user_message}
         Chatbot:
@@ -2139,19 +2171,19 @@ def chat():
             "x-rapidapi-host": "free-chatgpt-api.p.rapidapi.com"
         }
 
-        # Make the request
+        # API request
         response = requests.get(url, headers=headers, params=querystring)
 
-        # Check response status
+        # Handle response
         if response.status_code == 200:
             data = response.json()
-            reply = data.get("response", "I'm here to assist with ForACause! How can I help?")
+            reply = data.get("response", "I’m here to help! What do you need?")
             return jsonify({"reply": reply})
         else:
-            return jsonify({"reply": f"API error: {response.status_code} - {response.reason}"}), response.status_code
+            return jsonify({"reply": f"Error {response.status_code}: {response.reason}"}), response.status_code
 
     except Exception as e:
-        return jsonify({"reply": f"An unexpected error occurred: {str(e)}"}), 500
+        return jsonify({"reply": f"Unexpected error: {str(e)}"}), 500
 
 
 # ============ Volunteer ===============
@@ -2162,8 +2194,13 @@ def volunteer():
         flash('Admins cannot access this page!', 'danger')
         return redirect(url_for('home'))
 
-    # Fetch signed-up event IDs for the current user
-    signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
+    # Fetch all volunteer events
+    events = VolunteerEvent.query.all()
+
+    # Fetch signed-up events for the current user (include attended status)
+    signed_up_events = {
+        signup.event_id: signup.attended for signup in current_user.volunteer_events
+    }
 
     # Fetch wishlist event IDs for the current user
     wishlisted_event_ids = {item.event_id for item in current_user.wishlist_items}
@@ -2173,10 +2210,7 @@ def volunteer():
     filter_date = request.args.get('filter_date', '')
     show_signed_up = request.args.get('show_signed_up', 'false') == 'true'
 
-    # Fetch all events
-    events = VolunteerEvent.query.all()
-
-    # Apply filters
+    # Apply search filters
     if search_name:
         events = [event for event in events if search_name.lower() in event.name.lower()]
     
@@ -2185,12 +2219,12 @@ def volunteer():
         events = [event for event in events if event.date == filter_date]
 
     if show_signed_up:
-        events = [event for event in events if event.id in signed_up_event_ids]
+        events = [event for event in events if event.id in signed_up_events]
 
     return render_template(
         'volunteer.html',
         events=events,
-        signed_up_event_ids=signed_up_event_ids,
+        signed_up_events=signed_up_events,
         wishlisted_event_ids=wishlisted_event_ids
         )
 
@@ -2234,7 +2268,6 @@ def get_address_from_coordinates(lat, lon):
     else:
         return "Address not found"
     
-
 @app.route('/map_view', methods=['GET'])
 @login_required
 def map_view():
@@ -2242,9 +2275,9 @@ def map_view():
     events = VolunteerEvent.query.all()
 
     # Get the signed-up events for the current user
-    signed_up_event_ids = {signup.event_id for signup in current_user.volunteer_events}
+    signed_up_event_ids = {signup.event_id: signup.attended for signup in current_user.volunteer_events}
 
-    # Prepare event data with the signed-up flag
+    # Prepare event data with the signed-up and completed flags
     events_data = [
         {
             'id': event.id,
@@ -2255,7 +2288,8 @@ def map_view():
             'date': event.date.strftime('%Y-%m-%d') if event.date else 'Not available',
             'category': event.category if event.category else 'Not available',
             'address': event.address if event.address else 'Not available',
-            'is_signed_up': event.id in signed_up_event_ids
+            'is_signed_up': event.id in signed_up_event_ids,
+            'is_completed': is_event_completed(event, signed_up_event_ids)  # Check if the event is completed based on attended
         }
         for event in events
     ]
@@ -2267,8 +2301,13 @@ def map_view():
         'map_view.html',
         events_data=events_data_json,  # This will be used for the map markers
         events=events_data,  # This will be used for the list view
+        signed_up_event_ids=signed_up_event_ids,
         api_key=app.config['GOOGLE_MAPS_API_KEY']
     )
+
+def is_event_completed(event, signed_up_event_ids):
+    # Check if the event has been marked as attended by any user
+    return event.id in signed_up_event_ids and signed_up_event_ids[event.id]
 
 @app.route("/calendar")
 @login_required
@@ -2398,15 +2437,58 @@ def create_volunteer_event():
 @login_required
 def manage_volunteer_event():
     if not current_user.isAdmin:
-        abort(403)  # Restrict access to admins only
-    
+        abort(403)
+
     events = VolunteerEvent.query.all()
     signups = UserVolunteer.query.all()
+
+    page = request.args.get('page', 1, type=int)
+    reviews = EventReview.query.order_by(EventReview.created_at.desc()).paginate(page=page, per_page=5)
+
+    top_volunteer_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .first()
+    )
+
+    top_volunteer = {
+        'username': top_volunteer_query[0].username if top_volunteer_query else 'No Volunteers',
+        'signup_count': top_volunteer_query[1] if top_volunteer_query else 0
+    }
+
+    top_volunteers_query = (
+        db.session.query(User, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, User.id == UserVolunteer.user_id)
+        .group_by(User.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .limit(5)
+    ).all()
+
+    top_volunteers = [
+        {'username': v[0].username, 'signup_count': v[1]} for v in top_volunteers_query
+    ] if top_volunteers_query else [] 
+
+    event_data_query = (
+        db.session.query(VolunteerEvent.name, func.count(UserVolunteer.id).label('signup_count'))
+        .join(UserVolunteer, VolunteerEvent.id == UserVolunteer.event_id)
+        .group_by(VolunteerEvent.id)
+        .order_by(func.count(UserVolunteer.id).desc())
+        .all()
+    )
+
+    event_data = {event[0]: event[1] for event in event_data_query} if event_data_query else {}
+
     return render_template(
         'create_volunteer_event.html',
         events=events,
-        signups=signups
-    )
+        signups=signups,
+        reviews=reviews,  
+        top_volunteer=top_volunteer,  
+        top_volunteers=top_volunteers, 
+        event_data=event_data  
+        )
 
 @app.route('/edit_volunteer_event/<int:event_id>', methods=['GET', 'POST'])
 @login_required
@@ -2493,13 +2575,16 @@ def mark_attended(event_id, user_id):
     signup = UserVolunteer.query.filter_by(event_id=event_id, user_id=user_id).first()
     if not signup:
         flash('Signup record not found!', 'danger')
-        return redirect(url_for('create_volunteer_event'))
+        return redirect(url_for('manage_volunteer_event'))  # ✅ Redirect to admin page
 
     # Mark as attended
     signup.attended = True
     db.session.commit()
+
     flash(f'User {signup.user.username} marked as attended for {signup.event.name}.', 'success')
-    return redirect(url_for('create_volunteer_event'))
+
+    # ✅ Redirect admin back to manage volunteer page instead of user volunteer page
+    return redirect(url_for('manage_volunteer_event'))
 
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @login_required

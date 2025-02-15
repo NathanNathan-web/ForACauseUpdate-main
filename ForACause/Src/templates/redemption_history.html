@@ -1,206 +1,167 @@
 {% extends "base.html" %}
-
 {% block title %}Redemption History{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="text-center mb-4">Your Redemption History</h2>
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    {% if user_history %}
-    <div class="table-container">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Voucher Name</th>
-                        <th>Redemption Date and Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for redemption in user_history %}
-                    <tr>
-                        <td>{{ redemption.voucher_name }}</td>
-                        <td>{{ redemption.redemption_date | datetimeformat }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Header Section -->
+    <div class="card shadow-sm border-0 mb-4 bg-gradient-to-r from-primary-50 to-white" style="max-width: 1200px;">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h2 class="h3 text-primary mb-1">Your Redemption History</h2>
+                </div>
+            </div>
         </div>
     </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <p>You have not redeemed any vouchers yet.</p>
+
+    <!-- Search Bar -->
+    <div class="card shadow-sm border-0 mb-4 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-3">
+            <div class="input-group">
+                <span class="input-group-text border-0 bg-light">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-light" placeholder="Search vouchers..." id="searchRedemption">
+            </div>
+        </div>
     </div>
-    {% endif %}
+
+    <!-- Table Section -->
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-0">
+            {% if user_history %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="redemptionTable">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Voucher Name</th>
+                            <th scope="col">Redemption Date and Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for redemption in user_history %}
+                        <tr class="redemption-row">
+                            <td class="px-4">{{ redemption.voucher_name }}</td>
+                            <td>{{ redemption.redemption_date | datetimeformat }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="empty-state-icon mb-3">
+                    <i class="bi bi-receipt h1 text-muted"></i>
+                </div>
+                <p class="text-muted mb-0">You have not redeemed any vouchers yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <style>
-    :root {
-        /* Color System */
-        --primary-color: #4299e1;
-        --secondary-color: #667eea;
-        --text-primary: #2d3748;
-        --text-secondary: #718096;
-        --border-color: #edf2f7;
-        --background-light: #f7fafc;
-        --white: #ffffff;
-
-        /* Elevation */
-        --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.07);
-        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 12px 20px rgba(0, 0, 0, 0.05);
-
-        /* Layout */
-        --radius: 12px;
-        --spacing-xs: 0.5rem;
-        --spacing-sm: 1rem;
-        --spacing-md: 2rem;
-        --spacing-lg: 3rem;
-
-        /* Typography */
-        --font-size-sm: 0.875rem;
-        --font-size-base: 1rem;
-        --font-size-lg: 1.1rem;
-        --font-size-xl: 2.25rem;
-
-        /* Animation */
-        --transition-duration: 0.2s;
-        --transition-timing: ease;
+    /* Custom Styles */
+    .card {
+        border-radius: 1rem;
+        transition: all 0.2s ease;
     }
-
-    /* Table Styles */
-    .table-container {
-        margin: var(--spacing-md) auto;
-        text-align: center;
-        /* Optional: Center content inside the container */
-    }
-
-    .table-responsive {
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        width: 100%;
-    }
-
-    .table {
-        width: 100%;
-        margin: 0;
-        background: var(--white);
-        border-collapse: collapse;
-    }
-
-    /* Table Header */
-    .table thead {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    }
-
+    
     .table th {
-        color: var(--white);
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: calc(var(--spacing-sm) * 1.25) calc(var(--spacing-sm) * 1.5);
-        font-size: var(--font-size-sm);
-        border: none;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
     }
-
-    /* Table Body */
+    
     .table td {
-        padding: calc(var(--spacing-sm) * 1.25) calc(var(--spacing-sm) * 1.5);
-        color: var(--text-primary);
-        font-size: var(--font-size-base);
-        border-bottom: 1px solid var(--border-color);
+        padding-top: 1rem;
+        padding-bottom: 1rem;
         vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-weight: 500;
+        border-radius: 2rem;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
     }
 
-    .table tbody tr {
-        transition: transform var(--transition-duration) var(--transition-timing),
-            background-color var(--transition-duration) var(--transition-timing);
+    .input-group-text,
+    .form-control {
+        padding: 0.75rem 1rem;
     }
 
-    .table tbody tr:hover {
-        background-color: var(--background-light);
-        transform: translateY(-1px);
+    .alert {
+        border-radius: 0.75rem;
     }
 
-    .table tbody tr:last-child td {
-        border-bottom: none;
+    .redemption-row:hover {
+        background-color: #f8f9fa;
     }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: var(--spacing-lg) var(--spacing-sm);
-        background: var(--background-light);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-sm);
-        margin: var(--spacing-md) 0;
+    /* Add smooth transitions */
+    .btn, .badge, .form-control {
+        transition: all 0.2s ease;
+    }
+
+    /* Custom gradient background */
+    .bg-gradient-to-r {
+        background: linear-gradient(to right, #f0f7ff, #ffffff);
     }
 
     .empty-state-icon {
-        font-size: calc(var(--font-size-xl) * 1.33);
-        margin-bottom: var(--spacing-sm);
-        opacity: 0.7;
+        opacity: 0.5;
     }
 
-    .empty-state p {
-        color: var(--text-secondary);
-        font-size: var(--font-size-lg);
-        margin: 0;
-    }
-
-    /* Responsive Design */
+    /* Responsive adjustments */
     @media (max-width: 768px) {
-        :root {
-            --font-size-xl: 1.75rem;
+        .card {
+            border-radius: 0.75rem;
         }
-
+        
         .table th,
         .table td {
-            padding: var(--spacing-sm);
-            font-size: var(--font-size-sm);
-        }
-
-        .empty-state {
-            padding: var(--spacing-md) var(--spacing-sm);
-        }
-
-        .empty-state-icon {
-            font-size: calc(var(--font-size-xl) * 1.1);
-        }
-
-        .empty-state p {
-            font-size: var(--font-size-base);
-        }
-    }
-
-    @media (max-width: 480px) {
-
-        .table th,
-        .table td {
-            padding: var(--spacing-xs) var(--spacing-sm);
-        }
-
-        .empty-state {
-            padding: var(--spacing-md) var(--spacing-xs);
-        }
-    }
-
-    /* Print Styles */
-    @media print {
-        .table {
-            box-shadow: none;
-        }
-
-        .table th {
-            background: var(--background-light);
-            color: var(--text-primary);
-        }
-
-        .empty-state {
-            box-shadow: none;
-            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
         }
     }
 </style>
+
+<script>
+// Search functionality
+document.getElementById('searchRedemption').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.redemption-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
 {% endblock %}

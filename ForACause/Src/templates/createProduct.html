@@ -2,63 +2,21 @@
 {% block title %}Create Bakery Product{% endblock %}
 
 {% block content %}
-<style>
-    body {
-        background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .bakery-card {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        border: 2px solid #FFA500;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #6D4C41;
-    }
-
-    .form-control, .form-select {
-        border-color: #FFA500;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #FF6D00;
-        box-shadow: 0 0 0 0.2rem rgba(255,109,0,0.25);
-    }
-
-    .btn-primary {
-        background-color: #FF6D00;
-        border-color: #FF6D00;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #FF8F00;
-        transform: translateY(-3px);
-    }
-
-    .allergen-checkbox {
-        margin-bottom: 10px;
-    }
-</style>
-
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card bakery-card">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4" style="color: #6D4C41;">Create Bakery Product</h2>
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create Bakery Product</h3>
+                </div>
+                <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         <div class="row g-4">
                             <!-- Product Name -->
                             <div class="col-md-6">
-                                {{ form.name.label(class="form-label") }}
-                                {{ form.name(class="form-control " + ("is-invalid" if form.name.errors else ""), placeholder="") }}
+                                {{ form.name.label(class="form-label fw-bold") }}
+                                {{ form.name(class="form-control form-control-lg " + ("is-invalid" if form.name.errors else ""), placeholder="") }}
                                 {% if form.name.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.name.errors %}
@@ -70,8 +28,8 @@
 
                             <!-- Category -->
                             <div class="col-md-6">
-                                {{ form.category.label(class="form-label") }}
-                                {{ form.category(class="form-select " + ("is-invalid" if form.category.errors else "")) }}
+                                {{ form.category.label(class="form-label fw-bold") }}
+                                {{ form.category(class="form-select form-control-lg " + ("is-invalid" if form.category.errors else "")) }}
                                 {% if form.category.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.category.errors %}
@@ -83,8 +41,8 @@
 
                             <!-- Description -->
                             <div class="col-12">
-                                {{ form.description.label(class="form-label") }}
-                                {{ form.description(class="form-control " + ("is-invalid" if form.description.errors else ""), rows="3", placeholder="Describe your delectable creation") }}
+                                {{ form.description.label(class="form-label fw-bold") }}
+                                {{ form.description(class="form-control form-control-lg " + ("is-invalid" if form.description.errors else ""), rows="3", placeholder="Describe your delectable creation") }}
                                 {% if form.description.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.description.errors %}
@@ -96,10 +54,10 @@
 
                             <!-- Price -->
                             <div class="col-md-6">
-                                {{ form.price.label(class="form-label") }}
+                                {{ form.price.label(class="form-label fw-bold") }}
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    {{ form.price(class="form-control " + ("is-invalid" if form.price.errors else ""), placeholder="Price per item") }}
+                                    {{ form.price(class="form-control form-control-lg " + ("is-invalid" if form.price.errors else ""), placeholder="Price per item") }}
                                     {% if form.price.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.price.errors %}
@@ -112,8 +70,8 @@
 
                             <!-- Stock -->
                             <div class="col-md-6">
-                                {{ form.stock.label(class="form-label") }}
-                                {{ form.stock(class="form-control " + ("is-invalid" if form.stock.errors else ""), placeholder="Daily Batch Quantity") }}
+                                {{ form.stock.label(class="form-label fw-bold") }}
+                                {{ form.stock(class="form-control form-control-lg " + ("is-invalid" if form.stock.errors else ""), placeholder="Daily Batch Quantity") }}
                                 {% if form.stock.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.stock.errors %}
@@ -125,10 +83,10 @@
 
                             <!-- Allergens -->
                             <div class="col-12">
-                                <label class="form-label">{{ form.allergens.label }}</label>
+                                {{ form.allergens.label(class="form-label fw-bold") }}
                                 <div class="row">
                                     {% for value, label in form.allergens.choices %}
-                                    <div class="col-md-3 allergen-checkbox">
+                                    <div class="col-md-3">
                                         <div class="form-check">
                                             <input 
                                                 type="checkbox" 
@@ -138,7 +96,7 @@
                                                 class="form-check-input"
                                                 {% if form.allergens.data and value in form.allergens.data %} checked {% endif %}
                                             >
-                                            <label class="form-check-label" for="{{ form.allergens.id }}-{{ loop.index }}">
+                                            <label class="form-check-label fw-bold" for="{{ form.allergens.id }}-{{ loop.index }}">
                                                 {{ label }}
                                             </label>
                                         </div>
@@ -149,8 +107,8 @@
 
                             <!-- Image Upload -->
                             <div class="col-12">
-                                {{ form.image_file.label(class="form-label") }}
-                                {{ form.image_file(class="form-control " + ("is-invalid" if form.image_file.errors else ""), accept="image/*") }}
+                                {{ form.image_file.label(class="form-label fw-bold") }}
+                                {{ form.image_file(class="form-control form-control-lg " + ("is-invalid" if form.image_file.errors else ""), accept="image/*") }}
                                 {% if form.image_file.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.image_file.errors %}
@@ -171,3 +129,31 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        color: #495057;
+    }
+    .card {
+        border-radius: 15px;
+        border: none;
+    }
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+    }
+    .btn {
+        transition: all 0.3s ease;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .form-control {
+        border-radius: 8px;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.15);
+    }
+</style>
+{% endblock %}

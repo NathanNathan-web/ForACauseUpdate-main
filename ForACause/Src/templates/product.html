@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Product{% endblock %}
+{% block title %}Bakery Store - Products{% endblock %}
 
 {% block content %}
 <style>
   body {
-    background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
     font-family: 'Poppins', sans-serif;
   }
 
@@ -19,10 +18,10 @@
     font-size: 2.2rem;
     font-weight: bold;
     margin: 0;
-    color: #1a237e; /* Dark blue color matching navbar */
+    color: #1a237e;
   }
 
-  /* Top Search Bar */
+  /* Search Bar */
   .search-bar {
     background-color: white;
     padding: 15px;
@@ -30,26 +29,26 @@
     margin-bottom: 20px;
   }
 
-  .search-container {
-    max-width: 600px;
-    margin: 0 auto;
+  .search-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
   }
 
-  .search-container input {
+  .search-wrapper input {
     width: 100%;
-    padding: 12px 40px 12px 15px;
+    padding: 12px 40px 12px 40px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 1rem;
   }
 
-  .search-container .search-icon {
+  .search-icon {
     position: absolute;
-    top: 50%;
     right: 15px;
-    transform: translateY(-50%);
-    color: #FF7043;
+    color: #007BFF;
     font-size: 1.2rem;
   }
 
@@ -57,7 +56,9 @@
   .main-content {
     display: flex;
     gap: 20px;
-    padding: 0 20px;
+    padding: 20px;
+    max-width: 1500px;
+    margin: 0 auto;
   }
 
   /* Filter Panel */
@@ -68,6 +69,7 @@
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     height: fit-content;
+    top: 20px;
   }
 
   .filter-panel h3 {
@@ -84,7 +86,7 @@
     border: 1px solid #ccc;
   }
 
-  /* Enhanced Button Styles */
+  /* Buttons */
   .btn-filter, .btn-clear, .btn-view-product, .btn-add-to-cart {
     padding: 8px 16px;
     border-radius: 8px;
@@ -124,37 +126,17 @@
     transform: translateY(-2px);
   }
 
-  .btn-view-product {
-    background-color: #1a237e;
-    color: white;
-    margin-right: 8px;
-  }
-
-  .btn-view-product:hover {
-    background-color: #0d47a1;
-    transform: translateY(-2px);
-  }
-
-  .btn-add-to-cart {
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  .btn-add-to-cart:hover {
-    background-color: #388E3C;
-    transform: translateY(-2px);
-  }
-
-  /* Product Grid */
+  /* Product Content */
   .product-content {
     flex: 1;
+    min-width: 0;
   }
 
   .product-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3x3 grid */
+    grid-template-columns: repeat(3, 1fr); /* Fixed 3 columns */
     gap: 20px;
-    padding: 20px;
+    width: 100%;
   }
 
   .product-card {
@@ -163,13 +145,15 @@
     padding: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
-    transform: scale(0.83); /* 20% smaller */
-    transform-origin: center;
+    width: 100%;
+    margin: 0;
     position: relative;
+    min-width: 0; /* Prevents overflow */
+    transform: scale(0.85);
   }
 
   .product-card:hover {
-    transform: translateY(-5px);
+    transform: scale(0.84);    
   }
 
   .product-card img {
@@ -192,7 +176,8 @@
     margin-bottom: 4px;
   }
 
-  .product-card .badge {
+  /* Badges and Labels */
+  .badge {
     background-color: #FFE082;
     color: #BF360C;
     border-radius: 12px;
@@ -201,147 +186,115 @@
     margin-right: 4px;
   }
 
-  .sold-out {
-    background-color: #D32F2F;
+  .discount-badge {
+    background: linear-gradient(135deg, #FF9800, #FF5722);
     color: white;
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .sold-out {
+    background: linear-gradient(135deg, #FF5252, #D32F2F);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 8px;
     position: absolute;
     top: 10px;
     right: 10px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .limited-stock-badge {
+    background: linear-gradient(135deg, #FFA000, #FF7043);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 8px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Price Styling */
+  .original-price {
+    text-decoration: line-through;
+    color: #D32F2F;
+    margin-right: 5px;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .discounted-price {
+    font-weight: bold;
+    color: #2E7D32;
+    font-size: 1.3rem;
+  }
+
+  .price-label {
+    font-weight: bold;
+    color: #5D4037;
+    margin-right: 5px;
   }
 
   .card-buttons {
     display: flex;
     gap: 10px;
     margin-top: 12px;
-   
   }
- /* Discount Badge */
-.discount-badge {
-  background: linear-gradient(135deg, #FF9800, #FF5722);
-  color: white;
-  padding: 5px 12px;
-  border-radius: 8px;
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
-}
+  .btn-view-product {
+    background-color: #1a237e;
+    color: white;
+    margin-right: 8px;
+  }
 
-/* Strikethrough Original Price */
-.original-price {
-  text-decoration: line-through;
-  color: #D32F2F;
-  margin-right: 5px;
-  font-weight: bold;
-  font-size: 1rem;
-}
+  .btn-view-product:hover {
+    background-color: #0d47a1;
+    transform: translateY(-2px);
+  }
 
-/* Highlighted Discounted Price */
-.discounted-price {
-  font-weight: bold;
-  color: #2E7D32;
-  font-size: 1.3rem;
-}
-.price-label {
-  font-weight: bold;
-  color: #5D4037;
-  margin-right: 5px;
-}
+  .btn-add-to-cart {
+    background-color: #4CAF50;
+    color: white;
+  }
 
-/* Sold Out Badge */
-.sold-out {
-  background: linear-gradient(135deg, #FF5252, #D32F2F);
-  color: white;
-  padding: 5px 12px;
-  border-radius: 8px;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-/* Search Bar Container */
-.search-bar {
-    background-color: white;
-    padding: 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-/* Wrapper for Input & Icon */
-.search-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-/* Input Field */
-.search-wrapper input {
-    width: 100%;
-    padding: 12px 40px 12px 40px; /* Space for icon */
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-}
-
-/* Search Icon */
-.search-icon {
-    position: absolute;
-    right: 15px;
-    color: #007BFF; /* Blue color */
-    font-size: 1.2rem;
-}
-/* Limited Stock Badge */
-.limited-stock-badge {
-  background: linear-gradient(135deg, #FFA000, #FF7043);
-  color: white;
-  padding: 5px 12px;
-  border-radius: 8px;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-
-
+  .btn-add-to-cart:hover {
+    background-color: #388E3C;
+    transform: translateY(-2px);
+  }
 </style>
 
 <header class="header">
   <h1>🍰 Welcome to Our Bakery Store!</h1>
-  <p>All cookies and biscuits will have 10% disocunt</p>
+  <p>All cookies and biscuits will have 10% discount</p>
 </header>
-<!-- Font Awesome (for icons) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
 <!-- Search Bar -->
 <div class="search-bar">
   <form method="POST" action="{{ url_for('product') }}" class="search-container">
     <div class="search-wrapper">
-      <i class="fas fa-search search-icon"></i> <!-- Search Icon -->
+      <i class="fas fa-search search-icon"></i>
       <input type="text" name="search" placeholder="Search by name..." value="{{ search or '' }}">
       <button type="submit" style="display: none"></button>
     </div>
   </form>
 </div>
-
-
 
 <div class="main-content">
   <!-- Filter Panel -->
@@ -379,11 +332,10 @@
         <img src="{{ url_for('static', filename='images/' + product.image_file) }}" alt="{{ product.name }}">
         <h5>{{ product.name }}</h5>
         <p>Category: {{ product.category }}</p>
-        <!-- Discounted Price Section -->
+        
         <p>
           {% if product.category.lower() in ["cookies and biscuits", "cookies & biscuits"] %}
             <span class="discount-badge">10% OFF</span>
-          
             <span class="price-label">Price:</span>
             <span class="original-price">${{ '%.2f' % product.price }}</span>
             <span class="discounted-price">${{ '%.2f' % (product.price * 0.90) }}</span>
@@ -392,26 +344,20 @@
             <span class="price">${{ '%.2f' % product.price }}</span>
           {% endif %}
         </p>
-        
-        
-        
-        
 
         <p>Allergens: 
           {% for allergen in product.allergens.split(', ') %}
           <span class="badge">{{ allergen }}</span>
           {% endfor %}
         </p>
-        
 
         {% if product.stock == 0 %}
         <span class="sold-out">Sold Out</span>
-      {% elif product.stock < 5 %}
+        {% elif product.stock < 5 %}
         <span class="limited-stock-badge">Limited Stock</span>
-      {% else %}
+        {% else %}
         <p>In stock: {{ product.stock }}</p>
-      {% endif %}
-      
+        {% endif %}
 
         <div class="card-buttons">
           <a href="/productDetails/{{ product.id }}" class="btn-view-product">View</a>
@@ -429,4 +375,4 @@
 </div>
 
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-{% endblock %}
+{% endblock %}

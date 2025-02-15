@@ -1,155 +1,49 @@
 {% extends "base.html" %}
-{% block title %}ForACause - Admin Product{% endblock %}
+{% block title %}ForACause - Product Management{% endblock %}
 
 {% block content %}
-<style>
-    body {
-        background: linear-gradient(135deg, #FFF3E0, #FFCCBC);
-        font-family: 'Poppins', sans-serif;
-    }
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    .table-container {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
-        padding: 20px;
-        margin-top: 20px;
-    }
+    <!-- Header Section -->
+    <div class="card shadow-sm border-0 mb-4 bg-gradient-to-r from-primary-50 to-white" style="max-width: 1200px;">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h2 class="h3 text-primary mb-1">Product Management</h2>
+                </div>
+                <div>
+                    <a href="/createProduct" class="btn btn-primary px-4">
+                        <i class="bi bi-plus-lg me-2"></i>Add Product
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    .table-header {
-        background: linear-gradient(135deg, #FFA726, #FF7043);
-        color: white;
-        padding: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 12px 12px 0 0;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-
-    .table-header .filter-bar {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .filter-bar input,
-    .filter-bar select,
-    .filter-bar button {
-        flex: 1;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 1rem;
-    }
-
-    .filter-bar button {
-        background-color: #FF7043;
-        color: white;
-        font-weight: bold;
-        border: none;
-        transition: all 0.3s ease;
-    }
-
-    .filter-bar button:hover {
-        background-color: #E64A19;
-    }
-
-    .create-btn {
-        background-color: white;
-        color: #FF7043;
-        font-weight: bold;
-        border: 2px solid white;
-        border-radius: 8px;
-        padding: 10px 15px;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        margin-left: auto; /* Moves button to the right */
-    }
-
-    .create-btn:hover {
-        background-color: #FF7043;
-        color: white;
-    }
-
-    .toggle-btn {
-        background-color: #004085;
-        color: white;
-        font-weight: bold;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-
-    .toggle-btn:hover {
-        background-color: #002855;
-    }
-
-    .table-responsive {
-        max-height: 65vh;
-        overflow-y: auto;
-    }
-
-    .product-image {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .product-image:hover {
-        transform: scale(1.1);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    .modal-img {
-        width: 100%;
-        height: auto;
-        border-radius: 12px;
-    }
-
-    .allergen-badge {
-        margin-right: 5px;
-        font-size: 0.85rem;
-        background-color: #FFCDD2;
-        color: #B71C1C;
-        border-radius: 8px;
-        padding: 3px 8px;
-        font-weight: bold;
-    }
-    .page-header {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 2rem;
-    color: #FF7043;
-    font-weight: bold;
-}
-
-</style>
-<div class="page-header">
-    Products
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="table-container">
-            <div class="table-header">
-                <!-- Filter Bar -->
-                <form method="POST" class="filter-bar">
-                    <!-- Search Bar -->
-                    <input type="text" name="search" placeholder="Search by name..." value="{{ search or '' }}" />
-
-                    <!-- Category Dropdown -->
-                    <select name="category">
+    <!-- Filter Section -->
+    <div class="card shadow-sm border-0 mb-4 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-3">
+            <form method="POST" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text border-0 bg-light">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-0 bg-light" placeholder="Search products..." value="{{ search or '' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select border-0 bg-light">
                         <option value="">All Categories</option>
                         {% for category in ['Cakes and Pastries', 'Bread and Rolls', 'Cookies and Biscuits', 'Pies and Tarts'] %}
                         <option value="{{ category }}" {% if category == selected_category %}selected{% endif %}>
@@ -157,9 +51,9 @@
                         </option>
                         {% endfor %}
                     </select>
-
-                    <!-- Allergen Dropdown -->
-                    <select name="allergen">
+                </div>
+                <div class="col-md-3">
+                    <select name="allergen" class="form-select border-0 bg-light">
                         <option value="">All Allergens</option>
                         {% for allergen in ['nuts', 'gluten', 'dairy', 'eggs', 'soy', 'none'] %}
                         <option value="{{ allergen }}" {% if allergen == selected_allergen %}selected{% endif %}>
@@ -167,69 +61,95 @@
                         </option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+                    <a href="{{ url_for('productadmin') }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                    <!-- Submit and Clear Buttons -->
-                    <div>
-                        <button type="submit">Filter</button>
-                        <a href="{{ url_for('productadmin') }}" class="btn btn-secondary" style="text-decoration: none;">Clear Filters</a>
-                    </div>
-                </form>
-                <!-- Create Product Button -->
-                <a href="/createProduct" class="create-btn">
-                    <i class="bi bi-plus-circle me-2"></i>Add New Product
-                </a>
-            </div>
-
+    <!-- Table Section -->
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped align-middle mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
-                        <tr style="background-color: #FFE0B2;">
-                            <th>Image</th>
-                            <th>Product Name</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Allergens</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Image</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Allergens</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end px-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in product_list %}
-                        <tr>
-                            <td>
-                                <img src="{{ url_for('static', filename='images/' + product.image_file) }}?{{ product.id }}" 
-                                     alt="{{ product.name }}" class="product-image">
+                        <tr class="product-row">
+                            <td class="px-4">
+                                <div class="avatar-wrapper rounded bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <img src="{{ url_for('static', filename='images/' + product.image_file) }}?{{ product.id }}" 
+                                         alt="{{ product.name }}"
+                                         class="rounded"
+                                         style="height: 40px; width: 40px; object-fit: cover;">
+                                </div>
                             </td>
                             <td>{{ product.name }}</td>
                             <td>{{ product.description[:30] }}...</td>
                             <td>{{ product.category }}</td>
                             <td>
                                 {% for allergen in product.allergens.split(', ') %}
-                                <span class="badge allergen-badge">{{ allergen }}</span>
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3">{{ allergen }}</span>
                                 {% endfor %}
                             </td>
                             <td>${{ product.price }}</td>
                             <td>{{ product.stock }}</td>
                             <td>
-                                <a href="{{ url_for('productvalidity', id=product.id) }}">
-                                    <span class="badge {{ 'bg-success' if product.isValid else 'bg-danger' }}">
-                                        {{ 'Valid' if product.isValid else 'Invalid' }}
-                                    </span>
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('updateProduct', id=product.id) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <form action="{{ url_for('deleteproduct', id=product.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                <form action="{{ url_for('productvalidity', id=product.id) }}" method="POST">
+                                    {% if product.isValid %}
+                                    <button type="submit" class="badge bg-success border-0 px-3 py-2">Valid</button>
+                                    {% else %}
+                                    <button type="submit" class="badge bg-danger border-0 px-3 py-2">Non-valid</button>
+                                    {% endif %}
                                 </form>
                             </td>
+                            <td class="text-end px-4">
+                                <div class="btn-group">
+                                    <a href="{{ url_for('updateProduct', id=product.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{product.id}}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal_{{product.id}}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirm Deletion</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="mb-0">Are you sure you want to delete product <strong>{{product.name}}</strong>? This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form action="{{ url_for('deleteproduct', id=product.id) }}" method="POST">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -237,4 +157,82 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Custom Styles */
+    .card {
+        border-radius: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .table td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-weight: 500;
+        border-radius: 2rem;
+    }
+    
+    .btn-group > .btn {
+        border-radius: 0.5rem !important;
+        margin: 0 2px;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .input-group-text,
+    .form-control,
+    .form-select {
+        padding: 0.75rem 1rem;
+    }
+
+    .alert {
+        border-radius: 0.75rem;
+    }
+
+    .product-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .avatar-wrapper {
+        box-shadow: 0 0 0 2px #e9ecef;
+    }
+
+    /* Add smooth transitions */
+    .btn, .badge, .form-control, .form-select {
+        transition: all 0.2s ease;
+    }
+
+    /* Custom gradient background */
+    .bg-gradient-to-r {
+        background: linear-gradient(to right, #f0f7ff, #ffffff);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
 {% endblock %}

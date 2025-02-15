@@ -2,96 +2,213 @@
 {% block title %}ForACause - Account Management{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-     <!-- Filter Section -->
-    <form method="GET" action="{{ url_for('accountadmin') }}" class="mb-3">
-        <div class="input-group">
-            <span class="input-group-text" id="search-icon">
-                <i class="bi bi-search"></i>
-            </span>
-            <input type="text" name="search_filter" class="form-control" placeholder="Filter by username or email"
-                value="{{ request.args.get('search_filter', '') }}">
-            <button type="submit" class="btn btn-primary">Search</button>
-            <a href="{{ url_for('accountadmin') }}" class="btn btn-secondary">Clear</a>
-        </div>
-    </form>
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    <!-- Export Button -->
-    <div class="d-flex justify-content-end mb-3">
-        <a href="{{ url_for('export_users') }}" class="btn btn-success">
-            <i class="bi bi-file-earmark-arrow-down"></i> Export Users
-        </a>
+    <!-- Header Section -->
+    <div class="card shadow-sm border-0 mb-4 bg-gradient-to-r from-primary-50 to-white" style="max-width: 1200px;">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h2 class="h3 text-primary mb-1">Account Management</h2>
+                </div>
+                <div>
+                    <a href="{{ url_for('export_users') }}" class="btn btn-success px-4">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Users
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-success">
-                <tr>
-                    <th scope="col" class="topleft">Profile Image</th>
-                    <th scope="col">User ID</th>
-                    <th scope="col">Username</th>
-                    <th scope="col">User Email</th>
-                    <th scope="col" colspan="2">Password</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Address</th>
-                    <th scope="col">Secret Question</th>
-                    <th scope="col">Balance</th>
-                    <th scope="col">Credit</th>
-                    <th scope="col" class="topright" colspan="2">Action</th>
-                </tr>
-            </thead>
+    <!-- Search Bar -->
+    <div class="card shadow-sm border-0 mb-4 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ url_for('accountadmin') }}">
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-light">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search_filter" class="form-control border-0 bg-light" 
+                           placeholder="Search by username or email" value="{{ request.args.get('search_filter', '') }}">
+                    <button type="submit" class="btn btn-primary px-4">Search</button>
+                    <a href="{{ url_for('accountadmin') }}" class="btn btn-outline-secondary px-4">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-            <tbody>
-                {% for user in user_list %}
-                <tr>
-                    <td>
-                        <img src="{{ url_for('static', filename='images/' + user.image_file )}}" alt="Logo"
-                            class="img-fluid" style="height: 5vh; width: 3vw;">
-                    </td>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td colspan="2">{{ user.password }}</td>
-                    <td>{{ user.phone }}</td>
-                    <td>{{ user.address }}</td>
-                    <td>{{ user.secretQn }}</td>
-                    <td>{{ user.balance }}</td>
-                    <td>{{ user.credit }}</td>
-                    {% if user.email == 'admin@admin.com' %}
-                    <td></td>
-                    <td></td>
-                    {% else %}
-                    <td>
-                        <a href="/updateUser/{{user.id}}" class="btn btn-warning">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <form action="{{ url_for('hideuser', user_id=user.id) }}" method="POST">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-eye-slash"></i> Delete
-                            </button>
-                        </form>
-                    </td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
+    <!-- Table Section -->
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4">Profile</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Account Details</th>
+                            <th scope="col">Contact Info</th>
+                            <th scope="col">Address</th>
+                            <th scope="col">Security</th>
+                            <th scope="col">Finances</th>
+                            <th scope="col" class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in user_list %}
+                        <tr class="user-row">
+                            <td class="px-4">
+                                <div class="avatar-wrapper rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <img src="{{ url_for('static', filename='images/' + user.image_file )}}" 
+                                         alt="{{ user.username }}'s Profile"
+                                         class="rounded-circle"
+                                         style="height: 40px; width: 40px; object-fit: cover;">
+                                </div>
+                            </td>
+                            <td class="fw-bold">#{{ user.id }}</td>
+                            <td>
+                                <div>{{ user.username }}</div>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </td>
+                            <td>
+                                <div>{{ user.phone }}</div>
+                            </td>
+                            <td>
+                                <div>{{ user.address }}</div>
+                            </td>
+                            <td>
+                                <div class="text-muted small">{{ user.secretQn }}</div>
+                            </td>
+                            <td>
+                                <div>Credit: ${{ user.credit }}</div>
+                            </td>
+                            <td class="text-end px-4">
+                                {% if user.email != 'admin@admin.com' %}
+                                <div class="btn-group">
+                                    <a href="/updateUser/{{user.id}}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{user.id}}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
 
-            <tfoot class="table-success">
-                <tr>
-                    <th class="bottomleft"></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th colspan=5 class="bottomright"></th>
-                </tr>
-            </tfoot>
-        </table>
+                        <!-- Delete Modal -->
+                        {% if user.email != 'admin@admin.com' %}
+                        <div class="modal fade" id="deleteModal_{{user.id}}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirm User Deletion</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="mb-0">Are you sure you want to delete user <strong>{{user.username}}</strong>? This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form action="{{ url_for('hideuser', user_id=user.id) }}" method="POST">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    /* Custom Styles */
+    .card {
+        border-radius: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .table td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-weight: 500;
+        border-radius: 2rem;
+    }
+    
+    .btn-group > .btn {
+        border-radius: 0.5rem !important;
+        margin: 0 2px;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .input-group-text,
+    .form-control {
+        padding: 0.75rem 1rem;
+    }
+
+    .alert {
+        border-radius: 0.75rem;
+    }
+
+    .user-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .avatar-wrapper {
+        box-shadow: 0 0 0 2px #e9ecef;
+    }
+
+    /* Add smooth transitions */
+    .btn, .badge, .form-control {
+        transition: all 0.2s ease;
+    }
+
+    /* Custom gradient background */
+    .bg-gradient-to-r {
+        background: linear-gradient(to right, #f0f7ff, #ffffff);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
 {% endblock %}

@@ -1,85 +1,223 @@
 {% extends "base.html" %}
-
-{% block title %}Donation Leaderboard{% endblock %}
+{% block title %}ForACause - Donation Leaderboard{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="text-center fw-bold mb-4">🏆 Donation Leaderboard</h2>
+<div class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-    <div class="table-responsive">
-        <table class="table table-hover leaderboard-table">
-            <thead>
-                <tr class="table-primary">
-                    <th>Rank</th>
-                    <th>Username</th>
-                    <th>Total Donated ($)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for donor in top_donors %}
-                <tr class="{% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
-                    <td>
-                        {% if loop.index == 1 %}
-                        🥇
-                        {% elif loop.index == 2 %}
-                        🥈
-                        {% elif loop.index == 3 %}
-                        🥉
+    <!-- Header Section -->
+    <div class="card shadow-sm border-0 mb-4 bg-gradient-to-r from-primary-50 to-white" style="max-width: 1200px;">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h2 class="h3 text-primary mb-1">🏆 Donation Leaderboard</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="card shadow-sm border-0 mb-4 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-3">
+            <div class="input-group">
+                <span class="input-group-text border-0 bg-light">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-light" placeholder="Search donors..." id="searchDonor">
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Table Section -->
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 1200px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="leaderboardTable">
+                    <thead>
+                        <tr class="bg-light">
+                            <th scope="col" class="px-4 text-center" style="width: 100px;">Rank</th>
+                            <th scope="col">Donor</th>
+                            <th scope="col" class="text-end px-4">Total Donated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donor in top_donors %}
+                        <tr class="donor-row {% if loop.index <= 3 %}highlight-row{% endif %}">
+                            <td class="px-4 text-center">
+                                {% if loop.index == 1 %}
+                                <div class="rank-badge gold">
+                                    <span class="h4 mb-0">🥇</span>
+                                </div>
+                                {% elif loop.index == 2 %}
+                                <div class="rank-badge silver">
+                                    <span class="h4 mb-0">🥈</span>
+                                </div>
+                                {% elif loop.index == 3 %}
+                                <div class="rank-badge bronze">
+                                    <span class="h4 mb-0">🥉</span>
+                                </div>
+                                {% else %}
+                                <div class="rank-badge">
+                                    <span class="h5 mb-0">#{{ loop.index }}</span>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-wrapper rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                        <i class="bi bi-person h4 mb-0 text-primary"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <div class="fw-bold">{{ donor.username }}</div>
+                                        <small class="text-muted">Member</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end px-4">
+                                <div class="fw-bold text-primary">${{ "%.2f"|format(donor.total_donated) }}</div>
+                                <small class="text-muted">Total Contribution</small>
+                            </td>
+                        </tr>
                         {% else %}
-                        #{{ loop.index }}
-                        {% endif %}
-                    </td>
-                    <td>{{ donor.username }}</td>
-                    <td>${{ "%.2f"|format(donor.total_donated) }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3" class="text-center">No donations yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon mb-3">
+                                        <i class="bi bi-trophy h1 text-muted"></i>
+                                    </div>
+                                    <p class="text-muted mb-0">No donations recorded yet</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-    /* Leaderboard Styling */
-    .leaderboard-table {
-        max-width: 700px;
-        margin: auto;
-        border-radius: 10px;
-        overflow: hidden;
-        background: white;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Custom Styles */
+    .card {
+        border-radius: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .table td {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
     }
 
-    .leaderboard-table th, .leaderboard-table td {
-        text-align: center;
-        padding: 15px;
+    .rank-badge {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: #f8f9fa;
     }
 
-    .leaderboard-table tbody tr:nth-child(odd) {
+    .rank-badge.gold {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: white;
+    }
+
+    .rank-badge.silver {
+        background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+        color: white;
+    }
+
+    .rank-badge.bronze {
+        background: linear-gradient(135deg, #CD7F32, #8B4513);
+        color: white;
+    }
+
+    .highlight-row {
         background-color: #f8f9fa;
     }
 
-    .gold {
-        background: #FFD700 !important;
-        font-weight: bold;
+    .highlight-row:hover {
+        background-color: #f0f0f0 !important;
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
     }
 
-    .silver {
-        background: #C0C0C0 !important;
-        font-weight: bold;
+    .input-group-text,
+    .form-control {
+        padding: 0.75rem 1rem;
     }
 
-    .bronze {
-        background: #CD7F32 !important;
-        font-weight: bold;
+    .alert {
+        border-radius: 0.75rem;
     }
 
-    .table-primary {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
+    .donor-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .avatar-wrapper {
+        box-shadow: 0 0 0 2px #e9ecef;
+    }
+
+    /* Add smooth transitions */
+    .btn, .form-control, .rank-badge {
+        transition: all 0.2s ease;
+    }
+
+    /* Custom gradient background */
+    .bg-gradient-to-r {
+        background: linear-gradient(to right, #f0f7ff, #ffffff);
+    }
+
+    .empty-state-icon {
+        opacity: 0.5;
     }
 </style>
+
+<script>
+// Search functionality
+document.getElementById('searchDonor').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('.donor-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
 {% endblock %}

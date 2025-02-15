@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container-fluid px-4 py-5">
-    <!-- Header -->
+    <!-- Header  -->
     <div class="row align-items-center mb-4">
         <div class="col text-center">
             <h1 class="display-5 fw-bold text-primary mb-3">Volunteer Opportunities</h1>
@@ -88,26 +88,26 @@
                         {{ event.date }}
                     </div>
                     <div class="status-indicator">
-                        {% if event.id in signed_up_event_ids %}
-                            {% set is_completed = false %}
-                            {% for signup in current_user.user_volunteers %}
-                                {% if signup.event_id == event.id %}
-                                    {% if signup.attended == 1 %}
-                                        {% set is_completed = true %}
-                                    {% endif %}
-                                {% endif %}
-                            {% endfor %}
+                        {% set is_signed_up = event.id in signed_up_events %}
+                        {% set is_completed = signed_up_events.get(event.id, False) %}
+                    
+                        {% if is_signed_up %}
                             {% if is_completed %}
                                 <span class="badge bg-success rounded-pill">
-                                    <i class="bi bi-check-circle me-1"></i>Completed
+                                    <i class="bi bi-check-circle me-1"></i> Completed
                                 </span>
                             {% else %}
                                 <span class="badge bg-warning rounded-pill">
-                                    <i class="bi bi-clock me-1"></i>Signed Up
+                                    <i class="bi bi-clock me-1"></i> Signed Up
                                 </span>
                             {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('confirm_volunteer', event_id=event.id) }}" class="btn btn-primary w-100 mt-2">
+                                <i class="bi bi-person-plus"></i> Sign Up
+                            </a>
                         {% endif %}
                     </div>
+                    
                     
                     
                     <div class="d-flex justify-content-between align-items-center mt-auto">
@@ -135,7 +135,7 @@
                                 <i class="bi bi-chat-left-text"></i>
                             </a>
                             <!-- Add Review Button -->
-                            {% if event.id in signed_up_event_ids %}
+                            {% if signed_up_events.get(event.id, False) %}
                             <button class="btn btn-sm btn-outline-primary custom-button" data-bs-toggle="modal"
                                 data-bs-target="#reviewModal-{{ event.id }}">
                                 <i class="bi bi-star"></i>
@@ -276,4 +276,4 @@
         form.submit();
     }
 </script>
-{% endblock %}
+{% endblock %}

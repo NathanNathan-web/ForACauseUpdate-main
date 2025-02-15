@@ -14,7 +14,7 @@
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
-            aria-expanded="false">Products</a>
+            aria-expanded="false">Shop</a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="{{ url_for('productadmin') }}">Products</a></li>
             <li><a class="dropdown-item" href="{{ url_for('inventoryadmin') }}">Inventory</a></li>
@@ -36,7 +36,7 @@
           <a class="nav-link" href="{{ url_for('create_volunteer_event') }}">Volunteer</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('serviceadmin') }}">Services</a>
+          <a class="nav-link" href="{{ url_for('serviceadmin') }}">Feedback</a>
         </li>
       </ul>
       </ul>
@@ -48,10 +48,7 @@
       </a>
       <ul class="navbar-nav m-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('product') }}">Products</a>
+          <a class="nav-link" href="{{ url_for('product') }}">Shop</a>
         </li>
         <!-- Vouchers Dropdown for User -->
         <li class="nav-item dropdown">
@@ -75,7 +72,7 @@
           <a class="nav-link" href="{{ url_for('volunteer') }}">Volunteer</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('service') }}">Services</a>
+          <a class="nav-link" href="{{ url_for('service') }}">Feedback</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('volunteer') }}">Volunteer</a>
@@ -91,10 +88,7 @@
       </a>
       <ul class=" navbar-nav m-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('product') }}">Products</a>
+          <a class="nav-link" href="{{ url_for('product') }}">Shop</a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
@@ -125,7 +119,7 @@
           <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('service') }}">Services</a>
+          <a class="nav-link" href="{{ url_for('service') }}">Feedback</a>
         </li>
       </ul>
       {% endif %}
