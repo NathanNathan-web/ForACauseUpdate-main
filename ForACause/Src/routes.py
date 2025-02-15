@@ -18,7 +18,7 @@ from io import BytesIO
 from flask import send_file
 import stripe
 from datetime import datetime
-stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
+
 import timedelta
 from Src.models import Feedback
 from flask_mail import Mail, Message
@@ -29,6 +29,9 @@ from flask import flash, redirect, url_for
 from flask_login import login_required
 from flask_login import current_user
 import pytz
+import stripe
+
+stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Or use your SMTP service
 app.config['MAIL_PORT'] = 587
@@ -1181,45 +1184,74 @@ def generate_qr():
 @login_required
 def donation_payment():
     from Src.organization import organizations
+    import stripe
+    stripe.api_key = "sk_test_51QkUOjJw6qEGWv892rSo4scTB2rqEM8PmzwgpEBjyhW9tDnXRmo3LuUEzmSJoHqyMbOphD8154ZSeB3UMTNqAGxL00OlAkeMM9"  # Your Stripe secret key
 
-    donation_amount = request.args.get('amount', type=float, default=0.0)  # Default donation amount
+    donation_amount = request.args.get('amount', type=float, default=0.0)
     selected_org = request.args.get('organization', '')
 
-    # 🚀 Ensure the organization is valid, fallback if missing
+    # Ensure the organization is valid
     if selected_org not in organizations:
-        selected_org = list(organizations.keys())[0]  # Default to the first available organization
+        selected_org = list(organizations.keys())[0]
 
-    # **Retrieve only unique redeemed vouchers**
+    # Retrieve unique redeemed vouchers
     redeemed_vouchers = RedeemedVouchers.query.filter_by(user_id=current_user.id).all()
     unique_vouchers = {}
-    for v in redeemed_vouchers:
-        if v.voucher and v.voucher.value:
-            unique_vouchers[v.voucher.id] = v  # Prevent duplicates
+    for rv in redeemed_vouchers:
+        if rv.voucher and rv.voucher.value:
+            unique_vouchers[rv.voucher.id] = rv
 
-    # Calculate the total discount based on vouchers
     total_discount = sum(v.voucher.value for v in unique_vouchers.values())
-    final_amount = max(0, donation_amount - total_discount)  # Ensure non-negative final amount
+    final_amount = max(0, donation_amount - total_discount)
 
     if request.method == "POST":
-        payment_method = request.form.get("payment_method")
+        payment_method = request.form.get("payment_method", "")
         if not payment_method:
             flash("Please select a payment method.", "error")
-            return redirect(url_for("donation_payment"))
+            return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
 
-        # ✅ Process payment and redirect to success page
-        flash(f"Donation of SGD {final_amount:.2f} processed successfully!", "success")
-        
-        # Pass the donation_amount and organization_name to donation_success page
-        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]['name']))
+        # If Stripe Checkout is selected, create a session and redirect
+        if payment_method == "stripe":
+            try:
+                session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'sgd',
+                            'product_data': {
+                                'name': f"Donation to {organizations[selected_org]['name']} (User {current_user.id})"
+                            },
+                            'unit_amount': int(final_amount * 100),  # amount in cents
+                        },
+                        'quantity': 1,
+                    }],
+                    mode='payment',
+                    success_url=url_for('donation_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+                    cancel_url=url_for('payment_cancel', _external=True),
+                )
+                return redirect(session.url)
+            except stripe.error.StripeError as e:
+                flash(f"Stripe error: {str(e)}", "error")
+                return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
+
+        # If PayNow is selected
+        elif payment_method == "paynow":
+            flash(f"Successfully processed PayNow donation of SGD {final_amount:.2f}!", "success")
+        else:
+            flash("Invalid payment method selected.", "error")
+            return redirect(url_for("donation_payment", amount=donation_amount, organization=selected_org))
+
+        return redirect(url_for("donation_success", amount=final_amount, organization=organizations[selected_org]["name"]))
 
     return render_template(
-        'payment.html',
-        organization_name=organizations[selected_org]['name'],
+        "payment.html",
+        organization_name=organizations[selected_org]["name"],
         donation_amount=donation_amount,
-        redeemed_vouchers=list(unique_vouchers.values()),  # Only unique vouchers
+        redeemed_vouchers=list(unique_vouchers.values()),
         total_discount=total_discount,
         final_amount=final_amount,
     )
+
 
 
 @app.route('/donation/success', methods=['GET'])
@@ -1275,37 +1307,43 @@ def calculate_crc(payload):
     return f"{crc:04X}"  # Convert to uppercase hex
 
 
-@app.route('/create-checkout-session', methods=['GET'])
-@login_required
+@app.route('/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
-        # Retrieve donation details
-        amount = int(request.args.get('amount', type=float) * 100)  # Convert to cents
-        organization_name = request.args.get('organization', 'ForACause')
+        data = request.json
+        amount = data.get("amount", 0)
+        postal_code = data.get("postal_code", "")
 
-        # Create Stripe Checkout session
-        checkout_session = stripe.checkout.Session.create(
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        if not postal_code.isdigit() or len(postal_code) != 6:
+            return jsonify({'error': 'Invalid postal code'}), 400
+
+        session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'sgd',
-                        'product_data': {
-                            'name': f'Donation to {organization_name}',
-                        },
-                        'unit_amount': amount,
-                    },
-                    'quantity': 1,
+            line_items=[{
+                'price_data': {
+                    'currency': 'sgd',
+                    'product_data': {'name': 'Donation'},
+                    'unit_amount': amount,
                 },
-            ],
+                'quantity': 1,
+            }],
+            billing_address_collection='required',
             mode='payment',
-            success_url=url_for('payment_success', _external=True),
-            cancel_url=url_for('payment_cancel', _external=True),
+            # Redirects back to donation page after a successful payment
+            success_url=url_for('donate', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            # Or, if you prefer a different route on cancel, change accordingly
+            cancel_url=url_for('donation_payment', _external=True),
         )
-        return redirect(checkout_session.url, code=303)
+
+        return jsonify({'id': session.id})
+
     except Exception as e:
-        flash(f"An error occurred: {str(e)}", "danger")
-        return redirect(url_for('donate'))
+        return jsonify({'error': str(e)}), 400
+
+
 
 
 @app.route('/payment/success')
