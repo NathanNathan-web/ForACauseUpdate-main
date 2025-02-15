@@ -6,17 +6,38 @@
     <div class="container">
         <h2 class="text-center mb-4 fw-bold">Donate to a Cause</h2>
 
-        <!-- Display Flash Messages -->
+        <!-- Flash Messages -->
         <div class="alerts-container mb-4">
             {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} text-center">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} text-center">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
             {% endwith %}
         </div>
 
+        {# --- Toast Notification for Stripe Donations --- #}
+        {% if request.args.get('stripe') == '1' %}
+        <div id="donationToast" class="toast align-items-center text-bg-success border-0 position-fixed top-0 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Stripe Donation Successful!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var donationToastEl = document.getElementById('donationToast');
+                var donationToast = new bootstrap.Toast(donationToastEl, { delay: 3000 });
+                donationToast.show();
+            });
+        </script>
+        {% endif %}
+        {# --- End Toast Notification --- #}
+
+        <!-- Donation Form -->
         <form method="POST" class="donation-form">
             {{ form.hidden_tag() }}
 
@@ -84,6 +105,7 @@
     </div>
 </div>
 
+<!-- Inline CSS -->
 <style>
 /* Background Styling */
 .donate-background {
@@ -105,31 +127,26 @@
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
-
 .org-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
-
 .org-card img {
     border-bottom: 1px solid #ddd;
     object-fit: cover;
 }
-
 /* Card Title */
 .card-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #333;
 }
-
 /* Card Footer */
 .card-footer {
     background-color: #f9f9f9;
     padding: 15px;
     text-align: center;
 }
-
 .card-footer label {
     font-size: 1rem;
     font-weight: 500;
@@ -137,18 +154,15 @@
     color: #007bff;
     transition: color 0.3s ease;
 }
-
 .card-footer label:hover {
     color: #0056b3;
 }
-
 /* Donation Form */
 .donation-form .form-label {
     font-size: 1.2rem;
     font-weight: bold;
     color: #444;
 }
-
 .donation-form .form-control-lg {
     border-radius: 10px;
     padding: 15px;
@@ -156,13 +170,11 @@
     border: 1px solid #ced4da;
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
-
 .donation-form .form-control-lg:focus {
     border-color: #007bff;
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
     outline: none;
 }
-
 /* Submit Button */
 .donation-form .btn-success {
     font-size: 1.2rem;
@@ -172,34 +184,28 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .donation-form .btn-success:hover {
     background-color: #218838;
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(33, 136, 56, 0.4);
 }
-
 /* Modal Styling */
 .modal-content {
     border-radius: 15px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
-
 .modal-header {
     border-bottom: none;
     padding-bottom: 0;
 }
-
 .modal-title {
     font-size: 1.5rem;
     font-weight: bold;
     color: #444;
 }
-
 .modal-body {
     padding: 20px 30px;
 }
-
 .modal-body img {
     border-radius: 10px;
     max-width: 100%;
@@ -207,24 +213,20 @@
     margin-bottom: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
-
 .modal-body p {
     font-size: 1rem;
     color: #555;
     line-height: 1.6;
 }
-
 .modal-footer {
     border-top: none;
     justify-content: center;
 }
-
 .modal-footer .btn-secondary {
     font-size: 1rem;
     border-radius: 10px;
     padding: 10px 20px;
 }
-
 /* Alerts Styling */
 .alert {
     border-radius: 10px;
@@ -233,53 +235,44 @@
     font-weight: 500;
     text-align: center;
 }
-
 .alert-success {
     color: #155724;
     background-color: #d4edda;
     border-color: #c3e6cb;
 }
-
 .alert-danger {
     color: #721c24;
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
-
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .org-card {
         margin-bottom: 20px;
     }
-
     .card-title {
         font-size: 1.25rem;
     }
-
     .donation-form .btn-success {
         font-size: 1rem;
         padding: 10px 15px;
     }
 }
-
 /* General Improvements */
 body {
-    font-family: 'Arial', sans-serif; /* Use a more modern font */
-    line-height: 1.6; /* Improve readability */
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
 }
-
 h2 {
-    color: #333; /* Consistent heading color */
+    color: #333;
 }
-
 .text-center {
-    text-align: center; /* Ensure text is centered */
+    text-align: center;
 }
-
 .container {
-    max-width: 1200px; /* Limit container width for better layout */
-    margin: auto; /* Center the container */
-    padding: 0 15px; /* Add padding for smaller screens */
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 15px;
 }
 </style>
 
@@ -291,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const orgName = this.getAttribute('data-org-name');
             const orgDescription = this.getAttribute('data-org-description');
             const orgLogo = this.getAttribute('data-org-logo');
-
             document.getElementById('orgDetailsLabel').textContent = orgName;
             document.getElementById('orgModalLogo').src = orgLogo;
             document.getElementById('orgModalDescription').textContent = orgDescription;

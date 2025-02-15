@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-
 {% block title %}ForACause - Vouchers{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="alert alert-info alert-dismissible fade show mb-4 text-center shadow-sm" role="alert">
                 {% for category, message in messages %}
@@ -21,11 +20,12 @@
         <p class="lead text-muted">Redeem your credits for exclusive rewards!</p>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for voucher in vouchers_list %}
-            {% if voucher.isValid %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="voucherContainer">
+        {% for voucher in vouchers_list if voucher.isValid %}
         <div class="col">
-            <div class="card voucher-card shadow-sm" data-bs-toggle="modal" data-bs-target="#voucherModal" 
+            <div class="card voucher-card shadow-sm"
+                 data-bs-toggle="modal"
+                 data-bs-target="#voucherModal" 
                  data-voucher-id="{{ voucher.id }}" 
                  data-voucher-name="{{ voucher.name }}" 
                  data-voucher-description="{{ voucher.description }}" 
@@ -45,26 +45,23 @@
                     
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <span class="h5 text-success fw-bold">${{ voucher.value }}</span>
-                        <button class="btn btn-primary redeem-btn">
-                            Redeem Now
-                        </button>
+                        <button class="btn btn-primary redeem-btn">Redeem Now</button>
                     </div>
                 </div>
             </div>
         </div>
-        {% endif %}
-    {% endfor %}
+        {% endfor %}
     </div>
 
     {% if vouchers_list|selectattr('isValid')|list|length == 0 %}
-        <div class="text-center py-5">
-            <h2 class="display-6 text-muted">No Vouchers Available</h2>
-            <p class="lead">Check back later for new exciting offers!</p>
-        </div>
+    <div class="text-center py-5">
+        <h2 class="display-6 text-muted">No Vouchers Available</h2>
+        <p class="lead">Check back later for new exciting offers!</p>
+    </div>
     {% endif %}
 </div>
 
-<!-- Modal for Voucher Details -->
+<!-- Voucher Details Modal -->
 <div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -84,35 +81,39 @@
     </div>
 </div>
 
+<!-- Inline Styles -->
 <style>
-/* General Styles */
+/* Background & General */
 body {
     background: #f8f9fa;
     font-family: 'Poppins', sans-serif;
 }
-
-/* Card Styling */
-.voucher-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 12px;
-    overflow: hidden;
-    background: white;
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 15px;
 }
 
+/* Voucher Card */
+.voucher-card {
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 .voucher-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
-
-/* Voucher Image */
 .voucher-image {
     height: 220px;
     object-fit: cover;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
-
-/* Badge Overlay */
 .voucher-overlay {
     position: absolute;
     top: 10px;
@@ -121,7 +122,7 @@ body {
     border-radius: 8px;
 }
 
-/* Button Styling */
+/* Redeem Button */
 .redeem-btn {
     background: linear-gradient(135deg, #0d6efd, #0056b3);
     border: none;
@@ -130,54 +131,52 @@ body {
     border-radius: 30px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .redeem-btn:hover {
     background: linear-gradient(135deg, #0056b3, #003a70);
     transform: scale(1.05);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-/* Flash Messages */
-.alert {
-    border-radius: 8px;
-    font-size: 1rem;
-    padding: 10px;
-}
-
-/* Modal Styling */
+/* Modal */
 .modal-content {
     border-radius: 15px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
-
 .modal-header {
     border-bottom: none;
 }
-
 .modal-title {
     font-size: 1.5rem;
     font-weight: bold;
+    color: #444;
 }
-
 .modal-body {
     padding: 20px;
+    text-align: center;
 }
-
+.modal-body p {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+}
 .modal-footer {
     border-top: none;
     text-align: center;
 }
+.modal-footer .btn-success {
+    font-size: 1.2rem;
+    border-radius: 50px;
+    padding: 10px 20px;
+}
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .voucher-image {
         height: 180px;
     }
-
     .card-title {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
     }
-
     .redeem-btn {
         font-size: 1rem;
         padding: 8px 16px;
@@ -185,32 +184,31 @@ body {
 }
 </style>
 
+<!-- JavaScript -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const voucherCards = document.querySelectorAll('.voucher-card');
-        const voucherModal = document.getElementById('voucherModal');
-        const voucherModalLabel = document.getElementById('voucherModalLabel');
-        const voucherDescription = document.getElementById('voucherDescription');
-        const voucherCredits = document.getElementById('voucherCredits');
-        const voucherValue = document.getElementById('voucherValue');
-        const redeemLink = document.getElementById('redeemLink');
+document.addEventListener('DOMContentLoaded', function () {
+    // Use event delegation to handle clicks on voucher cards
+    const voucherContainer = document.getElementById('voucherContainer');
+    if (voucherContainer) {
+        voucherContainer.addEventListener('click', function (event) {
+            const card = event.target.closest('.voucher-card');
+            if (!card) return;
 
-        voucherCards.forEach(card => {
-            card.addEventListener('click', function () {
-                const voucherId = this.getAttribute('data-voucher-id');
-                const voucherName = this.getAttribute('data-voucher-name');
-                const voucherDesc = this.getAttribute('data-voucher-description');
-                const voucherCreditsValue = this.getAttribute('data-voucher-credits');
-                const voucherValueAmount = this.getAttribute('data-voucher-value');
+            // Extract voucher data attributes
+            const voucherId = card.getAttribute('data-voucher-id');
+            const voucherName = card.getAttribute('data-voucher-name');
+            const voucherDesc = card.getAttribute('data-voucher-description');
+            const voucherCredits = card.getAttribute('data-voucher-credits');
+            const voucherValue = card.getAttribute('data-voucher-value');
 
-                voucherModalLabel.textContent = voucherName;
-                voucherDescription.textContent = voucherDesc;
-                voucherCredits.textContent = voucherCreditsValue;
-                voucherValue.textContent = voucherValueAmount;
-                redeemLink.href = `/redeemVoucher/${voucherId}`;
-            });
+            // Update modal content
+            document.getElementById('voucherModalLabel').textContent = voucherName;
+            document.getElementById('voucherDescription').textContent = voucherDesc;
+            document.getElementById('voucherCredits').textContent = voucherCredits;
+            document.getElementById('voucherValue').textContent = voucherValue;
+            document.getElementById('redeemLink').href = `/redeemVoucher/${voucherId}`;
         });
-    });
+    }
+});
 </script>
-
 {% endblock %}
